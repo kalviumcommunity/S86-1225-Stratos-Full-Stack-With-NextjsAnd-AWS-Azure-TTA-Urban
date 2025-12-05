@@ -1,8 +1,8 @@
-🏙️ TTA-Urban(Transparency, Traceability & Accountability Complaint System)
+### 🏙️ TTA-Urban (Transparency, Traceability & Accountability Complaint System)
 
 A digital platform ensuring transparency, traceability, and accountability in resolving urban civic issues.
 
-📌 Overview
+### 📌 Overview
 
 Urban Local Bodies (ULBs) often struggle with ineffective grievance redressal due to limited accessibility, lack of tracking mechanisms, and poor transparency. Citizens have no visibility into the status of their complaints, and officials lack tools for efficient monitoring and accountability.
 
@@ -13,12 +13,12 @@ The system uses modern web technologies to ensure:
 ✔ Traceability – complete complaint lifecycle with timestamps & audit trails
 ✔ Accountability – role-based access, officer assignment, and SLA-based escalations
 
-🎯 Project Objective
+### 🎯 Project Objective
 
 To build a smart, accessible, and accountable grievance redressal system that enhances urban governance by integrating digital tools, automation, and data-driven decision-making.
 
-🚀 Key Features
-👤 Citizen Interface
+### 🚀 Key Features
+## 👤 Citizen Interface
 
 Submit grievances with photos, description, and location
 
@@ -28,7 +28,7 @@ Receive notifications on updates and resolutions
 
 Provide feedback and rate service quality
 
-🏢 Officer & Department Dashboard
+### 🏢 Officer & Department Dashboard
 
 View and filter assigned complaints
 
@@ -38,7 +38,7 @@ Upload resolution proofs
 
 Manage escalations and workload
 
-🛠️ Admin Panel
+### 🛠️ Admin Panel
 
 Role & user management
 
@@ -48,7 +48,7 @@ Configure SLAs and escalation policies
 
 View performance analytics and reports
 
-📊 Public Dashboard
+### 📊 Public Dashboard
 
 City-wide issue map
 
@@ -58,13 +58,13 @@ Resolution rate and SLA compliance
 
 Transparency reporting
 
-🔄 Complaint Lifecycle
-Citizen submits → Verification → Assignment → In Progress  
-→ Resolved → Citizen Feedback → Closed
+### 🔄 Complaint Lifecycle
 
-🧪 Features to be Developed (Issues)
+Citizen submits → Verification → Assignment → In Progress → Resolved → Citizen Feedback → Closed
 
-A few key tasks from your GitHub issues:
+### 🧪 Features to be Developed (Issues)
+
+Key tasks planned for development:
 
 Complaint submission form
 
@@ -84,7 +84,7 @@ Authentication + RBAC
 
 Data analytics & reports
 
-🔐 Security Considerations
+### 🔐 Security Considerations
 
 Input validation for all user data
 
@@ -96,7 +96,7 @@ File upload sanitization
 
 Privacy compliance (GDPR/local laws)
 
-📈 Future Enhancements
+### 📈 Future Enhancements
 
 AI for categorization & duplicate complaint detection
 
@@ -108,8 +108,8 @@ Multi-language support
 
 Mobile app (React Native / Flutter)
 
-🔧 Tech Stack
-Frontend – Next.js
+### 🔧 Tech Stack
+## Frontend – Next.js
 
 Next.js 14+ (App Router)
 
@@ -119,7 +119,7 @@ TailwindCSS for styling
 
 Axios / Fetch API for API calls
 
-Next Auth / JWT for Authentication
+NextAuth / JWT for Authentication
 
 React Query / SWR for data fetching & caching
 
@@ -127,9 +127,8 @@ Leaflet / Mapbox for location & map integration
 
 PWA Support (optional)
 
-Backend
+## Backend
 
-(If backend is separate, else Next.js API routes can be used)
 
 Node.js + Express (or Next.js API Routes)
 
