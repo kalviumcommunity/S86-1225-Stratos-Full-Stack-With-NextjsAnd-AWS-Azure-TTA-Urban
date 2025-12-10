@@ -141,3 +141,57 @@ JWT Authentication
 Cron Jobs for auto-escalation
 
 Cloud Storage (Cloudinary / AWS S3) for images
+
+
+### 🏙️ TTA‑Urban – Transparency, Traceability & Accountability Complaint System
+A web-based grievance redressal platform that enables citizens to report civic issues and allows Urban Local Bodies (ULBs) to track, verify, and resolve them efficiently.
+This project focuses on providing transparency, traceability, and accountability in urban governance.
+
+### 📁 Folder Structure
+your-project-name/
+├── src/
+│   ├── app/                # App Router pages & routes (Home, Login, Dashboard...)
+│   ├── components/         # Reusable UI components (Navbar, Buttons, Cards)
+│   ├── lib/                # Helpers, configs, utilities
+│
+├── public/                 # Static assets (images, icons)
+├── .gitignore              # Node, build & env files ignored here
+├── package.json            # Project dependencies & scripts
+├── README.md               # Documentation
+
+
+### ✔ What Each Folder Does
+Folder	Purpose
+src/app	Contains all page routes using the Next.js App Router architecture.
+src/components	Holds reusable UI components for cleaner and modular code.
+src/lib	Common utilities (API helpers, constants, configs).
+public	Stores images, logos, and static files.
+
+
+### ⚙️ Setup Instructions
+🔧 1. Installation
+Make sure Node.js is installed.
+
+npx create-next-app@latest tta-urban --js
+▶️ 2. Run Locally
+npm install
+npm run dev
+Your app will run at:
+👉 http://localhost:3000
+
+### 📝 Reflection
+This folder structure is chosen to:
+
+🔹 Keep the project scalable
+Separating components, routes, and utilities prevents clutter as features grow.
+
+🔹 Make teamwork easier
+Clear separation means multiple developers can work without conflicts.
+
+🔹 Improve maintainability
+A predictable layout makes debugging and updating faster.
+
+🔹 Support future sprints
+Upcoming features like dashboards, RBAC, SLAs, and public maps will integrate smoothly because the structure is modular.
+
+![TTA-Urban](./ttaurban/public/assests/nextjs.png)
