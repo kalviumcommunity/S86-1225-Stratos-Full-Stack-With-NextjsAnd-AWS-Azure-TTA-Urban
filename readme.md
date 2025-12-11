@@ -108,6 +108,66 @@ Multi-language support
 
 Mobile app (React Native / Flutter)
 
+
+üîÄ Branch Naming Conventions
+feature/<feature-name>
+fix/<bug-name>
+docs/<update-name>
+chore/<task-name>
+
+Examples:
+- feature/complaint-form
+- fix/map-error
+- docs/readme-update
+- chore/setup-config
+
+üìù Pull Request Template (Add this file to repo)
+
+Create:
+.github/pull_request_template.md
+
+Content:
+
+## Summary
+Briefly explain the purpose of this PR.
+
+## Changes Made
+- List important updates or fixes.
+
+## Screenshots / Evidence
+(Add UI images or logs if relevant)
+
+## Checklist
+- [ ] Code builds successfully
+- [ ] Lint & tests pass
+- [ ] No console errors or warnings
+- [ ] Reviewed by a teammate
+- [ ] Linked to corresponding issue
+
+üîç Code Review Checklist
+
+Add this section in README:
+
+### Code Review Checklist
+- Code follows naming conventions
+- Functionality tested locally
+- No console errors or warnings
+- ESLint + Prettier pass
+- Comments and docs are clear
+- No sensitive data in code
+- Folder structure followed
+
+üîê Branch Protection Rules
+
+Add this:
+
+### Branch Protection Rules (GitHub)
+- Require pull request before merging
+- Require at least 1 reviewer
+- Require all checks to pass (lint/test)
+- Block direct pushes to main
+- Require PRs to be up-to-date before merging
+
 ### üîß Tech Stack
 ## Frontend ‚Äì Next.js
 
@@ -223,3 +283,52 @@ $ npm run lint
 
 ![TTA-Urban](./ttaurban/public/assests/lint.png);
 
+## Team Branching Strategy & PR Workflow
+
+This section documents our recommended branching and pull request (PR) workflow to keep the repository consistent, reviewable, and safe for production.
+
+1) Branching strategy
+- **`main`**: Protected. Always green; only merge via PR when all checks pass.
+- **`develop`** (optional): Integration branch for completed features before release.
+- **Feature branches**: `feature/<short-descriptive-name>` ó for new features and improvements.
+- **Fix branches**: `fix/<short-descriptive-name>` ó for bug fixes that should be applied quickly.
+- **Chore branches**: `chore/<short-descriptive-name>` ó for maintenance tasks and infra changes.
+- **Docs branches**: `docs/<short-descriptive-name>` ó documentation-only changes.
+
+2) Pull request workflow
+- Open a PR from your feature branch into `main` (or `develop` if used).
+- Use a concise PR title and add a short description of changes and motivation.
+- Attach screenshots, logs, or design references when relevant.
+- Fill the PR checklist (see the template earlier in this README).
+
+3) Review & checks
+- Require at least one reviewer (two for larger changes).
+- All continuous integration checks (lint, tests) must pass before merging.
+- Ensure PR is up to date with the target branch (resolve merge conflicts locally if any).
+
+4) Merging
+- Use GitHubs Merge button (Squash merge preferred for feature branches to keep history tidy).
+- Avoid direct pushes to `main` ó always use PRs.
+
+5) Hotfixes
+- Create a `fix/` branch from `main`, test locally, and open a PR into `main`. Tag the release if required.
+
+6) Helpful commands
+```powershell
+# create a feature branch
+git checkout -b feature/my-feature
+
+# update from remote before creating a PR
+git fetch origin
+git rebase origin/main
+
+# push branch
+git push -u origin feature/my-feature
+```
+
+7) Notes & etiquette
+- Keep commits small and focused. Write meaningful commit messages.
+- Link PRs to issues when applicable.
+- Avoid mixing unrelated changes in the same PR.
+
+If you want, I can open a PR template file under `.github/pull_request_template.md` and optionally create GitHub branch protection rules ó tell me if you'd like me to do that next.
