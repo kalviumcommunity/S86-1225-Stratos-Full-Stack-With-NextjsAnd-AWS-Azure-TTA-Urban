@@ -195,3 +195,31 @@ A predictable layout makes debugging and updating faster.
 Upcoming features like dashboards, RBAC, SLAs, and public maps will integrate smoothly because the structure is modular.
 
 ![TTA-Urban](./ttaurban/public/assests/nextjs.png)
+
+### 🧹 Code Quality Toolkit
+
+- **Strict TypeScript:** `ttaurban/tsconfig.json` enables `strict`, `noImplicitAny`, `noUnusedLocals`, `noUnusedParameters`, `forceConsistentCasingInFileNames`, and `skipLibCheck`. These guard rails surface undefined access, dead code, and casing mistakes at compile time—reducing the odds of runtime regressions.
+- **ESLint + Prettier:** `ttaurban/eslint.config.mjs` layers `next/core-web-vitals` with `eslint-plugin-prettier/recommended`. Custom rules (`no-console`, double quotes, required semicolons) keep logs out of production builds and prevent noisy diffs. `.prettierrc` mirrors the same formatting choices (double quotes, semicolons, trailing commas, platform-aware line endings) so contributors auto-format consistently.
+- **Pre-commit Hooks:** Husky’s `.husky/pre-commit` runs `npm run lint-staged --prefix ttaurban`. `lint-staged` targets only staged JS/TS files, autopplies ESLint fixes, then runs Prettier. Commits are blocked until staged files pass, keeping the repository clean without manual policing.
+
+#### Verifying Locally
+
+```bash
+cd ttaurban
+npm run lint          # full ESLint run with strict rules
+npm run lint-staged   # simulate the pre-commit pipeline
+```
+
+#### Lint Evidence
+
+Recent terminal output after the configuration landed:
+
+```bash
+$ npm run lint
+
+> ttaurban@0.1.0 lint
+> eslint . --ext js,jsx,ts,tsx
+```
+
+![TTA-Urban](./ttaurban/public/assests/lint.png);
+
