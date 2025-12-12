@@ -283,6 +283,123 @@ $ npm run lint
 
 ![TTA-Urban](./ttaurban/public/assests/lint.png);
 
+## 🐳 Docker Setup
+
+This project uses Docker and Docker Compose to containerize the entire application stack—Next.js app, PostgreSQL database, and Redis cache—making it easy to run a consistent development environment across all machines.
+
+### Services
+
+#### 1. Next.js App (`app`)
+- **Build context:** `./ttaurban`
+- **Port:** `3000`
+- **Environment variables:**
+  - `DATABASE_URL`: PostgreSQL connection string
+  - `REDIS_URL`: Redis connection string
+- **Dependencies:** Waits for `db` and `redis` to be ready before starting
+
+#### 2. PostgreSQL Database (`db`)
+- **Image:** `postgres:15-alpine`
+- **Port:** `5432`
+- **Credentials:**
+  - Username: `postgres`
+  - Password: `password`
+  - Database: `mydb`
+- **Volume:** `db_data` persists database data across container restarts
+
+#### 3. Redis Cache (`redis`)
+- **Image:** `redis:7-alpine`
+- **Port:** `6379`
+- **Purpose:** Used for caching and session management
+
+### Network & Volumes
+
+- **Network:** `localnet` (bridge) connects all three services so they can communicate by service name
+- **Volume:** `db_data` stores PostgreSQL data persistently
+
+### Running the Stack
+
+```bash
+# Build and start all services
+docker-compose up --build
+
+# Run in detached mode (background)
+docker-compose up --build -d
+
+# View running containers
+docker ps
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (WARNING: deletes database data)
+docker-compose down -v
+```
+
+### Accessing Services
+
+- **Next.js app:** http://localhost:3000
+- **PostgreSQL:** `localhost:5432` (use any DB client with credentials above)
+- **Redis:** `localhost:6379` (use Redis CLI or GUI tools)
+
+### Dockerfile Breakdown
+
+```dockerfile
+FROM node:20-alpine          # Lightweight Node.js base image
+WORKDIR /app                 # Set working directory inside container
+COPY package*.json ./        # Copy dependency manifests
+RUN npm install              # Install dependencies
+COPY . .                     # Copy all project files
+RUN npm run build            # Build Next.js production bundle
+EXPOSE 3000                  # Document the app port
+CMD ["npm", "run", "start"]  # Start the production server
+```
+
+### `.dockerignore`
+
+Excludes unnecessary files from the Docker build context:
+- `node_modules`, `.next`, `.git`
+- Environment files (`.env*`)
+- IDE configs, logs, test coverage
+
+This speeds up builds and reduces image size.
+
+### Troubleshooting
+
+**Issue:** Build fails with "The default export is not a React Component"
+- **Fix:** Ensure all page files in `app/` export a valid React component
+
+**Issue:** Port conflicts (e.g., port 3000 already in use)
+- **Fix:** Stop conflicting services or change the port mapping in `docker-compose.yml`
+
+**Issue:** Database connection errors
+- **Fix:** Verify `DATABASE_URL` matches the service name `db` and credentials in `docker-compose.yml`
+
+**Issue:** Slow builds
+- **Fix:** Use `.dockerignore` to exclude large folders; leverage Docker layer caching
+
+### Docker Setup Evidence
+
+Terminal output after successful build and startup:
+
+```bash
+$ docker-compose up --build -d
+[+] Building 74.8s (13/13) FINISHED
+[+] Running 6/6
+ ✔ Network s86-1225-stratos-full-stack-with-nextjsand-aws-azure-tta-urban_localnet  Created
+ ✔ Volume "s86-1225-stratos-full-stack-with-nextjsand-aws-azure-tta-urban_db_data"  Created
+ ✔ Container redis_cache   Started
+ ✔ Container postgres_db   Started
+ ✔ Container nextjs_app    Started
+
+$ docker ps
+CONTAINER ID   IMAGE                                                 COMMAND                  CREATED         STATUS         PORTS                    NAMES
+524578d4addf   s86-1225-...-tta-urban-app                           "docker-entrypoint.s…"   9 seconds ago   Up 7 seconds   0.0.0.0:3000->3000/tcp   nextjs_app
+2db5b3bfdcf8   postgres:15-alpine                                    "docker-entrypoint.s…"   9 seconds ago   Up 8 seconds   0.0.0.0:5432->5432/tcp   postgres_db
+dedd919d0b89   redis:7-alpine                                        "docker-entrypoint.s…"   9 seconds ago   Up 8 seconds   0.0.0.0:6379->6379/tcp   redis_cache
+```
+
+All three containers are running successfully with proper port mappings and network connectivity.
+
 ## Team Branching Strategy & PR Workflow
 
 This section documents our recommended branching and pull request (PR) workflow to keep the repository consistent, reviewable, and safe for production.
