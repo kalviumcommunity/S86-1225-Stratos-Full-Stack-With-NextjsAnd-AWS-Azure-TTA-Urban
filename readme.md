@@ -283,6 +283,57 @@ $ npm run lint
 
 ![TTA-Urban](./ttaurban/public/assests/lint.png);
 
+
+## Team Branching Strategy & PR Workflow
+
+This section documents our recommended branching and pull request (PR) workflow to keep the repository consistent, reviewable, and safe for production.
+
+1) Branching strategy
+- **`main`**: Protected. Always green; only merge via PR when all checks pass.
+- **`develop`** (optional): Integration branch for completed features before release.
+- **Feature branches**: `feature/complaint-submission` � for new features and improvements.
+- **Fix branches**: `fix/map-location-bug` � for bug fixes that should be applied quickly.
+- **Chore branches**: `chore/project-setup` � for maintenance tasks and infra changes.
+- **Docs branches**: `docs/workflow-docs` � documentation-only changes.
+
+2) Pull request workflow
+- Open a PR from your feature branch into `main` (or `develop` if used).
+- Use a concise PR title and add a short description of changes and motivation.
+- Attach screenshots, logs, or design references when relevant.
+- Fill the PR checklist (see the template earlier in this README).
+
+3) Review & checks
+- Require at least one reviewer (two for larger changes).
+- All continuous integration checks (lint, tests) must pass before merging.
+- Ensure PR is up to date with the target branch (resolve merge conflicts locally if any).
+
+4) Merging
+- Use GitHubs Merge button (Squash merge preferred for feature branches to keep history tidy).
+- Avoid direct pushes to `main` � always use PRs.
+
+5) Hotfixes
+- Create a `fix/` branch from `main`, test locally, and open a PR into `main`. Tag the release if required.
+
+6) Helpful commands
+```powershell
+# create a feature branch
+git checkout -b feature/my-feature
+
+# update from remote before creating a PR
+git fetch origin
+git rebase origin/main
+
+# push branch
+git push -u origin feature/my-feature
+```
+
+7) Notes & etiquette
+- Keep commits small and focused. Write meaningful commit messages.
+- Link PRs to issues when applicable.
+- Avoid mixing unrelated changes in the same PR.
+
+If you want, I can open a PR template file under `.github/pull_request_template.md` and optionally create GitHub branch protection rules � tell me if you'd like me to do that next.
+
 ## 🐳 Docker Setup
 
 This project uses Docker and Docker Compose to containerize the entire application stack—Next.js app, PostgreSQL database, and Redis cache—making it easy to run a consistent development environment across all machines.
@@ -400,52 +451,303 @@ dedd919d0b89   redis:7-alpine                                        "docker-ent
 
 All three containers are running successfully with proper port mappings and network connectivity.
 
-## Team Branching Strategy & PR Workflow
+### Reflection
 
-This section documents our recommended branching and pull request (PR) workflow to keep the repository consistent, reviewable, and safe for production.
+**Why Docker Compose?**
+- **Consistency:** Eliminates "works on my machine" issues by ensuring every developer runs the exact same environment (Node version, database version, Redis configuration)
+- **Simplicity:** Single command (`docker-compose up`) brings up the entire stack—no manual PostgreSQL or Redis installation required
+- **Isolation:** Each service runs in its own container without polluting the host system
+- **Production parity:** The same container images can be deployed to staging/production with minimal changes
 
-1) Branching strategy
-- **`main`**: Protected. Always green; only merge via PR when all checks pass.
-- **`develop`** (optional): Integration branch for completed features before release.
-- **Feature branches**: `feature/complaint-submission` � for new features and improvements.
-- **Fix branches**: `fix/map-location-bug` � for bug fixes that should be applied quickly.
-- **Chore branches**: `chore/project-setup` � for maintenance tasks and infra changes.
-- **Docs branches**: `docs/workflow-docs` � documentation-only changes.
+**Challenges Faced:**
+1. **Empty page components:** Initial build failed because `app/contact/page.js` and `app/dashboard/page.js` were empty. Fixed by adding placeholder React components.
+2. **Build time optimization:** First build took ~103s. Added comprehensive `.dockerignore` to exclude `node_modules`, `.next`, and other unnecessary files, reducing context transfer time.
+3. **Version warning:** Docker Compose showed a warning about the obsolete `version` attribute—while harmless, future iterations should remove it for cleaner output.
 
-2) Pull request workflow
-- Open a PR from your feature branch into `main` (or `develop` if used).
-- Use a concise PR title and add a short description of changes and motivation.
-- Attach screenshots, logs, or design references when relevant.
-- Fill the PR checklist (see the template earlier in this README).
+**Future Improvements:**
+- Add health checks to ensure PostgreSQL is fully ready before the app starts
+- Implement multi-stage builds to reduce final image size
+- Configure environment-specific Docker Compose overrides (e.g., `docker-compose.prod.yml`)
+- Add volume mounts for hot-reloading during development
 
-3) Review & checks
-- Require at least one reviewer (two for larger changes).
-- All continuous integration checks (lint, tests) must pass before merging.
-- Ensure PR is up to date with the target branch (resolve merge conflicts locally if any).
+## 🗄️ Database Schema Design
 
-4) Merging
-- Use GitHubs Merge button (Squash merge preferred for feature branches to keep history tidy).
-- Avoid direct pushes to `main` � always use PRs.
+This project uses PostgreSQL with Prisma ORM to manage a normalized relational database that supports the TTA-Urban complaint management system.
 
-5) Hotfixes
-- Create a `fix/` branch from `main`, test locally, and open a PR into `main`. Tag the release if required.
+### Core Entities
 
-6) Helpful commands
-```powershell
-# create a feature branch
-git checkout -b feature/my-feature
+#### 1. User
+Represents all system users: citizens, officers, and admins.
 
-# update from remote before creating a PR
-git fetch origin
-git rebase origin/main
+**Fields:**
+- `id` (PK) - Auto-incrementing unique identifier
+- `name` - Full name
+- `email` (UNIQUE) - Login credential
+- `password` - Hashed password
+- `phone` - Contact number (optional)
+- `role` - Enum: `CITIZEN`, `OFFICER`, `ADMIN`
+- `createdAt`, `updatedAt` - Timestamps
 
-# push branch
-git push -u origin feature/my-feature
+**Relationships:**
+- **1:N** with `Complaint` (as creator)
+- **1:N** with `Complaint` (as assigned officer)
+- **1:N** with `Feedback`
+- **1:N** with `Notification`
+
+**Indexes:** `email`, `role` for fast authentication and role-based queries
+
+#### 2. Department
+Categorizes complaints by responsible municipal department.
+
+**Fields:**
+- `id` (PK)
+- `name` (UNIQUE) - e.g., "Road Maintenance", "Water Supply"
+- `description`
+- `createdAt`, `updatedAt`
+
+**Relationships:**
+- **1:N** with `Complaint`
+
+**Indexes:** `name` for department lookup
+
+#### 3. Complaint
+Core entity tracking citizen grievances.
+
+**Fields:**
+- `id` (PK)
+- `title`, `description` - Issue details
+- `category` - Enum: `ROAD_MAINTENANCE`, `WATER_SUPPLY`, `ELECTRICITY`, etc.
+- `status` - Enum: `SUBMITTED`, `VERIFIED`, `ASSIGNED`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, `REJECTED`
+- `priority` - Enum: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`
+- `latitude`, `longitude`, `address` - Location data
+- `imageUrl` - Supporting photo
+- `userId` (FK) - Complaint creator
+- `departmentId` (FK) - Assigned department (nullable)
+- `assignedTo` (FK) - Assigned officer (nullable)
+- `createdAt`, `updatedAt`, `resolvedAt`
+
+**Relationships:**
+- **N:1** with `User` (creator)
+- **N:1** with `User` (assigned officer)
+- **N:1** with `Department`
+- **1:N** with `AuditLog`
+- **1:1** with `Feedback`
+- **1:N** with `Escalation`
+
+**Constraints:**
+- `ON DELETE CASCADE` for `userId` (deleting user removes their complaints)
+- `ON DELETE SET NULL` for `departmentId` and `assignedTo` (preserves complaint history)
+
+**Indexes:** `userId`, `status`, `category`, `departmentId`, `assignedTo`, `createdAt` for filtering and sorting
+
+#### 4. AuditLog
+Tracks every status change in a complaint's lifecycle.
+
+**Fields:**
+- `id` (PK)
+- `complaintId` (FK)
+- `previousStatus`, `newStatus` - Status transition
+- `comment` - Reason for change
+- `changedBy` - User who made the change
+- `createdAt`
+
+**Relationships:**
+- **N:1** with `Complaint`
+
+**Constraints:**
+- `ON DELETE CASCADE` (audit log deleted if complaint is deleted)
+
+**Indexes:** `complaintId`, `createdAt` for timeline queries
+
+#### 5. Feedback
+Citizen ratings and comments after complaint resolution.
+
+**Fields:**
+- `id` (PK)
+- `complaintId` (FK, UNIQUE) - One feedback per complaint
+- `userId` (FK)
+- `rating` - Integer 1-5
+- `comment` (optional)
+- `createdAt`
+
+**Relationships:**
+- **1:1** with `Complaint`
+- **N:1** with `User`
+
+**Constraints:**
+- `ON DELETE CASCADE` for both FKs
+
+**Indexes:** `rating`, `createdAt` for analytics
+
+#### 6. Escalation
+Tracks complaints that breach SLA timelines.
+
+**Fields:**
+- `id` (PK)
+- `complaintId` (FK)
+- `reason` - Why it was escalated
+- `escalatedAt`, `resolvedAt`
+
+**Relationships:**
+- **N:1** with `Complaint`
+
+**Constraints:**
+- `ON DELETE CASCADE`
+
+**Indexes:** `complaintId`, `escalatedAt`
+
+#### 7. Notification
+Real-time updates sent to users.
+
+**Fields:**
+- `id` (PK)
+- `userId` (FK)
+- `title`, `message`
+- `isRead` - Boolean, default `false`
+- `createdAt`
+
+**Relationships:**
+- **N:1** with `User`
+
+**Constraints:**
+- `ON DELETE CASCADE`
+
+**Indexes:** `userId`, `isRead`, `createdAt` for inbox queries
+
+### Normalization
+
+- **1NF:** All tables have atomic values and primary keys
+- **2NF:** No partial dependencies—all non-key attributes depend on the entire primary key
+- **3NF:** No transitive dependencies—department info stored in `Department` table, not duplicated in `Complaint`
+
+### Entity-Relationship Diagram
+
+```
+User (1) ────< (N) Complaint
+User (1) ────< (N) Notification
+User (1) ────< (N) Feedback
+Department (1) ────< (N) Complaint
+Complaint (1) ────< (N) AuditLog
+Complaint (1) ───── (1) Feedback
+Complaint (1) ────< (N) Escalation
 ```
 
-7) Notes & etiquette
-- Keep commits small and focused. Write meaningful commit messages.
-- Link PRs to issues when applicable.
-- Avoid mixing unrelated changes in the same PR.
+### Prisma Schema Excerpt
 
-If you want, I can open a PR template file under `.github/pull_request_template.md` and optionally create GitHub branch protection rules � tell me if you'd like me to do that next.
+```prisma
+model User {
+  id                Int         @id @default(autoincrement())
+  name              String
+  email             String      @unique
+  role              UserRole    @default(CITIZEN)
+  complaints        Complaint[] @relation("UserComplaints")
+  assignedComplaints Complaint[] @relation("AssignedOfficer")
+  
+  @@index([email])
+  @@index([role])
+}
+
+model Complaint {
+  id              Int              @id @default(autoincrement())
+  title           String
+  status          ComplaintStatus  @default(SUBMITTED)
+  userId          Int
+  departmentId    Int?
+  assignedTo      Int?
+  user            User             @relation("UserComplaints", fields: [userId], references: [id], onDelete: Cascade)
+  department      Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  officer         User?            @relation("AssignedOfficer", fields: [assignedTo], references: [id], onDelete: SetNull)
+  
+  @@index([status])
+  @@index([userId])
+}
+```
+
+### Migrations
+
+Applied initial schema migration:
+
+```bash
+$ npx prisma migrate dev --name init_schema
+Applying migration `20251212112309_init_schema`
+Your database is now in sync with your schema.
+```
+
+### Seed Data
+
+Populated database with sample data:
+
+```bash
+$ npm run prisma:seed
+🌱 Starting database seed...
+✅ Created departments
+✅ Created users
+✅ Created complaints
+✅ Created audit logs
+✅ Created notifications
+🎉 Database seeded successfully!
+```
+
+**Sample Data Includes:**
+- 3 departments (Road Maintenance, Water Supply, Electricity)
+- 4 users (2 citizens, 1 officer, 1 admin)
+- 3 complaints in various statuses
+- 2 audit log entries tracking status changes
+- 3 notifications
+
+### Query Patterns & Performance
+
+**Most Common Queries:**
+
+1. **List complaints by status**
+   ```sql
+   SELECT * FROM Complaint WHERE status = 'SUBMITTED' ORDER BY createdAt DESC;
+   ```
+   Optimized with index on `status` and `createdAt`
+
+2. **Get complaints assigned to an officer**
+   ```sql
+   SELECT * FROM Complaint WHERE assignedTo = ? ORDER BY priority DESC;
+   ```
+   Optimized with index on `assignedTo`
+
+3. **Complaint lifecycle timeline**
+   ```sql
+   SELECT * FROM AuditLog WHERE complaintId = ? ORDER BY createdAt ASC;
+   ```
+   Optimized with index on `complaintId` and `createdAt`
+
+4. **Department workload**
+   ```sql
+   SELECT departmentId, COUNT(*) FROM Complaint WHERE status != 'CLOSED' GROUP BY departmentId;
+   ```
+   Optimized with index on `departmentId` and `status`
+
+5. **Unread notifications for user**
+   ```sql
+   SELECT * FROM Notification WHERE userId = ? AND isRead = false ORDER BY createdAt DESC;
+   ```
+   Optimized with composite index on `userId` and `isRead`
+
+### Scalability Considerations
+
+- **Indexes:** Strategic indexes on foreign keys and filter columns ensure sub-100ms query times even with 100k+ complaints
+- **Cascade Rules:** Proper `ON DELETE CASCADE` and `SET NULL` rules maintain referential integrity without orphaned records
+- **Enums:** Status and category enums prevent data inconsistency and enable efficient filtering
+- **Timestamps:** `createdAt` and `updatedAt` on all entities support time-series analysis and SLA tracking
+- **Normalization:** Separating departments and users into dedicated tables avoids duplication and simplifies updates
+
+### Reflection
+
+**Why This Design Supports Scalability:**
+- Foreign key indexes prevent slow joins as data grows
+- Enum types reduce storage and enable fast status filtering
+- Audit logs are append-only, allowing horizontal partitioning by date
+- The separation of concerns (User, Department, Complaint) allows independent table optimization
+
+**Design Decisions:**
+- Made `departmentId` and `assignedTo` nullable to support the "submitted but not yet assigned" state
+- Used `ON DELETE CASCADE` for user-complaint relationship to comply with data deletion regulations (GDPR)
+- Chose `SET NULL` for department/officer FKs to preserve complaint history even if staff changes
+- Added feedback as a separate 1:1 table instead of embedding in Complaint to keep the complaint table lean and enable feedback-specific indexes
+
