@@ -290,10 +290,10 @@ This section documents our recommended branching and pull request (PR) workflow 
 1) Branching strategy
 - **`main`**: Protected. Always green; only merge via PR when all checks pass.
 - **`develop`** (optional): Integration branch for completed features before release.
-- **Feature branches**: `feature/<short-descriptive-name>` — for new features and improvements.
-- **Fix branches**: `fix/<short-descriptive-name>` — for bug fixes that should be applied quickly.
-- **Chore branches**: `chore/<short-descriptive-name>` — for maintenance tasks and infra changes.
-- **Docs branches**: `docs/<short-descriptive-name>` — documentation-only changes.
+- **Feature branches**: `feature/complaint-submission` ï¿½ for new features and improvements.
+- **Fix branches**: `fix/map-location-bug` ï¿½ for bug fixes that should be applied quickly.
+- **Chore branches**: `chore/project-setup` ï¿½ for maintenance tasks and infra changes.
+- **Docs branches**: `docs/workflow-docs` ï¿½ documentation-only changes.
 
 2) Pull request workflow
 - Open a PR from your feature branch into `main` (or `develop` if used).
@@ -308,7 +308,7 @@ This section documents our recommended branching and pull request (PR) workflow 
 
 4) Merging
 - Use GitHubs Merge button (Squash merge preferred for feature branches to keep history tidy).
-- Avoid direct pushes to `main` — always use PRs.
+- Avoid direct pushes to `main` ï¿½ always use PRs.
 
 5) Hotfixes
 - Create a `fix/` branch from `main`, test locally, and open a PR into `main`. Tag the release if required.
@@ -331,4 +331,4 @@ git push -u origin feature/my-feature
 - Link PRs to issues when applicable.
 - Avoid mixing unrelated changes in the same PR.
 
-If you want, I can open a PR template file under `.github/pull_request_template.md` and optionally create GitHub branch protection rules — tell me if you'd like me to do that next.
+If you want, I can open a PR template file under `.github/pull_request_template.md` and optionally create GitHub branch protection rules ï¿½ tell me if you'd like me to do that next.
