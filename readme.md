@@ -1172,3 +1172,149 @@ Reliable seeded data for UI/API testing
 
 This makes the backend more stable, predictable, and scalable.
 
+🧮 Transaction & Query Optimisation — TTA‑Urban
+This document explains how transactions, query optimization, and indexing were implemented in the TTA‑Urban Complaint Management System using Prisma ORM + PostgreSQL. These techniques help improve performance, data integrity, and scalability as the project grows.
+
+## 📌 Overview
+Efficient database operations are essential for:
+
+Maintaining data integrity using transactions
+
+Making queries faster using indexes
+
+Preventing over-fetching
+
+Improving performance using batching and pagination
+
+Handling real‑world workflows safely and consistently
+
+## 🔄 1. Database Transactions
+A transaction ensures that multiple dependent operations either all succeed or all fail.
+
+### ✅ Example Transaction (Atomic Create Complaint Flow)
+const result = await prisma.$transaction([
+  prisma.complaint.create({
+    data: {
+      title,
+      description,
+      userId,
+      departmentId,
+    },
+  }),
+  prisma.auditLog.create({
+    data: {
+      status: "CREATED",
+      message: "Complaint initialized",
+    },
+  }),
+]);
+Why this is important:
+Ensures no partial writes
+
+Perfect for workflows like:
+
+Complaint creation + audit log
+
+Assignment updates
+
+Escalation status updates
+
+## ⚠️ 2. Rollback & Error Handling
+A transaction should be wrapped inside a try/catch block.
+
+try {
+  await prisma.$transaction(async (tx) => {
+    const complaint = await tx.complaint.create({ data: { title: "Test", userId: 1 } });
+
+    // Triggering an error intentionally
+    await tx.officer.update({
+      where: { id: 999 }, // Non-existing ID
+      data: { assignedComplaintId: complaint.id },
+    });
+  });
+} catch (error) {
+  console.error("Transaction failed. Rollback executed.", error);
+}
+✔️ Result:
+If any step fails → nothing is written
+
+Helps maintain consistent data in all complaint workflows
+
+## ⚡ 3. Query Optimization Techniques
+### 🔹 Avoid Over-Fetching
+❌ Inefficient:
+
+const users = await prisma.user.findMany({
+  include: { complaints: true, department: true, auditLogs: true }
+});
+✔️ Optimized:
+
+const users = await prisma.user.findMany({
+  select: { id: true, name: true, email: true }
+});
+### 🔹 Batch Inserts
+await prisma.user.createMany({
+  data: [
+    { name: "Sravani", email: "sravani@example.com" },
+    { name: "Yashmieen", email: "yashmieen@example.com" },
+  ],
+});
+Improves performance by reducing round trips to the database.
+
+### 🔹 Pagination (For Complaint Listing)
+const complaints = await prisma.complaint.findMany({
+  skip: 0,
+  take: 10,
+  orderBy: { createdAt: "desc" },
+});
+Prevents full table scans for large datasets.
+
+## 📈 4. Adding Indexes for Faster Queries
+Indexes were added on fields frequently used for filtering:
+
+model Complaint {
+  id            Int      @id @default(autoincrement())
+  status        String
+  createdAt     DateTime @default(now())
+  userId        Int
+  departmentId  Int
+
+  @@index([status])
+  @@index([departmentId])
+  @@index([createdAt])
+}
+After adding indexes:
+Run migration:
+
+npx prisma migrate dev --name add_indexes
+Benefits:
+Faster filtering for officer dashboards
+
+Optimized analytics queries
+
+Smooth performance for public dashboards
+
+## 🧪 5. Monitoring Query Performance
+Enable Prisma query logs:
+DEBUG="prisma:query" npm run dev
+You can now view:
+
+Query execution time
+
+What SQL Prisma is generating
+
+Before/after improvements
+
+## 📊 6. Anti‑Patterns Avoided
+❌ N+1 queries
+❌ Full table scans
+❌ Returning unnecessary fields
+❌ Updating tables without transactions
+
+These were replaced with:
+
+✔ Transactions
+✔ Indexes
+✔ Select statements
+✔ Pagination
+✔ createMany() batching
