@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { ApiResponse } from '../utils/response';
 import { getPaginationParams } from '../utils/pagination';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
 
 /**
  * GET /api/complaints
@@ -67,10 +68,13 @@ export async function GET(req: Request) {
     const total = mockComplaints.length;
     const paginatedComplaints = mockComplaints.slice(skip, skip + limit);
 
-    return ApiResponse.paginated(paginatedComplaints, page, limit, total);
+    return sendSuccess(
+      { items: paginatedComplaints, meta: { page, limit, total } },
+      'Complaints fetched successfully'
+    );
   } catch (error) {
     console.error('Error fetching complaints:', error);
-    return ApiResponse.serverError('Failed to fetch complaints');
+    return sendError('Failed to fetch complaints', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -95,15 +99,15 @@ export async function POST(req: Request) {
 
     // Validation
     if (!body.title || !body.description || !body.category) {
-      return ApiResponse.badRequest('Missing required fields: title, description, category');
+      return sendError('Missing required fields: title, description, category', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     if (body.title.length < 3) {
-      return ApiResponse.badRequest('Title must be at least 3 characters long');
+      return sendError('Title must be at least 3 characters long', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     if (body.description.length < 10) {
-      return ApiResponse.badRequest('Description must be at least 10 characters long');
+      return sendError('Description must be at least 10 characters long', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Create complaint in database
@@ -134,9 +138,9 @@ export async function POST(req: Request) {
       createdAt: new Date(),
     };
 
-    return ApiResponse.created(newComplaint);
+    return sendSuccess(newComplaint, 'Complaint created', 201);
   } catch (error) {
     console.error('Error creating complaint:', error);
-    return ApiResponse.serverError('Failed to create complaint');
+    return sendError('Failed to create complaint', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }

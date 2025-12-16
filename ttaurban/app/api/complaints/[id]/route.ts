@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { ApiResponse } from '../../utils/response';
+import { sendSuccess, sendError } from '../../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../../lib/errorCodes';
 
 interface RouteParams {
   params: {
@@ -16,7 +17,7 @@ export async function GET(req: Request, { params }: RouteParams) {
     const complaintId = parseInt(params.id);
 
     if (isNaN(complaintId)) {
-      return ApiResponse.badRequest('Invalid complaint ID');
+      return sendError('Invalid complaint ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Fetch from database with relations
@@ -47,13 +48,13 @@ export async function GET(req: Request, { params }: RouteParams) {
     };
 
     if (!mockComplaint) {
-      return ApiResponse.notFound(`Complaint with ID ${complaintId} not found`);
+      return sendError(`Complaint with ID ${complaintId} not found`, ERROR_CODES.NOT_FOUND, 404);
     }
 
-    return ApiResponse.success(mockComplaint);
+    return sendSuccess(mockComplaint, 'Complaint fetched successfully');
   } catch (error) {
     console.error('Error fetching complaint:', error);
-    return ApiResponse.serverError('Failed to fetch complaint');
+    return sendError('Failed to fetch complaint', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -78,14 +79,14 @@ export async function PUT(req: Request, { params }: RouteParams) {
     const complaintId = parseInt(params.id);
 
     if (isNaN(complaintId)) {
-      return ApiResponse.badRequest('Invalid complaint ID');
+      return sendError('Invalid complaint ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     const body = await req.json();
 
     // Validation
     if (!body.title || !body.description || !body.category) {
-      return ApiResponse.badRequest('Missing required fields: title, description, category');
+      return sendError('Missing required fields: title, description, category', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Update complaint in database
@@ -114,10 +115,10 @@ export async function PUT(req: Request, { params }: RouteParams) {
       updatedAt: new Date(),
     };
 
-    return ApiResponse.success(updatedComplaint);
+    return sendSuccess(updatedComplaint, 'Complaint updated successfully');
   } catch (error) {
     console.error('Error updating complaint:', error);
-    return ApiResponse.serverError('Failed to update complaint');
+    return sendError('Failed to update complaint', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -137,7 +138,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     const complaintId = parseInt(params.id);
 
     if (isNaN(complaintId)) {
-      return ApiResponse.badRequest('Invalid complaint ID');
+      return sendError('Invalid complaint ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     const body = await req.json();
@@ -155,10 +156,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       updatedAt: new Date(),
     };
 
-    return ApiResponse.success(patchedComplaint);
+    return sendSuccess(patchedComplaint, 'Complaint patched successfully');
   } catch (error) {
     console.error('Error patching complaint:', error);
-    return ApiResponse.serverError('Failed to update complaint');
+    return sendError('Failed to update complaint', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -171,7 +172,7 @@ export async function DELETE(req: Request, { params }: RouteParams) {
     const complaintId = parseInt(params.id);
 
     if (isNaN(complaintId)) {
-      return ApiResponse.badRequest('Invalid complaint ID');
+      return sendError('Invalid complaint ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Delete from database
@@ -185,9 +186,9 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       message: 'Complaint deleted successfully',
     };
 
-    return ApiResponse.success(response);
+    return sendSuccess(response, 'Complaint deleted successfully');
   } catch (error) {
     console.error('Error deleting complaint:', error);
-    return ApiResponse.serverError('Failed to delete complaint');
+    return sendError('Failed to delete complaint', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }

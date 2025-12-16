@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { ApiResponse } from '../utils/response';
 import { getPaginationParams } from '../utils/pagination';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
 
 /**
  * GET /api/users
@@ -40,10 +41,13 @@ export async function GET(req: Request) {
     const total = mockUsers.length;
     const paginatedUsers = mockUsers.slice(skip, skip + limit);
 
-    return ApiResponse.paginated(paginatedUsers, page, limit, total);
+    return sendSuccess(
+      { items: paginatedUsers, meta: { page, limit, total } },
+      'Users fetched successfully'
+    );
   } catch (error) {
     console.error('Error fetching users:', error);
-    return ApiResponse.serverError('Failed to fetch users');
+    return sendError('Failed to fetch users', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -66,13 +70,13 @@ export async function POST(req: Request) {
 
     // Validation
     if (!body.name || !body.email || !body.password) {
-      return ApiResponse.badRequest('Missing required fields: name, email, password');
+      return sendError('Missing required fields: name, email, password', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(body.email)) {
-      return ApiResponse.badRequest('Invalid email format');
+      return sendError('Invalid email format', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Check if email already exists
@@ -103,9 +107,9 @@ export async function POST(req: Request) {
       createdAt: new Date(),
     };
 
-    return ApiResponse.created(newUser);
+    return sendSuccess(newUser, 'User created', 201);
   } catch (error) {
     console.error('Error creating user:', error);
-    return ApiResponse.serverError('Failed to create user');
+    return sendError('Failed to create user', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }

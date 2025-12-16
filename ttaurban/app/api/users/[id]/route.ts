@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { ApiResponse } from '../../utils/response';
+import { sendSuccess, sendError } from '../../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../../lib/errorCodes';
 
 interface RouteParams {
   params: {
@@ -16,7 +17,7 @@ export async function GET(req: Request, { params }: RouteParams) {
     const userId = parseInt(params.id);
 
     if (isNaN(userId)) {
-      return ApiResponse.badRequest('Invalid user ID');
+      return sendError('Invalid user ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Fetch from database
@@ -43,13 +44,13 @@ export async function GET(req: Request, { params }: RouteParams) {
     };
 
     if (!mockUser) {
-      return ApiResponse.notFound(`User with ID ${userId} not found`);
+      return sendError(`User with ID ${userId} not found`, ERROR_CODES.NOT_FOUND, 404);
     }
 
-    return ApiResponse.success(mockUser);
+    return sendSuccess(mockUser, 'User fetched successfully');
   } catch (error) {
     console.error('Error fetching user:', error);
-    return ApiResponse.serverError('Failed to fetch user');
+    return sendError('Failed to fetch user', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -70,14 +71,14 @@ export async function PUT(req: Request, { params }: RouteParams) {
     const userId = parseInt(params.id);
 
     if (isNaN(userId)) {
-      return ApiResponse.badRequest('Invalid user ID');
+      return sendError('Invalid user ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     const body = await req.json();
 
     // Validation
     if (!body.name || !body.email) {
-      return ApiResponse.badRequest('Missing required fields: name, email');
+      return sendError('Missing required fields: name, email', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Update user
@@ -100,10 +101,10 @@ export async function PUT(req: Request, { params }: RouteParams) {
       updatedAt: new Date(),
     };
 
-    return ApiResponse.success(updatedUser);
+    return sendSuccess(updatedUser, 'User updated successfully');
   } catch (error) {
     console.error('Error updating user:', error);
-    return ApiResponse.serverError('Failed to update user');
+    return sendError('Failed to update user', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -124,7 +125,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     const userId = parseInt(params.id);
 
     if (isNaN(userId)) {
-      return ApiResponse.badRequest('Invalid user ID');
+      return sendError('Invalid user ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     const body = await req.json();
@@ -142,10 +143,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       updatedAt: new Date(),
     };
 
-    return ApiResponse.success(patchedUser);
+    return sendSuccess(patchedUser, 'User patched successfully');
   } catch (error) {
     console.error('Error patching user:', error);
-    return ApiResponse.serverError('Failed to update user');
+    return sendError('Failed to update user', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -158,7 +159,7 @@ export async function DELETE(req: Request, { params }: RouteParams) {
     const userId = parseInt(params.id);
 
     if (isNaN(userId)) {
-      return ApiResponse.badRequest('Invalid user ID');
+      return sendError('Invalid user ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Delete from database
@@ -172,9 +173,9 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       message: 'User deleted successfully',
     };
 
-    return ApiResponse.success(deletedUser);
+    return sendSuccess(deletedUser, 'User deleted successfully');
   } catch (error) {
     console.error('Error deleting user:', error);
-    return ApiResponse.serverError('Failed to delete user');
+    return sendError('Failed to delete user', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }

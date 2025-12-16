@@ -143,22 +143,56 @@ curl -X PATCH http://localhost:3000/api/complaints/1 \
 | PATCH | Partial update | 200 OK |
 | DELETE | Remove data | 200 OK |
 
-#### 3. **Consistent Response Format**
-All endpoints return JSON with a consistent structure:
+#### 3. **Unified Response Envelope**
+All endpoints return JSON using a single, predictable envelope. This makes frontend handling, logging, and monitoring straightforward.
+
+Recommended structure:
+
 ```json
 {
 	"success": true,
-	"data": { /* resource or array */ },
-	"pagination": { /* optional */ }
+	"message": "string",
+	"data": any,
+	"timestamp": "2025-10-30T10:00:00Z"
 }
 ```
 
-Error responses:
+For errors:
+
 ```json
 {
 	"success": false,
-	"error": "Description of error"
+	"message": "Human-friendly error message",
+	"error": { "code": "VALIDATION_ERROR", "details": "Optional details" },
+	"timestamp": "2025-10-30T10:00:00Z"
 }
+```
+
+Pagination responses embed items and meta in `data`:
+
+```json
+{
+	"success": true,
+	"message": "Complaints fetched successfully",
+	"data": {
+		"items": [ /* array of resources */ ],
+		"meta": { "page": 1, "limit": 10, "total": 45 }
+	},
+	"timestamp": "2025-10-30T10:00:00Z"
+}
+```
+
+See `ttaurban/lib/responseHandler.ts` for the implementation used by routes and `ttaurban/lib/errorCodes.ts` for canonical error codes.
+
+Common error codes (see `lib/errorCodes.ts`):
+
+```
+VALIDATION_ERROR: E001
+NOT_FOUND: E002
+DATABASE_FAILURE: E003
+UNAUTHORIZED: E004
+FORBIDDEN: E005
+INTERNAL_ERROR: E500
 ```
 
 #### 4. **Pagination**

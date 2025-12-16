@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { ApiResponse } from '../../utils/response';
+import { sendSuccess, sendError } from '../../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../../lib/errorCodes';
 
 interface RouteParams {
   params: {
@@ -16,7 +17,7 @@ export async function GET(req: Request, { params }: RouteParams) {
     const deptId = parseInt(params.id);
 
     if (isNaN(deptId)) {
-      return ApiResponse.badRequest('Invalid department ID');
+      return sendError('Invalid department ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Fetch from database with statistics
@@ -39,13 +40,13 @@ export async function GET(req: Request, { params }: RouteParams) {
     };
 
     if (!mockDepartment) {
-      return ApiResponse.notFound(`Department with ID ${deptId} not found`);
+      return sendError(`Department with ID ${deptId} not found`, ERROR_CODES.NOT_FOUND, 404);
     }
 
-    return ApiResponse.success(mockDepartment);
+    return sendSuccess(mockDepartment, 'Department fetched successfully');
   } catch (error) {
     console.error('Error fetching department:', error);
-    return ApiResponse.serverError('Failed to fetch department');
+    return sendError('Failed to fetch department', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -64,14 +65,14 @@ export async function PUT(req: Request, { params }: RouteParams) {
     const deptId = parseInt(params.id);
 
     if (isNaN(deptId)) {
-      return ApiResponse.badRequest('Invalid department ID');
+      return sendError('Invalid department ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     const body = await req.json();
 
     // Validation
     if (!body.name) {
-      return ApiResponse.badRequest('Missing required field: name');
+      return sendError('Missing required field: name', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Update department
@@ -91,10 +92,10 @@ export async function PUT(req: Request, { params }: RouteParams) {
       updatedAt: new Date(),
     };
 
-    return ApiResponse.success(updatedDept);
+    return sendSuccess(updatedDept, 'Department updated successfully');
   } catch (error) {
     console.error('Error updating department:', error);
-    return ApiResponse.serverError('Failed to update department');
+    return sendError('Failed to update department', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -113,7 +114,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     const deptId = parseInt(params.id);
 
     if (isNaN(deptId)) {
-      return ApiResponse.badRequest('Invalid department ID');
+      return sendError('Invalid department ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     const body = await req.json();
@@ -131,10 +132,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       updatedAt: new Date(),
     };
 
-    return ApiResponse.success(patchedDept);
+    return sendSuccess(patchedDept, 'Department patched successfully');
   } catch (error) {
     console.error('Error patching department:', error);
-    return ApiResponse.serverError('Failed to update department');
+    return sendError('Failed to update department', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -147,7 +148,7 @@ export async function DELETE(req: Request, { params }: RouteParams) {
     const deptId = parseInt(params.id);
 
     if (isNaN(deptId)) {
-      return ApiResponse.badRequest('Invalid department ID');
+      return sendError('Invalid department ID', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Check if department has associated complaints
@@ -169,9 +170,9 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       message: 'Department deleted successfully',
     };
 
-    return ApiResponse.success(response);
+    return sendSuccess(response, 'Department deleted successfully');
   } catch (error) {
     console.error('Error deleting department:', error);
-    return ApiResponse.serverError('Failed to delete department');
+    return sendError('Failed to delete department', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }

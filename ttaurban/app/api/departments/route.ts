@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { ApiResponse } from '../utils/response';
 import { getPaginationParams } from '../utils/pagination';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
 
 /**
  * GET /api/departments
@@ -36,10 +37,10 @@ export async function GET(req: Request) {
     const total = mockDepartments.length;
     const paginatedDepartments = mockDepartments.slice(skip, skip + limit);
 
-    return ApiResponse.paginated(paginatedDepartments, page, limit, total);
+    return sendSuccess({ items: paginatedDepartments, meta: { page, limit, total } }, 'Departments fetched successfully');
   } catch (error) {
     console.error('Error fetching departments:', error);
-    return ApiResponse.serverError('Failed to fetch departments');
+    return sendError('Failed to fetch departments', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
 
@@ -59,11 +60,11 @@ export async function POST(req: Request) {
 
     // Validation
     if (!body.name) {
-      return ApiResponse.badRequest('Missing required field: name');
+      return sendError('Missing required field: name', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     if (body.name.length < 3) {
-      return ApiResponse.badRequest('Department name must be at least 3 characters long');
+      return sendError('Department name must be at least 3 characters long', ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     // TODO: Check if department already exists
@@ -90,9 +91,9 @@ export async function POST(req: Request) {
       createdAt: new Date(),
     };
 
-    return ApiResponse.created(newDepartment);
+    return sendSuccess(newDepartment, 'Department created', 201);
   } catch (error) {
     console.error('Error creating department:', error);
-    return ApiResponse.serverError('Failed to create department');
+    return sendError('Failed to create department', ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }
