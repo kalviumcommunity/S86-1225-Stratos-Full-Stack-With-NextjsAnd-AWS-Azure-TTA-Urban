@@ -1015,3 +1015,160 @@ $ npm run prisma:seed
 - Reduced query boilerplate by ~60% compared to manual SQL builders
 - Migration workflow prevented schema drift between dev/staging/production
 
+🗄️ Database Migrations & Seed Scripts — TTA‑Urban
+This document explains the setup and workflow for Prisma Migrations and Seed Scripts in the TTA‑Urban Complaint Management System, ensuring a consistent and reproducible database environment across all team members and future deployments.
+
+## 📌 Overview
+Prisma Migrate helps us:
+
+Version‑control database schema changes
+
+Keep PostgreSQL schema synced with Prisma models
+
+Apply updates safely across local, staging, and production
+
+Seed the database with starter data for development/testing
+
+This ensures no “works on my machine” issues and keeps the team aligned.
+
+## 🧱 1. Prisma Migrations Setup
+### 📍 1.1 Create Initial Migration
+Once models were defined inside schema.prisma, the initial migration was created using:
+
+npx prisma migrate dev --name init_schema
+This automatically:
+
+Generated SQL migration files inside prisma/migrations/
+
+Applied the schema to the local PostgreSQL database
+
+Updated the Prisma Client
+
+### 📍 1.2 Updating Schema & Creating New Migrations
+When adding or modifying any model:
+
+npx prisma migrate dev --name <migration_name>
+Examples:
+
+add_complaint_relations
+add_status_enum
+update_officer_model
+Each migration is version‑controlled — just like Git commits.
+
+### 📍 1.3 Resetting the Database (Rollback)
+For a clean rebuild of all tables:
+
+npx prisma migrate reset
+This will:
+
+Drop the existing database
+
+Reapply all migration files
+
+Optionally re-run the seed script
+
+Useful for local development and testing.
+
+## 🌱 2. Seed Script Setup
+### 📍 2.1 Creating the Seed Script
+The file prisma/seed.ts was created to insert consistent starter data:
+
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
+async function main() {
+  await prisma.user.createMany({
+    data: [
+      { name: "Sravani", email: "sravani@example.com" },
+      { name: "Yashmieen", email: "yashmieen@example.com" }
+    ]
+  });
+
+  await prisma.department.createMany({
+    data: [
+      { name: "Sanitation" },
+      { name: "Water Supply" }
+    ]
+  });
+
+  console.log("Seed data inserted successfully");
+}
+
+main()
+  .then(async () => await prisma.$disconnect())
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
+### 📍 2.2 Adding Script to package.json
+"prisma": {
+  "seed": "ts-node prisma/seed.ts"
+}
+### 📍 2.3 Running the Seed Script
+npx prisma db seed
+This populates the database with sample development data.
+
+## 🔍 3. Verifying Migrations & Seed Data
+To inspect the database visually:
+
+npx prisma studio
+Check that:
+
+Users were created
+
+Departments exist
+
+Tables match migration schema
+
+Seed script is idempotent (does not duplicate records on re-run)
+
+## 🧠 4. Normalization & Database Design
+Our schema follows proper normalization rules:
+
+✔ 1NF – No repeating or grouped fields
+✔ 2NF – No partial dependencies
+✔ 3NF – No transitive dependencies
+This ensures:
+
+No redundant data
+
+Faster queries
+
+Clean, scalable schema
+
+Easy evolution as features grow
+
+## 🔒 5. Protecting Production Data
+Before applying migrations in production:
+
+Always create a backup
+
+Test migration in staging first
+
+Review generated SQL carefully
+
+Avoid migrate reset outside of development
+
+## 📸 6. Evidence (Add in PR)
+Terminal logs showing successful migrations
+
+Output of seed script
+
+Prisma Studio screenshots
+
+## 📝 7. Reflection
+Using Prisma migrations provides:
+
+A consistent schema across all developers
+
+Safer deployments with rollback ability
+
+Complete versioning of database changes
+
+Automated setup for new team members
+
+Reliable seeded data for UI/API testing
+
+This makes the backend more stable, predictable, and scalable.
+
