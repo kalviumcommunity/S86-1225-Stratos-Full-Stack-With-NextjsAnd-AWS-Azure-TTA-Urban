@@ -5,7 +5,7 @@ import "dotenv/config";
 
 const connectionString =
   process.env.DATABASE_URL ||
-  "postgres://postgres:password@localhost:5432/mydb";
+  "postgres://postgres:sravani08@localhost:5432/TTA-URBAN";
 const pool = new pg.Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });

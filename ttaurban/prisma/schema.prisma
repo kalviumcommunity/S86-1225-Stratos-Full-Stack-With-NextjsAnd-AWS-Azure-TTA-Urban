@@ -28,6 +28,7 @@ model User {
   
   @@index([email])
   @@index([role])
+  @@map("users")
 }
 
 // Department model
@@ -42,6 +43,7 @@ model Department {
   complaints  Complaint[]
   
   @@index([name])
+  @@map("departments")
 }
 
 // Complaint model - Core entity
@@ -79,6 +81,7 @@ model Complaint {
   @@index([departmentId])
   @@index([assignedTo])
   @@index([createdAt])
+  @@map("complaints")
 }
 
 // AuditLog model - Tracks complaint lifecycle
@@ -96,6 +99,7 @@ model AuditLog {
   
   @@index([complaintId])
   @@index([createdAt])
+  @@map("audit_logs")
 }
 
 // Feedback model - Citizen ratings and comments
@@ -113,6 +117,7 @@ model Feedback {
   
   @@index([rating])
   @@index([createdAt])
+  @@map("feedbacks")
 }
 
 // Escalation model - SLA-based escalations
@@ -128,6 +133,7 @@ model Escalation {
   
   @@index([complaintId])
   @@index([escalatedAt])
+  @@map("escalations")
 }
 
 // Notification model
@@ -145,6 +151,7 @@ model Notification {
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])
+  @@map("notifications")
 }
 
 // Enums

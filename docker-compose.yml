@@ -6,7 +6,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgres://postgres:password@db:5432/mydb
+      - DATABASE_URL=postgres://postgres:sravani08@db:5432/TTA-URBAN
       - REDIS_URL=redis://redis:6379
     depends_on:
       - db
@@ -20,8 +20,8 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydb
+      POSTGRES_PASSWORD: sravani08
+      POSTGRES_DB: TTA-URBAN
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
