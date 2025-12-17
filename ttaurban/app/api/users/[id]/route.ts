@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { ApiResponse } from "../../utils/response";
 import { prisma } from "../../../lib/prisma";
+import {
+  updateUserSchema,
+  patchUserSchema,
+} from "../../../lib/schemas/userSchema";
+import { ZodError } from "zod";
 
 interface RouteParams {
   params: Promise<{
@@ -48,7 +53,7 @@ export async function GET(req: Request, { params }: RouteParams) {
 
 /**
  * PUT /api/users/[id]
- * Updates entire user (replace all fields)
+ * Updates entire user with Zod validation (replace all fields)
  *
  * Request Body:
  * {
@@ -69,19 +74,17 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
     const body = await req.json();
 
-    // Validation
-    if (!body.name || !body.email) {
-      return ApiResponse.badRequest("Missing required fields: name, email");
-    }
+    // Zod Validation
+    const validatedData = updateUserSchema.parse(body);
 
     // Update user
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        name: body.name,
-        email: body.email,
-        phone: body.phone,
-        role: body.role,
+        name: validatedData.name,
+        email: validatedData.email,
+        phone: validatedData.phone,
+        role: validatedData.role,
       },
       select: {
         id: true,
@@ -95,6 +98,21 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
     return ApiResponse.success(updatedUser);
   } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Error",
+          errors: error.issues.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("Error updating user:", error);
     return ApiResponse.serverError("Failed to update user");
   }
@@ -102,7 +120,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
 /**
  * PATCH /api/users/[id]
- * Partially updates user (only specified fields)
+ * Partially updates user with Zod validation (only specified fields)
  *
  * Request Body:
  * {
@@ -123,10 +141,13 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     const body = await req.json();
 
+    // Zod Validation
+    const validatedData = patchUserSchema.parse(body);
+
     // Partial update
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: body,
+      data: validatedData,
       select: {
         id: true,
         name: true,
@@ -139,6 +160,21 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     return ApiResponse.success(updatedUser);
   } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Error",
+          errors: error.issues.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("Error patching user:", error);
     return ApiResponse.serverError("Failed to update user");
   }
