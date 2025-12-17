@@ -7,6 +7,8 @@ import {
 import { ERROR_CODES } from "../../lib/errorCodes";
 import { getPaginationParams } from "../utils/pagination";
 import { prisma } from "../../lib/prisma";
+import { createDepartmentSchema } from "../../lib/schemas/departmentSchema";
+import { ZodError } from "zod";
 
 /**
  * GET /api/departments
@@ -52,7 +54,7 @@ export async function GET(req: Request) {
 
 /**
  * POST /api/departments
- * Creates a new department
+ * Creates a new department with Zod validation
  *
  * Request Body:
  * {
@@ -64,26 +66,12 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Validation
-    if (!body.name) {
-      return sendError(
-        "Missing required field: name",
-        ERROR_CODES.MISSING_REQUIRED_FIELDS,
-        400
-      );
-    }
-
-    if (body.name.length < 3) {
-      return sendError(
-        "Department name must be at least 3 characters long",
-        ERROR_CODES.INVALID_FIELD_LENGTH,
-        400
-      );
-    }
+    // Zod Validation
+    const validatedData = createDepartmentSchema.parse(body);
 
     // Check if department already exists
     const existingDept = await prisma.department.findUnique({
-      where: { name: body.name },
+      where: { name: validatedData.name },
     });
     if (existingDept) {
       return sendError(
@@ -96,13 +84,28 @@ export async function POST(req: Request) {
     // Create department
     const newDepartment = await prisma.department.create({
       data: {
-        name: body.name,
-        description: body.description,
+        name: validatedData.name,
+        description: validatedData.description,
       },
     });
 
     return sendSuccess(newDepartment, "Department created successfully", 201);
   } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Error",
+          errors: error.issues.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("Error creating department:", error);
     return sendError(
       "Failed to create department",

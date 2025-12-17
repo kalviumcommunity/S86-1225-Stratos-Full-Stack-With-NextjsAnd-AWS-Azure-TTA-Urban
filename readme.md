@@ -96,6 +96,327 @@ File upload sanitization
 
 Privacy compliance (GDPR/local laws)
 
+---
+
+## 🛡️ API Input Validation with Zod
+
+This project implements **TypeScript-first schema validation** using [Zod](https://zod.dev/) to ensure all API endpoints receive valid, well-structured data. This prevents bad inputs from corrupting the database or crashing the API.
+
+### Why Input Validation Matters
+
+Every API needs to **trust but verify** the data it receives. Without validation:
+- ❌ Users might send malformed JSON or missing fields
+- ❌ The database could receive invalid or unexpected values
+- ❌ The application becomes unpredictable or insecure
+
+**Example Problem:**
+```json
+{
+  "name": "",
+  "email": "not-an-email"
+}
+```
+
+If your `/api/users` endpoint accepts this data unchecked, you risk broken records and confusing errors later. That's where **Zod** comes in — it validates inputs before they reach your logic.
+
+---
+
+### Schema Definitions
+
+All validation schemas are located in [`app/lib/schemas/`](ttaurban/app/lib/schemas/) and can be reused across both client and server for type safety.
+
+#### 📁 User Schema ([`userSchema.ts`](ttaurban/app/lib/schemas/userSchema.ts))
+
+```typescript
+import { z } from "zod";
+
+export const createUserSchema = z.object({
+  name: z.string().min(2).max(100),
+  email: z.string().email(),
+  password: z.string().min(8).max(128),
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/).optional().nullable(),
+  role: z.enum(["CITIZEN", "OFFICER", "ADMIN"]).default("CITIZEN"),
+});
+
+export const updateUserSchema = z.object({
+  name: z.string().min(2).max(100),
+  email: z.string().email(),
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/).optional().nullable(),
+  role: z.enum(["CITIZEN", "OFFICER", "ADMIN"]).optional(),
+});
+
+export const patchUserSchema = z.object({
+  name: z.string().min(2).max(100).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/).optional().nullable(),
+  role: z.enum(["CITIZEN", "OFFICER", "ADMIN"]).optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: "At least one field must be provided for update",
+});
+
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type PatchUserInput = z.infer<typeof patchUserSchema>;
+```
+
+#### 📁 Department Schema ([`departmentSchema.ts`](ttaurban/app/lib/schemas/departmentSchema.ts))
+
+```typescript
+export const createDepartmentSchema = z.object({
+  name: z.string().min(3).max(100),
+  description: z.string().max(500).optional().nullable(),
+});
+
+export const updateDepartmentSchema = z.object({
+  name: z.string().min(3).max(100),
+  description: z.string().max(500).optional().nullable(),
+});
+
+export const patchDepartmentSchema = z.object({
+  name: z.string().min(3).max(100).optional(),
+  description: z.string().max(500).optional().nullable(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: "At least one field must be provided for update",
+});
+```
+
+#### 📁 Complaint Schema ([`complaintSchema.ts`](ttaurban/app/lib/schemas/complaintSchema.ts))
+
+```typescript
+export const createComplaintSchema = z.object({
+  title: z.string().min(3).max(200),
+  description: z.string().min(10).max(2000),
+  category: z.enum([
+    "ROAD_MAINTENANCE",
+    "WATER_SUPPLY",
+    "ELECTRICITY",
+    "GARBAGE_COLLECTION",
+    "STREET_LIGHTS",
+    "DRAINAGE",
+    "PUBLIC_SAFETY",
+    "OTHER"
+  ]),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).default("MEDIUM"),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
+  address: z.string().max(500).optional().nullable(),
+  imageUrl: z.string().url().optional().nullable(),
+  userId: z.number().int().positive().optional(),
+  departmentId: z.number().int().positive().optional().nullable(),
+});
+```
+
+---
+
+### API Route Implementation
+
+All API routes now validate incoming data using Zod schemas before processing. Here's how it's implemented:
+
+**Example: User Creation API** ([`/api/users/route.ts`](ttaurban/app/api/users/route.ts))
+
+```typescript
+import { createUserSchema } from "../../lib/schemas/userSchema";
+import { ZodError } from "zod";
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    
+    // ✅ Zod Validation
+    const validatedData = createUserSchema.parse(body);
+    
+    // Check if email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: validatedData.email },
+    });
+    
+    if (existingUser) {
+      return sendError("Email already registered", ERROR_CODES.EMAIL_ALREADY_EXISTS, 409);
+    }
+    
+    // Create user with validated data
+    const user = await prisma.user.create({
+      data: {
+        name: validatedData.name,
+        email: validatedData.email,
+        password: validatedData.password,
+        phone: validatedData.phone,
+        role: validatedData.role,
+      },
+    });
+    
+    return sendSuccess(user, "User created successfully", 201);
+  } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Error",
+          errors: error.issues.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+    
+    return sendError("Failed to create user", ERROR_CODES.USER_CREATION_FAILED, 500, error);
+  }
+}
+```
+
+---
+
+### Validation Error Response Format
+
+All validation errors return a **consistent, structured format**:
+
+```json
+{
+  "success": false,
+  "message": "Validation Error",
+  "errors": [
+    {
+      "field": "name",
+      "message": "Name must be at least 2 characters long"
+    },
+    {
+      "field": "email",
+      "message": "Invalid email address"
+    },
+    {
+      "field": "password",
+      "message": "Password must be at least 8 characters long"
+    }
+  ]
+}
+```
+
+**Status Code:** `400 Bad Request`
+
+---
+
+### Testing Validation
+
+See [`VALIDATION_TESTS.md`](ttaurban/VALIDATION_TESTS.md) for comprehensive test cases.
+
+#### ✅ **Passing Example** - Valid User Creation
+
+```bash
+curl -X POST http://localhost:3000/api/users \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "Alice Johnson",
+  "email": "alice@example.com",
+  "password": "SecurePass123",
+  "phone": "+1234567890",
+  "role": "CITIZEN"
+}'
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User created successfully",
+  "data": {
+    "id": 1,
+    "name": "Alice Johnson",
+    "email": "alice@example.com",
+    "phone": "+1234567890",
+    "role": "CITIZEN",
+    "createdAt": "2025-12-17T10:30:00.000Z"
+  }
+}
+```
+
+#### ❌ **Failing Example** - Invalid Input
+
+```bash
+curl -X POST http://localhost:3000/api/users \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "A",
+  "email": "not-an-email",
+  "password": "short"
+}'
+```
+
+**Response:**
+```json
+{
+  "success": false,
+  "message": "Validation Error",
+  "errors": [
+    {
+      "field": "name",
+      "message": "Name must be at least 2 characters long"
+    },
+    {
+      "field": "email",
+      "message": "Invalid email address"
+    },
+    {
+      "field": "password",
+      "message": "Password must be at least 8 characters long"
+    }
+  ]
+}
+```
+
+---
+
+### Schema Reuse Between Client and Server
+
+A major benefit of using Zod in a full-stack TypeScript app is **schema reuse**. You can use the same schema on both sides:
+
+- **Client:** Validate form inputs before submitting
+- **Server:** Validate data again before writing to the database
+
+**Example:**
+
+```typescript
+// Shared schema file: app/lib/schemas/userSchema.ts
+const userSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+});
+
+export type UserInput = z.infer<typeof userSchema>;
+```
+
+You can now import `userSchema` into your API route **and** your frontend form component for consistent validation across your entire stack.
+
+---
+
+### Benefits of Zod Validation
+
+✅ **Type Safety** - Automatic TypeScript type inference from schemas  
+✅ **Consistent Validation** - Same rules on client and server  
+✅ **Clear Error Messages** - Descriptive, field-specific error messages  
+✅ **Security** - Prevents malicious or malformed data from reaching the database  
+✅ **Developer Experience** - Catches bugs early with compile-time type checking  
+✅ **Maintainability** - Centralized validation logic in reusable schemas
+
+---
+
+### Reflection: Why Validation Consistency Matters in Team Projects
+
+In team projects, **validation consistency** is critical because:
+
+1. **Prevents Data Corruption** - Invalid data never reaches the database
+2. **Improves API Reliability** - All endpoints fail gracefully with clear messages
+3. **Enhances Developer Experience** - Shared schemas reduce duplication and bugs
+4. **Facilitates Testing** - Validation logic is isolated and easily testable
+5. **Enables Client-Side Optimization** - Client can validate before sending requests
+6. **Supports API Evolution** - Schema changes automatically propagate to all consumers
+
+By centralizing validation in Zod schemas, teams can ensure that data quality remains high across the entire application lifecycle, from user input to database storage.
+
+---
+
 ### 📈 Future Enhancements
 
 AI for categorization & duplicate complaint detection

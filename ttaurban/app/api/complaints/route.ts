@@ -7,6 +7,8 @@ import {
 import { ERROR_CODES } from "../../lib/errorCodes";
 import { getPaginationParams } from "../utils/pagination";
 import { prisma } from "../../lib/prisma";
+import { createComplaintSchema } from "../../lib/schemas/complaintSchema";
+import { ZodError } from "zod";
 
 /**
  * GET /api/complaints
@@ -67,7 +69,7 @@ export async function GET(req: Request) {
 
 /**
  * POST /api/complaints
- * Creates a new complaint
+ * Creates a new complaint with Zod validation
  *
  * Request Body:
  * {
@@ -84,50 +86,25 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Validation
-    if (!body.title || !body.description || !body.category) {
-      return sendError(
-        "Missing required fields: title, description, category",
-        ERROR_CODES.MISSING_REQUIRED_FIELDS,
-        400
-      );
-    }
+    // Zod Validation
+    const validatedData = createComplaintSchema.parse(body);
 
-    if (body.title.length < 3) {
-      return sendError(
-        "Title must be at least 3 characters long",
-        ERROR_CODES.INVALID_FIELD_LENGTH,
-        400
-      );
-    }
-
-    if (body.description.length < 10) {
-      return sendError(
-        "Description must be at least 10 characters long",
-        ERROR_CODES.INVALID_FIELD_LENGTH,
-        400
-      );
-    }
-
-    // TODO: Create complaint in database
-    // const complaint = await prisma.complaint.create({
-    // Create complaint
     // Note: In production, get userId from authenticated session
-    const userId = body.userId || 1; // Default to user ID 1 for testing
+    const userId = validatedData.userId || 1; // Default to user ID 1 for testing
 
     const newComplaint = await prisma.complaint.create({
       data: {
-        title: body.title,
-        description: body.description,
-        category: body.category,
-        latitude: body.latitude,
-        longitude: body.longitude,
-        address: body.address,
-        imageUrl: body.imageUrl,
+        title: validatedData.title,
+        description: validatedData.description,
+        category: validatedData.category,
+        latitude: validatedData.latitude,
+        longitude: validatedData.longitude,
+        address: validatedData.address,
+        imageUrl: validatedData.imageUrl,
         status: "SUBMITTED",
-        priority: body.priority || "MEDIUM",
+        priority: validatedData.priority,
         userId: userId,
-        departmentId: body.departmentId,
+        departmentId: validatedData.departmentId,
       },
       include: {
         user: { select: { id: true, name: true, email: true } },
@@ -137,6 +114,21 @@ export async function POST(req: Request) {
 
     return sendSuccess(newComplaint, "Complaint created successfully", 201);
   } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Error",
+          errors: error.issues.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("Error creating complaint:", error);
     return sendError(
       "Failed to create complaint",

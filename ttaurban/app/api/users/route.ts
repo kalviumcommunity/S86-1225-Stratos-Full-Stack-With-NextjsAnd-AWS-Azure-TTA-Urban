@@ -7,6 +7,8 @@ import {
 import { ERROR_CODES } from "../../lib/errorCodes";
 import { getPaginationParams } from "../utils/pagination";
 import { prisma } from "../../lib/prisma";
+import { createUserSchema } from "../../lib/schemas/userSchema";
+import { ZodError } from "zod";
 
 /**
  * GET /api/users
@@ -58,7 +60,7 @@ export async function GET(req: Request) {
 
 /**
  * POST /api/users
- * Creates a new user
+ * Creates a new user with Zod validation
  *
  * Request Body:
  * {
@@ -73,28 +75,12 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Validation
-    if (!body.name || !body.email || !body.password) {
-      return sendError(
-        "Missing required fields: name, email, password",
-        ERROR_CODES.MISSING_REQUIRED_FIELDS,
-        400
-      );
-    }
-
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(body.email)) {
-      return sendError(
-        "Invalid email format",
-        ERROR_CODES.INVALID_EMAIL_FORMAT,
-        400
-      );
-    }
+    // Zod Validation
+    const validatedData = createUserSchema.parse(body);
 
     // Check if email already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email: body.email },
+      where: { email: validatedData.email },
     });
     if (existingUser) {
       return sendError(
@@ -107,11 +93,11 @@ export async function POST(req: Request) {
     // Create user (Note: In production, hash the password with bcrypt)
     const user = await prisma.user.create({
       data: {
-        name: body.name,
-        email: body.email,
-        password: body.password, // TODO: Hash this in production
-        phone: body.phone,
-        role: body.role || "CITIZEN",
+        name: validatedData.name,
+        email: validatedData.email,
+        password: validatedData.password, // TODO: Hash this in production
+        phone: validatedData.phone,
+        role: validatedData.role,
       },
       select: {
         id: true,
@@ -125,6 +111,21 @@ export async function POST(req: Request) {
 
     return sendSuccess(user, "User created successfully", 201);
   } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Error",
+          errors: error.issues.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("Error creating user:", error);
     return sendError(
       "Failed to create user",

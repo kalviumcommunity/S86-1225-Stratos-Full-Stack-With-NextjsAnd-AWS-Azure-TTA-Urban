@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { ApiResponse } from "../../utils/response";
 import { prisma } from "../../../lib/prisma";
+import {
+  updateDepartmentSchema,
+  patchDepartmentSchema,
+} from "../../../lib/schemas/departmentSchema";
+import { ZodError } from "zod";
 
 interface RouteParams {
   params: Promise<{
@@ -53,7 +58,7 @@ export async function GET(req: Request, { params }: RouteParams) {
 
 /**
  * PUT /api/departments/[id]
- * Updates entire department
+ * Updates entire department with Zod validation
  *
  * Request Body:
  * {
@@ -72,22 +77,35 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
     const body = await req.json();
 
-    // Validation
-    if (!body.name) {
-      return ApiResponse.badRequest("Missing required field: name");
-    }
+    // Zod Validation
+    const validatedData = updateDepartmentSchema.parse(body);
 
     // Update department
     const updatedDept = await prisma.department.update({
       where: { id: deptId },
       data: {
-        name: body.name,
-        description: body.description,
+        name: validatedData.name,
+        description: validatedData.description,
       },
     });
 
     return ApiResponse.success(updatedDept);
   } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Error",
+          errors: error.issues.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("Error updating department:", error);
     return ApiResponse.serverError("Failed to update department");
   }
@@ -95,7 +113,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
 /**
  * PATCH /api/departments/[id]
- * Partially updates department
+ * Partially updates department with Zod validation
  *
  * Request Body (all fields optional):
  * {
@@ -114,14 +132,32 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     const body = await req.json();
 
+    // Zod Validation
+    const validatedData = patchDepartmentSchema.parse(body);
+
     // Partial update
     const patchedDept = await prisma.department.update({
       where: { id: deptId },
-      data: body,
+      data: validatedData,
     });
 
     return ApiResponse.success(patchedDept);
   } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Error",
+          errors: error.issues.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("Error patching department:", error);
     return ApiResponse.serverError("Failed to update department");
   }
