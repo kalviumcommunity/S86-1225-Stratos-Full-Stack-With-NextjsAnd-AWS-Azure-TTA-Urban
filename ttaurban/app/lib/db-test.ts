@@ -1,4 +1,4 @@
-import { prisma } from "@/app/lib/prisma";
+import { prisma } from "./prisma";
 
 /**
  * Example: Fetch all users from the database

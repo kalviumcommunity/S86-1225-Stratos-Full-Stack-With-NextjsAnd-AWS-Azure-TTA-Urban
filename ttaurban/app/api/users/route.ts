@@ -1,6 +1,12 @@
-import { NextResponse } from 'next/server';
-import { ApiResponse } from '../utils/response';
-import { getPaginationParams } from '../utils/pagination';
+import { NextResponse } from "next/server";
+import {
+  sendSuccess,
+  sendError,
+  sendPaginatedSuccess,
+} from "../../lib/responseHandler";
+import { ERROR_CODES } from "../../lib/errorCodes";
+import { getPaginationParams } from "../utils/pagination";
+import { prisma } from "../../lib/prisma";
 
 /**
  * GET /api/users
@@ -14,36 +20,39 @@ export async function GET(req: Request) {
   try {
     const { page, limit, skip } = getPaginationParams(req);
 
-    // TODO: Replace with Prisma query
-    // const [users, total] = await Promise.all([
-    //   prisma.user.findMany({
-    //     skip,
-    //     take: limit,
-    //     select: {
-    //       id: true,
-    //       name: true,
-    //       email: true,
-    //       role: true,
-    //       createdAt: true,
-    //     },
-    //   }),
-    //   prisma.user.count(),
-    // ]);
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.user.count(),
+    ]);
 
-    // Mock data for demonstration
-    const mockUsers = [
-      { id: 1, name: 'Alice Johnson', email: 'alice@example.com', role: 'CITIZEN', createdAt: new Date() },
-      { id: 2, name: 'Bob Smith', email: 'bob@example.com', role: 'OFFICER', createdAt: new Date() },
-      { id: 3, name: 'Carol White', email: 'carol@example.com', role: 'ADMIN', createdAt: new Date() },
-    ];
-
-    const total = mockUsers.length;
-    const paginatedUsers = mockUsers.slice(skip, skip + limit);
-
-    return ApiResponse.paginated(paginatedUsers, page, limit, total);
+    return sendPaginatedSuccess(
+      users,
+      page,
+      limit,
+      total,
+      "Users fetched successfully"
+    );
   } catch (error) {
-    console.error('Error fetching users:', error);
-    return ApiResponse.serverError('Failed to fetch users');
+    console.error("Error fetching users:", error);
+    return sendError(
+      "Failed to fetch users",
+      ERROR_CODES.USER_FETCH_ERROR,
+      500,
+      error
+    );
   }
 }
 
@@ -66,46 +75,62 @@ export async function POST(req: Request) {
 
     // Validation
     if (!body.name || !body.email || !body.password) {
-      return ApiResponse.badRequest('Missing required fields: name, email, password');
+      return sendError(
+        "Missing required fields: name, email, password",
+        ERROR_CODES.MISSING_REQUIRED_FIELDS,
+        400
+      );
     }
 
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(body.email)) {
-      return ApiResponse.badRequest('Invalid email format');
+      return sendError(
+        "Invalid email format",
+        ERROR_CODES.INVALID_EMAIL_FORMAT,
+        400
+      );
     }
 
-    // TODO: Check if email already exists
-    // const existingUser = await prisma.user.findUnique({
-    //   where: { email: body.email },
-    // });
-    // if (existingUser) {
-    //   return ApiResponse.conflict('Email already registered');
-    // }
+    // Check if email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: body.email },
+    });
+    if (existingUser) {
+      return sendError(
+        "Email already registered",
+        ERROR_CODES.EMAIL_ALREADY_EXISTS,
+        409
+      );
+    }
 
-    // TODO: Hash password and create user
-    // const user = await prisma.user.create({
-    //   data: {
-    //     name: body.name,
-    //     email: body.email,
-    //     password: hashedPassword,
-    //     phone: body.phone,
-    //     role: body.role || 'CITIZEN',
-    //   },
-    // });
+    // Create user (Note: In production, hash the password with bcrypt)
+    const user = await prisma.user.create({
+      data: {
+        name: body.name,
+        email: body.email,
+        password: body.password, // TODO: Hash this in production
+        phone: body.phone,
+        role: body.role || "CITIZEN",
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        createdAt: true,
+      },
+    });
 
-    // Mock response
-    const newUser = {
-      id: 4,
-      name: body.name,
-      email: body.email,
-      role: body.role || 'CITIZEN',
-      createdAt: new Date(),
-    };
-
-    return ApiResponse.created(newUser);
+    return sendSuccess(user, "User created successfully", 201);
   } catch (error) {
-    console.error('Error creating user:', error);
-    return ApiResponse.serverError('Failed to create user');
+    console.error("Error creating user:", error);
+    return sendError(
+      "Failed to create user",
+      ERROR_CODES.USER_CREATION_FAILED,
+      500,
+      error
+    );
   }
 }

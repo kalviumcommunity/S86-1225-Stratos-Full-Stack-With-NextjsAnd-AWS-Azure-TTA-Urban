@@ -12,6 +12,21 @@ const eslintConfig = defineConfig([
       semi: ["error", "always"],
     },
   },
+  // Allow console in API routes, scripts, and test files
+  {
+    files: [
+      "app/api/**/*.ts",
+      "app/api/**/*.js",
+      "prisma/seed.ts",
+      "test-*.ts",
+      "check-*.ts",
+      "create-*.ts",
+      "app/lib/db-test.ts",
+    ],
+    rules: {
+      "no-console": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

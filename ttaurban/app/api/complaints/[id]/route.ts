@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
-import { ApiResponse } from '../../utils/response';
+import { NextResponse } from "next/server";
+import { ApiResponse } from "../../utils/response";
+import { prisma } from "../../../lib/prisma";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -13,47 +14,33 @@ interface RouteParams {
  */
 export async function GET(req: Request, { params }: RouteParams) {
   try {
-    const complaintId = parseInt(params.id);
+    const { id } = await params;
+    const complaintId = parseInt(id);
 
     if (isNaN(complaintId)) {
-      return ApiResponse.badRequest('Invalid complaint ID');
+      return ApiResponse.badRequest("Invalid complaint ID");
     }
 
-    // TODO: Fetch from database with relations
-    // const complaint = await prisma.complaint.findUnique({
-    //   where: { id: complaintId },
-    //   include: {
-    //     user: { select: { id: true, name: true, email: true } },
-    //     department: { select: { id: true, name: true } },
-    //     feedback: true,
-    //     notifications: true,
-    //   },
-    // });
+    // Fetch from database with relations
+    const complaint = await prisma.complaint.findUnique({
+      where: { id: complaintId },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        department: { select: { id: true, name: true } },
+        officer: { select: { id: true, name: true, email: true } },
+        feedback: true,
+        auditLogs: { orderBy: { createdAt: "desc" }, take: 10 },
+      },
+    });
 
-    // Mock response
-    const mockComplaint = {
-      id: complaintId,
-      title: 'Pothole on Main Street',
-      description: 'Large pothole causing traffic hazard',
-      category: 'INFRASTRUCTURE',
-      status: 'SUBMITTED',
-      priority: 'HIGH',
-      address: '123 Main St',
-      latitude: 40.7128,
-      longitude: -74.006,
-      imageUrl: 'https://example.com/image.jpg',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    if (!mockComplaint) {
+    if (!complaint) {
       return ApiResponse.notFound(`Complaint with ID ${complaintId} not found`);
     }
 
-    return ApiResponse.success(mockComplaint);
+    return ApiResponse.success(complaint);
   } catch (error) {
-    console.error('Error fetching complaint:', error);
-    return ApiResponse.serverError('Failed to fetch complaint');
+    console.error("Error fetching complaint:", error);
+    return ApiResponse.serverError("Failed to fetch complaint");
   }
 }
 
@@ -75,49 +62,48 @@ export async function GET(req: Request, { params }: RouteParams) {
  */
 export async function PUT(req: Request, { params }: RouteParams) {
   try {
-    const complaintId = parseInt(params.id);
+    const { id } = await params;
+    const complaintId = parseInt(id);
 
     if (isNaN(complaintId)) {
-      return ApiResponse.badRequest('Invalid complaint ID');
+      return ApiResponse.badRequest("Invalid complaint ID");
     }
 
     const body = await req.json();
 
     // Validation
     if (!body.title || !body.description || !body.category) {
-      return ApiResponse.badRequest('Missing required fields: title, description, category');
+      return ApiResponse.badRequest(
+        "Missing required fields: title, description, category"
+      );
     }
 
-    // TODO: Update complaint in database
-    // const updatedComplaint = await prisma.complaint.update({
-    //   where: { id: complaintId },
-    //   data: {
-    //     title: body.title,
-    //     description: body.description,
-    //     category: body.category,
-    //     status: body.status,
-    //     priority: body.priority,
-    //     address: body.address,
-    //     latitude: body.latitude,
-    //     longitude: body.longitude,
-    //   },
-    // });
-
-    // Mock response
-    const updatedComplaint = {
-      id: complaintId,
-      title: body.title,
-      description: body.description,
-      category: body.category,
-      status: body.status || 'SUBMITTED',
-      priority: body.priority || 'MEDIUM',
-      updatedAt: new Date(),
-    };
+    // Update complaint in database
+    const updatedComplaint = await prisma.complaint.update({
+      where: { id: complaintId },
+      data: {
+        title: body.title,
+        description: body.description,
+        category: body.category,
+        status: body.status,
+        priority: body.priority,
+        address: body.address,
+        latitude: body.latitude,
+        longitude: body.longitude,
+        departmentId: body.departmentId,
+        assignedTo: body.assignedTo,
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        department: { select: { id: true, name: true } },
+        officer: { select: { id: true, name: true, email: true } },
+      },
+    });
 
     return ApiResponse.success(updatedComplaint);
   } catch (error) {
-    console.error('Error updating complaint:', error);
-    return ApiResponse.serverError('Failed to update complaint');
+    console.error("Error updating complaint:", error);
+    return ApiResponse.serverError("Failed to update complaint");
   }
 }
 
@@ -134,31 +120,29 @@ export async function PUT(req: Request, { params }: RouteParams) {
  */
 export async function PATCH(req: Request, { params }: RouteParams) {
   try {
-    const complaintId = parseInt(params.id);
+    const { id } = await params;
+    const complaintId = parseInt(id);
 
     if (isNaN(complaintId)) {
-      return ApiResponse.badRequest('Invalid complaint ID');
+      return ApiResponse.badRequest("Invalid complaint ID");
     }
 
     const body = await req.json();
 
-    // TODO: Partial update
-    // const patchedComplaint = await prisma.complaint.update({
-    //   where: { id: complaintId },
-    //   data: body,
-    // });
-
-    // Mock response
-    const patchedComplaint = {
-      id: complaintId,
-      ...body,
-      updatedAt: new Date(),
-    };
+    // Partial update
+    const patchedComplaint = await prisma.complaint.update({
+      where: { id: complaintId },
+      data: body,
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        department: { select: { id: true, name: true } },
+      },
+    });
 
     return ApiResponse.success(patchedComplaint);
   } catch (error) {
-    console.error('Error patching complaint:', error);
-    return ApiResponse.serverError('Failed to update complaint');
+    console.error("Error patching complaint:", error);
+    return ApiResponse.serverError("Failed to update complaint");
   }
 }
 
@@ -168,26 +152,28 @@ export async function PATCH(req: Request, { params }: RouteParams) {
  */
 export async function DELETE(req: Request, { params }: RouteParams) {
   try {
-    const complaintId = parseInt(params.id);
+    const { id } = await params;
+    const complaintId = parseInt(id);
 
     if (isNaN(complaintId)) {
-      return ApiResponse.badRequest('Invalid complaint ID');
+      return ApiResponse.badRequest("Invalid complaint ID");
     }
 
-    // TODO: Delete from database
-    // const deletedComplaint = await prisma.complaint.delete({
-    //   where: { id: complaintId },
-    // });
+    // Delete from database (cascade will delete related records)
+    const deletedComplaint = await prisma.complaint.delete({
+      where: { id: complaintId },
+      select: {
+        id: true,
+        title: true,
+      },
+    });
 
-    // Mock response
-    const response = {
-      id: complaintId,
-      message: 'Complaint deleted successfully',
-    };
-
-    return ApiResponse.success(response);
+    return ApiResponse.success({
+      ...deletedComplaint,
+      message: "Complaint deleted successfully",
+    });
   } catch (error) {
-    console.error('Error deleting complaint:', error);
-    return ApiResponse.serverError('Failed to delete complaint');
+    console.error("Error deleting complaint:", error);
+    return ApiResponse.serverError("Failed to delete complaint");
   }
 }

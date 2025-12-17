@@ -1,6 +1,12 @@
-import { NextResponse } from 'next/server';
-import { ApiResponse } from '../utils/response';
-import { getPaginationParams } from '../utils/pagination';
+import { NextResponse } from "next/server";
+import {
+  sendSuccess,
+  sendError,
+  sendPaginatedSuccess,
+} from "../../lib/responseHandler";
+import { ERROR_CODES } from "../../lib/errorCodes";
+import { getPaginationParams } from "../utils/pagination";
+import { prisma } from "../../lib/prisma";
 
 /**
  * GET /api/complaints
@@ -17,60 +23,45 @@ export async function GET(req: Request) {
   try {
     const { page, limit, skip } = getPaginationParams(req);
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get('status');
-    const priority = searchParams.get('priority');
-    const category = searchParams.get('category');
+    const status = searchParams.get("status");
+    const priority = searchParams.get("priority");
+    const category = searchParams.get("category");
 
-    // TODO: Build Prisma query with filters
-    // const whereClause: any = {};
-    // if (status) whereClause.status = status;
-    // if (priority) whereClause.priority = priority;
-    // if (category) whereClause.category = category;
+    // Build Prisma query with filters
+    const whereClause: any = {};
+    if (status) whereClause.status = status;
+    if (priority) whereClause.priority = priority;
+    if (category) whereClause.category = category;
 
-    // const [complaints, total] = await Promise.all([
-    //   prisma.complaint.findMany({
-    //     where: whereClause,
-    //     skip,
-    //     take: limit,
-    //     include: {
-    //       user: { select: { id: true, name: true, email: true } },
-    //       department: { select: { id: true, name: true } },
-    //     },
-    //   }),
-    //   prisma.complaint.count({ where: whereClause }),
-    // ]);
+    const [complaints, total] = await Promise.all([
+      prisma.complaint.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          department: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.complaint.count({ where: whereClause }),
+    ]);
 
-    // Mock data for demonstration
-    const mockComplaints = [
-      {
-        id: 1,
-        title: 'Pothole on Main Street',
-        description: 'Large pothole causing traffic hazard',
-        category: 'INFRASTRUCTURE',
-        status: 'SUBMITTED',
-        priority: 'HIGH',
-        address: '123 Main St',
-        createdAt: new Date(),
-      },
-      {
-        id: 2,
-        title: 'Illegal parking',
-        description: 'Vehicle parked illegally in no-parking zone',
-        category: 'TRAFFIC',
-        status: 'IN_PROGRESS',
-        priority: 'MEDIUM',
-        address: '456 Oak Ave',
-        createdAt: new Date(),
-      },
-    ];
-
-    const total = mockComplaints.length;
-    const paginatedComplaints = mockComplaints.slice(skip, skip + limit);
-
-    return ApiResponse.paginated(paginatedComplaints, page, limit, total);
+    return sendPaginatedSuccess(
+      complaints,
+      page,
+      limit,
+      total,
+      "Complaints fetched successfully"
+    );
   } catch (error) {
-    console.error('Error fetching complaints:', error);
-    return ApiResponse.serverError('Failed to fetch complaints');
+    console.error("Error fetching complaints:", error);
+    return sendError(
+      "Failed to fetch complaints",
+      ERROR_CODES.COMPLAINT_FETCH_ERROR,
+      500,
+      error
+    );
   }
 }
 
@@ -95,48 +86,63 @@ export async function POST(req: Request) {
 
     // Validation
     if (!body.title || !body.description || !body.category) {
-      return ApiResponse.badRequest('Missing required fields: title, description, category');
+      return sendError(
+        "Missing required fields: title, description, category",
+        ERROR_CODES.MISSING_REQUIRED_FIELDS,
+        400
+      );
     }
 
     if (body.title.length < 3) {
-      return ApiResponse.badRequest('Title must be at least 3 characters long');
+      return sendError(
+        "Title must be at least 3 characters long",
+        ERROR_CODES.INVALID_FIELD_LENGTH,
+        400
+      );
     }
 
     if (body.description.length < 10) {
-      return ApiResponse.badRequest('Description must be at least 10 characters long');
+      return sendError(
+        "Description must be at least 10 characters long",
+        ERROR_CODES.INVALID_FIELD_LENGTH,
+        400
+      );
     }
 
     // TODO: Create complaint in database
     // const complaint = await prisma.complaint.create({
-    //   data: {
-    //     title: body.title,
-    //     description: body.description,
-    //     category: body.category,
-    //     latitude: body.latitude,
-    //     longitude: body.longitude,
-    //     address: body.address,
-    //     imageUrl: body.imageUrl,
-    //     status: 'SUBMITTED',
-    //     priority: 'MEDIUM',
-    //     userId: userId, // From authenticated user
-    //   },
-    // });
+    // Create complaint
+    // Note: In production, get userId from authenticated session
+    const userId = body.userId || 1; // Default to user ID 1 for testing
 
-    // Mock response
-    const newComplaint = {
-      id: 3,
-      title: body.title,
-      description: body.description,
-      category: body.category,
-      status: 'SUBMITTED',
-      priority: 'MEDIUM',
-      address: body.address,
-      createdAt: new Date(),
-    };
+    const newComplaint = await prisma.complaint.create({
+      data: {
+        title: body.title,
+        description: body.description,
+        category: body.category,
+        latitude: body.latitude,
+        longitude: body.longitude,
+        address: body.address,
+        imageUrl: body.imageUrl,
+        status: "SUBMITTED",
+        priority: body.priority || "MEDIUM",
+        userId: userId,
+        departmentId: body.departmentId,
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        department: { select: { id: true, name: true } },
+      },
+    });
 
-    return ApiResponse.created(newComplaint);
+    return sendSuccess(newComplaint, "Complaint created successfully", 201);
   } catch (error) {
-    console.error('Error creating complaint:', error);
-    return ApiResponse.serverError('Failed to create complaint');
+    console.error("Error creating complaint:", error);
+    return sendError(
+      "Failed to create complaint",
+      ERROR_CODES.COMPLAINT_CREATION_FAILED,
+      500,
+      error
+    );
   }
 }

@@ -1,6 +1,12 @@
-import { NextResponse } from 'next/server';
-import { ApiResponse } from '../utils/response';
-import { getPaginationParams } from '../utils/pagination';
+import { NextResponse } from "next/server";
+import {
+  sendSuccess,
+  sendError,
+  sendPaginatedSuccess,
+} from "../../lib/responseHandler";
+import { ERROR_CODES } from "../../lib/errorCodes";
+import { getPaginationParams } from "../utils/pagination";
+import { prisma } from "../../lib/prisma";
 
 /**
  * GET /api/departments
@@ -14,32 +20,33 @@ export async function GET(req: Request) {
   try {
     const { page, limit, skip } = getPaginationParams(req);
 
-    // TODO: Fetch from database
-    // const [departments, total] = await Promise.all([
-    //   prisma.department.findMany({
-    //     skip,
-    //     take: limit,
-    //     include: {
-    //       _count: { select: { complaints: true } },
-    //     },
-    //   }),
-    //   prisma.department.count(),
-    // ]);
+    const [departments, total] = await Promise.all([
+      prisma.department.findMany({
+        skip,
+        take: limit,
+        include: {
+          _count: { select: { complaints: true } },
+        },
+        orderBy: { name: "asc" },
+      }),
+      prisma.department.count(),
+    ]);
 
-    // Mock data for demonstration
-    const mockDepartments = [
-      { id: 1, name: 'Traffic Department', description: 'Handles traffic and transportation issues' },
-      { id: 2, name: 'Sanitation Department', description: 'Manages waste and cleanliness' },
-      { id: 3, name: 'Infrastructure Department', description: 'Oversees roads and buildings' },
-    ];
-
-    const total = mockDepartments.length;
-    const paginatedDepartments = mockDepartments.slice(skip, skip + limit);
-
-    return ApiResponse.paginated(paginatedDepartments, page, limit, total);
+    return sendPaginatedSuccess(
+      departments,
+      page,
+      limit,
+      total,
+      "Departments fetched successfully"
+    );
   } catch (error) {
-    console.error('Error fetching departments:', error);
-    return ApiResponse.serverError('Failed to fetch departments');
+    console.error("Error fetching departments:", error);
+    return sendError(
+      "Failed to fetch departments",
+      ERROR_CODES.DEPARTMENT_FETCH_ERROR,
+      500,
+      error
+    );
   }
 }
 
@@ -59,40 +66,49 @@ export async function POST(req: Request) {
 
     // Validation
     if (!body.name) {
-      return ApiResponse.badRequest('Missing required field: name');
+      return sendError(
+        "Missing required field: name",
+        ERROR_CODES.MISSING_REQUIRED_FIELDS,
+        400
+      );
     }
 
     if (body.name.length < 3) {
-      return ApiResponse.badRequest('Department name must be at least 3 characters long');
+      return sendError(
+        "Department name must be at least 3 characters long",
+        ERROR_CODES.INVALID_FIELD_LENGTH,
+        400
+      );
     }
 
-    // TODO: Check if department already exists
-    // const existingDept = await prisma.department.findUnique({
-    //   where: { name: body.name },
-    // });
-    // if (existingDept) {
-    //   return ApiResponse.conflict('Department with this name already exists');
-    // }
+    // Check if department already exists
+    const existingDept = await prisma.department.findUnique({
+      where: { name: body.name },
+    });
+    if (existingDept) {
+      return sendError(
+        "Department with this name already exists",
+        ERROR_CODES.DEPARTMENT_NAME_EXISTS,
+        409
+      );
+    }
 
-    // TODO: Create department
-    // const department = await prisma.department.create({
-    //   data: {
-    //     name: body.name,
-    //     description: body.description,
-    //   },
-    // });
+    // Create department
+    const newDepartment = await prisma.department.create({
+      data: {
+        name: body.name,
+        description: body.description,
+      },
+    });
 
-    // Mock response
-    const newDepartment = {
-      id: 4,
-      name: body.name,
-      description: body.description,
-      createdAt: new Date(),
-    };
-
-    return ApiResponse.created(newDepartment);
+    return sendSuccess(newDepartment, "Department created successfully", 201);
   } catch (error) {
-    console.error('Error creating department:', error);
-    return ApiResponse.serverError('Failed to create department');
+    console.error("Error creating department:", error);
+    return sendError(
+      "Failed to create department",
+      ERROR_CODES.DEPARTMENT_CREATION_FAILED,
+      500,
+      error
+    );
   }
 }
