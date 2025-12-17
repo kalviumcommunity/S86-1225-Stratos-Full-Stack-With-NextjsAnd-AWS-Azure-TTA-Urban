@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
-import { ApiResponse } from '../../utils/response';
+import { NextResponse } from "next/server";
+import { ApiResponse } from "../../utils/response";
+import { prisma } from "../../../lib/prisma";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -13,43 +14,35 @@ interface RouteParams {
  */
 export async function GET(req: Request, { params }: RouteParams) {
   try {
-    const userId = parseInt(params.id);
+    const { id } = await params;
+    const userId = parseInt(id);
 
     if (isNaN(userId)) {
-      return ApiResponse.badRequest('Invalid user ID');
+      return ApiResponse.badRequest("Invalid user ID");
     }
 
-    // TODO: Fetch from database
-    // const user = await prisma.user.findUnique({
-    //   where: { id: userId },
-    //   select: {
-    //     id: true,
-    //     name: true,
-    //     email: true,
-    //     role: true,
-    //     createdAt: true,
-    //     updatedAt: true,
-    //   },
-    // });
+    // Fetch from database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
-    // Mock response
-    const mockUser = {
-      id: userId,
-      name: 'Alice Johnson',
-      email: 'alice@example.com',
-      role: 'CITIZEN',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    if (!mockUser) {
+    if (!user) {
       return ApiResponse.notFound(`User with ID ${userId} not found`);
     }
 
-    return ApiResponse.success(mockUser);
+    return ApiResponse.success(user);
   } catch (error) {
-    console.error('Error fetching user:', error);
-    return ApiResponse.serverError('Failed to fetch user');
+    console.error("Error fetching user:", error);
+    return ApiResponse.serverError("Failed to fetch user");
   }
 }
 
@@ -67,43 +60,43 @@ export async function GET(req: Request, { params }: RouteParams) {
  */
 export async function PUT(req: Request, { params }: RouteParams) {
   try {
-    const userId = parseInt(params.id);
+    const { id } = await params;
+    const userId = parseInt(id);
 
     if (isNaN(userId)) {
-      return ApiResponse.badRequest('Invalid user ID');
+      return ApiResponse.badRequest("Invalid user ID");
     }
 
     const body = await req.json();
 
     // Validation
     if (!body.name || !body.email) {
-      return ApiResponse.badRequest('Missing required fields: name, email');
+      return ApiResponse.badRequest("Missing required fields: name, email");
     }
 
-    // TODO: Update user
-    // const updatedUser = await prisma.user.update({
-    //   where: { id: userId },
-    //   data: {
-    //     name: body.name,
-    //     email: body.email,
-    //     phone: body.phone,
-    //     role: body.role,
-    //   },
-    // });
-
-    // Mock response
-    const updatedUser = {
-      id: userId,
-      name: body.name,
-      email: body.email,
-      role: body.role || 'CITIZEN',
-      updatedAt: new Date(),
-    };
+    // Update user
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: body.name,
+        email: body.email,
+        phone: body.phone,
+        role: body.role,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        updatedAt: true,
+      },
+    });
 
     return ApiResponse.success(updatedUser);
   } catch (error) {
-    console.error('Error updating user:', error);
-    return ApiResponse.serverError('Failed to update user');
+    console.error("Error updating user:", error);
+    return ApiResponse.serverError("Failed to update user");
   }
 }
 
@@ -121,31 +114,33 @@ export async function PUT(req: Request, { params }: RouteParams) {
  */
 export async function PATCH(req: Request, { params }: RouteParams) {
   try {
-    const userId = parseInt(params.id);
+    const { id } = await params;
+    const userId = parseInt(id);
 
     if (isNaN(userId)) {
-      return ApiResponse.badRequest('Invalid user ID');
+      return ApiResponse.badRequest("Invalid user ID");
     }
 
     const body = await req.json();
 
-    // TODO: Partial update
-    // const updatedUser = await prisma.user.update({
-    //   where: { id: userId },
-    //   data: body,
-    // });
+    // Partial update
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: body,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        updatedAt: true,
+      },
+    });
 
-    // Mock response
-    const patchedUser = {
-      id: userId,
-      ...body,
-      updatedAt: new Date(),
-    };
-
-    return ApiResponse.success(patchedUser);
+    return ApiResponse.success(updatedUser);
   } catch (error) {
-    console.error('Error patching user:', error);
-    return ApiResponse.serverError('Failed to update user');
+    console.error("Error patching user:", error);
+    return ApiResponse.serverError("Failed to update user");
   }
 }
 
@@ -155,26 +150,29 @@ export async function PATCH(req: Request, { params }: RouteParams) {
  */
 export async function DELETE(req: Request, { params }: RouteParams) {
   try {
-    const userId = parseInt(params.id);
+    const { id } = await params;
+    const userId = parseInt(id);
 
     if (isNaN(userId)) {
-      return ApiResponse.badRequest('Invalid user ID');
+      return ApiResponse.badRequest("Invalid user ID");
     }
 
-    // TODO: Delete from database
-    // const deletedUser = await prisma.user.delete({
-    //   where: { id: userId },
-    // });
+    // Delete from database (cascade will delete related complaints)
+    const deletedUser = await prisma.user.delete({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
 
-    // Mock response
-    const deletedUser = {
-      id: userId,
-      message: 'User deleted successfully',
-    };
-
-    return ApiResponse.success(deletedUser);
+    return ApiResponse.success({
+      ...deletedUser,
+      message: "User deleted successfully",
+    });
   } catch (error) {
-    console.error('Error deleting user:', error);
-    return ApiResponse.serverError('Failed to delete user');
+    console.error("Error deleting user:", error);
+    return ApiResponse.serverError("Failed to delete user");
   }
 }

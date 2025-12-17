@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
-import { ApiResponse } from '../../utils/response';
+import { NextResponse } from "next/server";
+import { ApiResponse } from "../../utils/response";
+import { prisma } from "../../../lib/prisma";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -13,39 +14,40 @@ interface RouteParams {
  */
 export async function GET(req: Request, { params }: RouteParams) {
   try {
-    const deptId = parseInt(params.id);
+    const { id } = await params;
+    const deptId = parseInt(id);
 
     if (isNaN(deptId)) {
-      return ApiResponse.badRequest('Invalid department ID');
+      return ApiResponse.badRequest("Invalid department ID");
     }
 
-    // TODO: Fetch from database with statistics
-    // const department = await prisma.department.findUnique({
-    //   where: { id: deptId },
-    //   include: {
-    //     _count: { select: { complaints: true } },
-    //     complaints: { take: 5, orderBy: { createdAt: 'desc' } },
-    //   },
-    // });
+    // Fetch from database with statistics
+    const department = await prisma.department.findUnique({
+      where: { id: deptId },
+      include: {
+        _count: { select: { complaints: true } },
+        complaints: {
+          take: 5,
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
 
-    // Mock response
-    const mockDepartment = {
-      id: deptId,
-      name: 'Traffic Department',
-      description: 'Handles traffic and transportation issues',
-      complaintCount: 45,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    if (!mockDepartment) {
+    if (!department) {
       return ApiResponse.notFound(`Department with ID ${deptId} not found`);
     }
 
-    return ApiResponse.success(mockDepartment);
+    return ApiResponse.success(department);
   } catch (error) {
-    console.error('Error fetching department:', error);
-    return ApiResponse.serverError('Failed to fetch department');
+    console.error("Error fetching department:", error);
+    return ApiResponse.serverError("Failed to fetch department");
   }
 }
 
@@ -61,40 +63,33 @@ export async function GET(req: Request, { params }: RouteParams) {
  */
 export async function PUT(req: Request, { params }: RouteParams) {
   try {
-    const deptId = parseInt(params.id);
+    const { id } = await params;
+    const deptId = parseInt(id);
 
     if (isNaN(deptId)) {
-      return ApiResponse.badRequest('Invalid department ID');
+      return ApiResponse.badRequest("Invalid department ID");
     }
 
     const body = await req.json();
 
     // Validation
     if (!body.name) {
-      return ApiResponse.badRequest('Missing required field: name');
+      return ApiResponse.badRequest("Missing required field: name");
     }
 
-    // TODO: Update department
-    // const updatedDept = await prisma.department.update({
-    //   where: { id: deptId },
-    //   data: {
-    //     name: body.name,
-    //     description: body.description,
-    //   },
-    // });
-
-    // Mock response
-    const updatedDept = {
-      id: deptId,
-      name: body.name,
-      description: body.description,
-      updatedAt: new Date(),
-    };
+    // Update department
+    const updatedDept = await prisma.department.update({
+      where: { id: deptId },
+      data: {
+        name: body.name,
+        description: body.description,
+      },
+    });
 
     return ApiResponse.success(updatedDept);
   } catch (error) {
-    console.error('Error updating department:', error);
-    return ApiResponse.serverError('Failed to update department');
+    console.error("Error updating department:", error);
+    return ApiResponse.serverError("Failed to update department");
   }
 }
 
@@ -110,31 +105,25 @@ export async function PUT(req: Request, { params }: RouteParams) {
  */
 export async function PATCH(req: Request, { params }: RouteParams) {
   try {
-    const deptId = parseInt(params.id);
+    const { id } = await params;
+    const deptId = parseInt(id);
 
     if (isNaN(deptId)) {
-      return ApiResponse.badRequest('Invalid department ID');
+      return ApiResponse.badRequest("Invalid department ID");
     }
 
     const body = await req.json();
 
-    // TODO: Partial update
-    // const patchedDept = await prisma.department.update({
-    //   where: { id: deptId },
-    //   data: body,
-    // });
-
-    // Mock response
-    const patchedDept = {
-      id: deptId,
-      ...body,
-      updatedAt: new Date(),
-    };
+    // Partial update
+    const patchedDept = await prisma.department.update({
+      where: { id: deptId },
+      data: body,
+    });
 
     return ApiResponse.success(patchedDept);
   } catch (error) {
-    console.error('Error patching department:', error);
-    return ApiResponse.serverError('Failed to update department');
+    console.error("Error patching department:", error);
+    return ApiResponse.serverError("Failed to update department");
   }
 }
 
@@ -144,34 +133,38 @@ export async function PATCH(req: Request, { params }: RouteParams) {
  */
 export async function DELETE(req: Request, { params }: RouteParams) {
   try {
-    const deptId = parseInt(params.id);
+    const { id } = await params;
+    const deptId = parseInt(id);
 
     if (isNaN(deptId)) {
-      return ApiResponse.badRequest('Invalid department ID');
+      return ApiResponse.badRequest("Invalid department ID");
     }
 
-    // TODO: Check if department has associated complaints
-    // const complaintCount = await prisma.complaint.count({
-    //   where: { departmentId: deptId },
-    // });
-    // if (complaintCount > 0) {
-    //   return ApiResponse.conflict('Cannot delete department with associated complaints');
-    // }
+    // Check if department has associated complaints
+    const complaintCount = await prisma.complaint.count({
+      where: { departmentId: deptId },
+    });
+    if (complaintCount > 0) {
+      return ApiResponse.conflict(
+        `Cannot delete department with ${complaintCount} associated complaints. Reassign or delete complaints first.`
+      );
+    }
 
-    // TODO: Delete department
-    // const deletedDept = await prisma.department.delete({
-    //   where: { id: deptId },
-    // });
+    // Delete department
+    const deletedDept = await prisma.department.delete({
+      where: { id: deptId },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
-    // Mock response
-    const response = {
-      id: deptId,
-      message: 'Department deleted successfully',
-    };
-
-    return ApiResponse.success(response);
+    return ApiResponse.success({
+      ...deletedDept,
+      message: "Department deleted successfully",
+    });
   } catch (error) {
-    console.error('Error deleting department:', error);
-    return ApiResponse.serverError('Failed to delete department');
+    console.error("Error deleting department:", error);
+    return ApiResponse.serverError("Failed to delete department");
   }
 }
