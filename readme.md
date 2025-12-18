@@ -86,15 +86,154 @@ Data analytics & reports
 
 ### 🔐 Security Considerations
 
-Input validation for all user data
+Input validation for all user data ✅
 
-Secure JWT token handling
+Secure JWT token handling ✅
+
+Password hashing with bcrypt ✅
 
 Rate limiting to prevent abuse
 
 File upload sanitization
 
 Privacy compliance (GDPR/local laws)
+
+---
+
+## 🔑 Authentication & Authorization
+
+This project implements **secure authentication** using **bcrypt** for password hashing and **JWT (JSON Web Tokens)** for stateless session management.
+
+### Key Features
+- ✅ **Secure Password Storage** - bcrypt hashing with 10 salt rounds
+- ✅ **JWT-based Authentication** - Stateless token system
+- ✅ **Token Expiration** - 1-hour token lifetime
+- ✅ **Input Validation** - Zod schema validation for auth endpoints
+- ✅ **Protected Routes** - Middleware for route protection
+- ✅ **Role-Based Access** - Support for CITIZEN, OFFICER, ADMIN roles
+
+### Authentication Endpoints
+
+#### 🔐 Signup - `/api/auth/signup` (POST)
+Register a new user with hashed password.
+
+**Request:**
+```json
+{
+  "name": "Alice Johnson",
+  "email": "alice@example.com",
+  "password": "SecurePass123",
+  "role": "CITIZEN"
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "message": "Signup successful",
+  "user": {
+    "id": 1,
+    "name": "Alice Johnson",
+    "email": "alice@example.com",
+    "role": "CITIZEN"
+  }
+}
+```
+
+#### 🔓 Login - `/api/auth/login` (POST)
+Authenticate and receive JWT token.
+
+**Request:**
+```json
+{
+  "email": "alice@example.com",
+  "password": "SecurePass123"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "name": "Alice Johnson",
+    "email": "alice@example.com",
+    "role": "CITIZEN"
+  }
+}
+```
+
+#### 👤 Get Current User - `/api/auth/me` (GET)
+Get authenticated user info (protected route).
+
+**Headers:**
+```
+Authorization: Bearer <your_jwt_token>
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "User authenticated",
+  "user": {
+    "id": 1,
+    "name": "Alice Johnson",
+    "email": "alice@example.com",
+    "role": "CITIZEN"
+  }
+}
+```
+
+### Security Implementation
+
+**Password Hashing:**
+```typescript
+// During signup
+const hashedPassword = await bcrypt.hash(password, 10);
+
+// During login
+const isValid = await bcrypt.compare(password, hashedPassword);
+```
+
+**JWT Token Generation:**
+```typescript
+const token = jwt.sign(
+  { id: user.id, email: user.email, role: user.role },
+  JWT_SECRET,
+  { expiresIn: "1h" }
+);
+```
+
+**Protecting Routes:**
+```typescript
+import { verifyToken, unauthorizedResponse } from "@/lib/auth";
+
+export async function GET(req: Request) {
+  const user = verifyToken(req);
+  if (!user) return unauthorizedResponse();
+  
+  // Proceed with authenticated logic
+}
+```
+
+### Environment Setup
+
+Add to `.env.local`:
+```env
+JWT_SECRET=your_super_secure_random_string_here
+```
+
+**Generate a secure secret:**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+📚 **[Complete Authentication Documentation →](ttaurban/AUTHENTICATION.md)**
 
 ---
 
@@ -2074,21 +2213,29 @@ Each endpoint includes:
 - [ ] Uncomment Prisma queries in all route.ts files
 - [ ] Run migrations
 
-### Phase 2: Authentication (High Priority)
-- [ ] Implement JWT tokens
-- [ ] Add `/api/auth/login` endpoint
-- [ ] Add `/api/auth/register` endpoint
-- [ ] Verify tokens in middleware
+### Phase 2: Authentication (High Priority) ✅ COMPLETED
+- [x] Implement JWT tokens with jsonwebtoken
+- [x] Add `/api/auth/login` endpoint with bcrypt verification
+- [x] Add `/api/auth/signup` endpoint with password hashing
+- [x] Add `/api/auth/me` protected route example
+- [x] Create auth middleware and helpers
+- [x] Verify tokens in protected routes
+- [x] Add Zod validation for auth endpoints
+
+**See [AUTHENTICATION.md](ttaurban/AUTHENTICATION.md) for complete documentation**
 
 ### Phase 3: Authorization (High Priority)
 - [ ] Implement role-based access control
 - [ ] Restrict endpoints by user role
 - [ ] Verify resource ownership
 
-### Phase 4: Validation
-- [ ] Add Zod schemas
-- [ ] Input sanitization
-- [ ] Advanced validations
+### Phase 4: Validation ✅ COMPLETED
+- [x] Add Zod schemas for all entities
+- [x] Input sanitization and validation
+- [x] Advanced field-level validations
+- [x] Consistent error responses
+
+**See [Zod Validation Documentation](#-api-input-validation-with-zod) below**
 
 ### Phase 5: Monitoring
 - [ ] Add request logging
