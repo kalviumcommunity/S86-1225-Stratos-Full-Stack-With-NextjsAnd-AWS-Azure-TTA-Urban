@@ -211,36 +211,427 @@ Error responses:
 	 - HTTP methods are standard - everyone knows GET means "read"
 	 - Route hierarchy shows relationships (`/api/complaints/:id` relates to a specific complaint)
 
-### Next Steps
+### Implemented Features ✅
 
-1. **Connect to Database**: Replace mock data with Prisma queries
-	 - Uncomment TODO Prisma calls in route.ts files
-	 - Install and configure Prisma
+1. **✅ Database Connected**: Prisma ORM with PostgreSQL
+	 - All routes use Prisma for data persistence
+	 - Schema migrations applied
 
-2. **Add Authentication**: Implement JWT or session-based auth
-	 - Create middleware to verify user identity
-	 - Protect sensitive endpoints
+2. **✅ Authentication Implemented**: JWT-based authentication
+	 - Signup with bcrypt password hashing
+	 - Login with JWT token generation
+	 - Protected routes with token verification
 
-3. **Add Authorization**: Verify user roles and permissions
-	 - Citizens can only view/create their own complaints
-	 - Officers can update complaint status
-	 - Admins have full access
+3. **✅ Authorization Implemented**: Role-based access control
+	 - Middleware enforces role permissions
+	 - ADMIN, OFFICER, CITIZEN roles defined
+	 - Protected admin endpoints
 
-4. **Add Validation**: Enhanced input validation
-	 - Use zod or similar for schema validation
-	 - Validate coordinates, file uploads, etc.
+4. **✅ Validation Implemented**: Zod schema validation
+	 - All POST/PUT/PATCH endpoints validated
+	 - Structured error responses with field-level details
+	 - Type-safe validation schemas
 
-5. **Add Caching**: Improve performance
+### Future Enhancements
+
+1. **Add Caching**: Improve performance
 	 - Cache frequently accessed data (departments, etc.)
 	 - Use Redis or similar
 
-6. **Add Logging**: Track API usage
+2. **Add Logging**: Track API usage
 	 - Log all requests for debugging
 	 - Monitor error rates and performance
 
-7. **Add Rate Limiting**: Prevent abuse
+3. **Add Rate Limiting**: Prevent abuse
 	 - Limit requests per IP/user
 	 - Throttle expensive operations
+
+4. **Enhanced File Upload**: Image attachments for complaints
+	 - Validate file types and sizes
+	 - Store in cloud storage (AWS S3/Azure Blob)
+
+---
+
+## 🔐 Authentication & Authorization
+
+This project implements secure authentication using **bcrypt** for password hashing and **JWT** (JSON Web Tokens) for session management, along with role-based authorization middleware.
+
+### Authentication Flow
+
+```
+1. Signup → Password Hashing (bcrypt)
+2. Login → Password Verification + JWT Generation
+3. Protected Routes → JWT Verification + Role Check
+```
+
+### User Roles
+
+The system supports three user roles defined in the Prisma schema:
+
+| Role | Description | Access Level |
+|------|-------------|--------------|
+| `CITIZEN` | Regular users who submit complaints | Can create and view own complaints |
+| `OFFICER` | Department officers who handle complaints | Can update complaint status, view assigned complaints |
+| `ADMIN` | System administrators | Full access to all resources and admin endpoints |
+
+### Authentication Endpoints
+
+#### 1. **Signup** - `/api/auth/signup`
+Register a new user with secure password hashing.
+
+```bash
+curl -X POST http://localhost:3000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "SecurePass123!",
+    "phone": "+1234567890",
+    "role": "CITIZEN"
+  }'
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User created successfully",
+  "data": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "+1234567890",
+    "role": "CITIZEN"
+  }
+}
+```
+
+**Security:**
+- Passwords are hashed using bcrypt with 10 salt rounds
+- Plain text passwords are never stored in the database
+- Passwords are excluded from all API responses
+
+#### 2. **Login** - `/api/auth/login`
+Authenticate and receive a JWT token.
+
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "SecurePass123!"
+  }'
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "role": "CITIZEN"
+    }
+  }
+}
+```
+
+**JWT Token Details:**
+- Contains: userId, email, role
+- Expires: 1 hour (3600 seconds)
+- Algorithm: HS256
+- Secret: Environment variable `JWT_SECRET`
+
+#### 3. **Get Current User** - `/api/auth/me` 🔒
+Protected route that returns current user info (requires valid JWT).
+
+```bash
+curl -X GET http://localhost:3000/api/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "CITIZEN"
+  }
+}
+```
+
+### Authorization Middleware
+
+The application implements **route-level authorization** using Next.js middleware at the root level ([middleware.ts](middleware.ts)).
+
+#### How It Works
+
+```
+┌─────────────┐
+│   Request   │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────────────────┐
+│  Middleware (middleware.ts) │
+│  1. Extract JWT token       │
+│  2. Verify signature        │
+│  3. Check role permissions  │
+│  4. Attach user info        │
+└──────┬──────────────────────┘
+       │
+       ▼
+┌─────────────┐
+│ API Handler │ ← User info in headers:
+└─────────────┘   x-user-id, x-user-email, x-user-role
+```
+
+#### Protected Routes
+
+| Route Pattern | Required Role | Description |
+|---------------|---------------|-------------|
+| `/api/admin/*` | `ADMIN` only | Admin-only endpoints |
+| `/api/users/*` | Any authenticated user | User management (further role checks in handlers) |
+
+**Middleware Configuration** ([middleware.ts](middleware.ts)):
+```typescript
+export const config = {
+  matcher: ["/api/admin/:path*", "/api/users/:path*"],
+};
+```
+
+#### Authorization Checks
+
+1. **Token Validation**
+   ```typescript
+   const token = req.headers.get("authorization")?.split(" ")[1];
+   if (!token) return 401 Unauthorized
+   ```
+
+2. **JWT Verification**
+   ```typescript
+   const decoded = jwt.verify(token, JWT_SECRET);
+   // Extract: userId, email, role
+   ```
+
+3. **Role-Based Access Control**
+   ```typescript
+   if (pathname.startsWith("/api/admin") && decoded.role !== "ADMIN") {
+     return 403 Forbidden
+   }
+   ```
+
+4. **User Context Injection**
+   ```typescript
+   requestHeaders.set("x-user-id", decoded.userId);
+   requestHeaders.set("x-user-email", decoded.email);
+   requestHeaders.set("x-user-role", decoded.role);
+   ```
+
+### Testing Role-Based Access
+
+#### 1. **Admin Access (Allowed)** ✅
+```bash
+# First, login as admin
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@example.com", "password": "adminpass"}'
+
+# Use the token to access admin route
+curl -X GET http://localhost:3000/api/admin \
+  -H "Authorization: Bearer <ADMIN_JWT_TOKEN>"
+```
+
+**Expected Response:**
+```json
+{
+  "success": true,
+  "message": "Welcome Admin! You have full access.",
+  "user": {
+    "email": "admin@example.com",
+    "role": "ADMIN"
+  }
+}
+```
+
+#### 2. **Regular User Access (Denied)** ❌
+```bash
+# Login as regular user
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "john@example.com", "password": "userpass"}'
+
+# Try to access admin route
+curl -X GET http://localhost:3000/api/admin \
+  -H "Authorization: Bearer <USER_JWT_TOKEN>"
+```
+
+**Expected Response:**
+```json
+{
+  "success": false,
+  "message": "Access denied"
+}
+```
+**Status Code:** `403 Forbidden`
+
+#### 3. **No Token (Unauthorized)** ❌
+```bash
+curl -X GET http://localhost:3000/api/admin
+```
+
+**Expected Response:**
+```json
+{
+  "success": false,
+  "message": "Token missing"
+}
+```
+**Status Code:** `401 Unauthorized`
+
+#### 4. **Invalid/Expired Token** ❌
+```bash
+curl -X GET http://localhost:3000/api/admin \
+  -H "Authorization: Bearer invalid.token.here"
+```
+
+**Expected Response:**
+```json
+{
+  "success": false,
+  "message": "Invalid or expired token"
+}
+```
+**Status Code:** `403 Forbidden`
+
+### Security Best Practices Implemented
+
+#### 1. **Least Privilege Principle**
+- Users only have access to routes necessary for their role
+- `CITIZEN` → Own complaints
+- `OFFICER` → Assigned complaints
+- `ADMIN` → All resources
+
+#### 2. **Defense in Depth**
+- Middleware validates at the route level
+- Individual handlers can add additional checks
+- Database queries filter by user ownership where needed
+
+#### 3. **Secure Token Management**
+- JWT tokens expire after 1 hour
+- Secret stored in environment variables (never in code)
+- Tokens transmitted via Authorization header (not cookies by default)
+
+#### 4. **Password Security**
+- bcrypt with 10 salt rounds (industry standard)
+- Automatic salting prevents rainbow table attacks
+- One-way hashing (cannot be reversed)
+
+### Environment Setup
+
+Create `.env.local` in the `ttaurban/` directory:
+
+```bash
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/ttaurban"
+
+# JWT Secret (Generate a strong random secret)
+JWT_SECRET="your-super-secret-jwt-key-here-minimum-32-characters"
+
+# Generate a secure secret with:
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**⚠️ Security Warning:**
+- Never commit `.env.local` to version control
+- Use different secrets for development and production
+- Rotate secrets periodically
+
+### Future Enhancements
+
+The authorization system can be extended to support:
+
+1. **Additional Roles**
+   ```typescript
+   enum UserRole {
+     CITIZEN
+     OFFICER
+     DEPARTMENT_HEAD  // New role
+     SUPERVISOR       // New role
+     ADMIN
+   }
+   ```
+
+2. **Refresh Tokens**
+   - Long-lived refresh tokens for better UX
+   - Automatic token renewal without re-login
+
+3. **Permission-Based Access**
+   - Granular permissions beyond role checks
+   - Example: `OFFICER` can only update complaints in their department
+
+4. **Token Blacklisting**
+   - Revoke tokens on logout
+   - Maintain a blacklist in Redis
+
+5. **Multi-Factor Authentication (MFA)**
+   - SMS or email verification codes
+   - Authenticator app support
+
+6. **Audit Logging**
+   - Log all authentication attempts
+   - Track admin actions for compliance
+
+### Authorization Flow Diagram
+
+```
+┌──────────┐     Signup (POST /api/auth/signup)
+│  Client  │────────────────────────────────────┐
+└──────────┘                                    │
+                                                ▼
+                                    ┌──────────────────────┐
+                                    │  Hash password       │
+                                    │  Store in DB         │
+                                    │  Return user (no pwd)│
+                                    └──────────────────────┘
+
+┌──────────┐     Login (POST /api/auth/login)
+│  Client  │────────────────────────────────────┐
+└──────────┘                                    │
+                                                ▼
+                                    ┌──────────────────────┐
+                                    │  Verify password     │
+                                    │  Generate JWT        │
+                                    │  Return token + user │
+                                    └──────────────────────┘
+                                                │
+                                                ▼
+┌──────────┐     Protected Request (with token)
+│  Client  │────────────────────────────────────┐
+└──────────┘                                    │
+     ▲                                          ▼
+     │                              ┌──────────────────────┐
+     │                              │  Middleware          │
+     │                              │  - Verify JWT        │
+     │                              │  - Check role        │
+     │                              │  - Inject user info  │
+     │                              └──────────────────────┘
+     │                                          │
+     │                                          ▼
+     │                              ┌──────────────────────┐
+     │                              │  API Handler         │
+     │                              │  - Access user info  │
+     └──────────────────────────────│  - Process request   │
+                                    │  - Return response   │
+                                    └──────────────────────┘
+```
 
 ---
 
