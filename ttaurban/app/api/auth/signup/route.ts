@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { prisma } from "../../../lib/prisma";
 import { signupSchema } from "../../../lib/schemas/authSchema";
-import { ZodError } from "zod";
+import { handleError } from "../../../lib/errorHandler";
 
 /**
  * POST /api/auth/signup
@@ -70,29 +70,6 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error) {
-    // Handle Zod validation errors
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Validation Error",
-          errors: error.issues.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error("Signup error:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Signup failed",
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    return handleError(error, "POST /api/auth/signup");
   }
 }

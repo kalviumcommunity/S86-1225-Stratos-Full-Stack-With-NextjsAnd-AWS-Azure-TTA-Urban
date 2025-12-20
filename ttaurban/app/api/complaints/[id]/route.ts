@@ -5,7 +5,7 @@ import {
   updateComplaintSchema,
   patchComplaintSchema,
 } from "../../../lib/schemas/complaintSchema";
-import { ZodError } from "zod";
+import { handleError } from "../../../lib/errorHandler";
 
 interface RouteParams {
   params: Promise<{
@@ -44,8 +44,7 @@ export async function GET(req: Request, { params }: RouteParams) {
 
     return ApiResponse.success(complaint);
   } catch (error) {
-    console.error("Error fetching complaint:", error);
-    return ApiResponse.serverError("Failed to fetch complaint");
+    return handleError(error, "GET /api/complaints/[id]");
   }
 }
 
@@ -103,23 +102,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
     return ApiResponse.success(updatedComplaint);
   } catch (error) {
-    // Handle Zod validation errors
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Validation Error",
-          errors: error.issues.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error("Error updating complaint:", error);
-    return ApiResponse.serverError("Failed to update complaint");
+    return handleError(error, "PUT /api/complaints/[id]");
   }
 }
 
@@ -160,23 +143,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     return ApiResponse.success(patchedComplaint);
   } catch (error) {
-    // Handle Zod validation errors
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Validation Error",
-          errors: error.issues.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error("Error patching complaint:", error);
-    return ApiResponse.serverError("Failed to update complaint");
+    return handleError(error, "PATCH /api/complaints/[id]");
   }
 }
 
@@ -207,7 +174,6 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       message: "Complaint deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting complaint:", error);
-    return ApiResponse.serverError("Failed to delete complaint");
+    return handleError(error, "DELETE /api/complaints/[id]");
   }
 }

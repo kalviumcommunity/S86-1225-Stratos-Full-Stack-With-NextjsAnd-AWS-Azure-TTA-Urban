@@ -8,7 +8,7 @@ import { ERROR_CODES } from "../../lib/errorCodes";
 import { getPaginationParams } from "../utils/pagination";
 import { prisma } from "../../lib/prisma";
 import { createComplaintSchema } from "../../lib/schemas/complaintSchema";
-import { ZodError } from "zod";
+import { handleError } from "../../lib/errorHandler";
 
 /**
  * GET /api/complaints
@@ -57,13 +57,7 @@ export async function GET(req: Request) {
       "Complaints fetched successfully"
     );
   } catch (error) {
-    console.error("Error fetching complaints:", error);
-    return sendError(
-      "Failed to fetch complaints",
-      ERROR_CODES.COMPLAINT_FETCH_ERROR,
-      500,
-      error
-    );
+    return handleError(error, "GET /api/complaints");
   }
 }
 
@@ -114,27 +108,6 @@ export async function POST(req: Request) {
 
     return sendSuccess(newComplaint, "Complaint created successfully", 201);
   } catch (error) {
-    // Handle Zod validation errors
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Validation Error",
-          errors: error.issues.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error("Error creating complaint:", error);
-    return sendError(
-      "Failed to create complaint",
-      ERROR_CODES.COMPLAINT_CREATION_FAILED,
-      500,
-      error
-    );
+    return handleError(error, "POST /api/complaints");
   }
 }
