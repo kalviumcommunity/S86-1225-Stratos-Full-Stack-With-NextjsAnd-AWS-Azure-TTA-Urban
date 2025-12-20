@@ -10,18 +10,48 @@ import { getPaginationParams } from "../utils/pagination";
 import { prisma } from "../../lib/prisma";
 import { createUserSchema } from "../../lib/schemas/userSchema";
 import { handleError } from "../../lib/errorHandler";
+import { cacheHelpers } from "../../lib/redis";
+import { logger } from "../../lib/logger";
 
 /**
  * GET /api/users
- * Returns a paginated list of all users
+ * Returns a paginated list of all users with Redis caching
  *
  * Query Parameters:
  * - page: number (default: 1)
  * - limit: number (default: 10, max: 100)
+ *
+ * Cache Strategy:
+ * - Cache key: users:list:page:{page}:limit:{limit}
+ * - TTL: 60 seconds
+ * - Invalidated on: POST (create), PUT/PATCH (update), DELETE
  */
 export async function GET(req: Request) {
   try {
     const { page, limit, skip } = getPaginationParams(req);
+
+    // Generate cache key based on pagination params
+    const cacheKey = `users:list:page:${page}:limit:${limit}`;
+
+    // Check cache first (Cache-Aside pattern)
+    const cachedData = await cacheHelpers.get<{
+      users: any[];
+      total: number;
+    }>(cacheKey);
+
+    if (cachedData) {
+      logger.info("Cache Hit", { key: cacheKey });
+      return sendPaginatedSuccess(
+        cachedData.users,
+        page,
+        limit,
+        cachedData.total,
+        "Users fetched successfully (cached)"
+      );
+    }
+
+    // Cache Miss - Fetch from database
+    logger.info("Cache Miss - Fetching from DB", { key: cacheKey });
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -41,6 +71,9 @@ export async function GET(req: Request) {
       prisma.user.count(),
     ]);
 
+    // Cache the result with 60 second TTL
+    await cacheHelpers.set(cacheKey, { users, total }, 60);
+
     return sendPaginatedSuccess(
       users,
       page,
@@ -56,6 +89,7 @@ export async function GET(req: Request) {
 /**
  * POST /api/users
  * Creates a new user with Zod validation
+ * Invalidates users list cache after creation
  *
  * Request Body:
  * {
@@ -106,6 +140,10 @@ export async function POST(req: Request) {
         createdAt: true,
       },
     });
+
+    // Invalidate all users list cache (pattern match)
+    await cacheHelpers.delPattern("users:list:*");
+    logger.info("Cache invalidated", { pattern: "users:list:*" });
 
     return sendSuccess(user, "User created successfully", 201);
   } catch (error) {
