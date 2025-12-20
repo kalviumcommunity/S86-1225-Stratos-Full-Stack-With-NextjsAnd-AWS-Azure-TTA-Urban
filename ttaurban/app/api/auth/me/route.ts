@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyToken, unauthorizedResponse } from "../../../lib/auth";
+import { handleError } from "../../../lib/errorHandler";
 
 /**
  * GET /api/auth/me
@@ -28,13 +29,6 @@ export async function GET(req: Request) {
       },
     });
   } catch (error) {
-    console.error("Auth verification error:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Invalid or expired token",
-      },
-      { status: 403 }
-    );
+    return handleError(error, "GET /api/auth/me");
   }
 }

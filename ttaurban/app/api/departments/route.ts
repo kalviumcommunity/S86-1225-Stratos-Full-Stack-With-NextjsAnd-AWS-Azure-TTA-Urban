@@ -8,7 +8,7 @@ import { ERROR_CODES } from "../../lib/errorCodes";
 import { getPaginationParams } from "../utils/pagination";
 import { prisma } from "../../lib/prisma";
 import { createDepartmentSchema } from "../../lib/schemas/departmentSchema";
-import { ZodError } from "zod";
+import { handleError } from "../../lib/errorHandler";
 
 /**
  * GET /api/departments
@@ -42,13 +42,7 @@ export async function GET(req: Request) {
       "Departments fetched successfully"
     );
   } catch (error) {
-    console.error("Error fetching departments:", error);
-    return sendError(
-      "Failed to fetch departments",
-      ERROR_CODES.DEPARTMENT_FETCH_ERROR,
-      500,
-      error
-    );
+    return handleError(error, "GET /api/departments");
   }
 }
 
@@ -91,27 +85,6 @@ export async function POST(req: Request) {
 
     return sendSuccess(newDepartment, "Department created successfully", 201);
   } catch (error) {
-    // Handle Zod validation errors
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Validation Error",
-          errors: error.issues.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error("Error creating department:", error);
-    return sendError(
-      "Failed to create department",
-      ERROR_CODES.DEPARTMENT_CREATION_FAILED,
-      500,
-      error
-    );
+    return handleError(error, "POST /api/departments");
   }
 }

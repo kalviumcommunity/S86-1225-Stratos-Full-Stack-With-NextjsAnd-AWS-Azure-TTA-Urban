@@ -2365,3 +2365,365 @@ When adding new endpoints:
 **Status**: ✓ Complete & Ready for Integration
 
 
+## 🛡️ Centralized Error Handling
+
+This project implements a **centralized error handling system** that ensures consistency, security, and observability across all API routes.
+
+### Why Centralized Error Handling Matters
+
+Modern web applications can fail in many ways — from API timeouts to database issues. Without a centralized strategy, errors become scattered, logs inconsistent, and debugging difficult.
+
+**Benefits:**
+- **Consistency**: Every error follows a uniform response format
+- **Security**: Sensitive stack traces are hidden in production
+- **Observability**: Structured logs make debugging and monitoring easier
+- **Environment-Aware**: Different behavior for development vs production
+
+| Environment | Behavior |
+|-------------|----------|
+| **Development** | Show detailed error messages and stack traces for debugging |
+| **Production** | Log detailed errors internally, but send minimal user-safe messages |
+
+### Error Handling Structure
+
+```
+app/
+ ├── api/
+ │    ├── users/route.ts          # Uses handleError()
+ │    ├── complaints/route.ts     # Uses handleError()
+ │    └── auth/login/route.ts     # Uses handleError()
+ ├── lib/
+ │    ├── logger.ts               # Structured logging utility
+ │    └── errorHandler.ts         # Centralized error handler
+```
+
+### Logger Utility
+
+**File:** [app/lib/logger.ts](app/lib/logger.ts)
+
+Provides structured, JSON-formatted logging across the application:
+
+```typescript
+export const logger = {
+  info: (message: string, meta?: any) => {
+    console.log(JSON.stringify({ 
+      level: "info", 
+      message, 
+      meta, 
+      timestamp: new Date().toISOString() 
+    }));
+  },
+  
+  error: (message: string, meta?: any) => {
+    console.error(JSON.stringify({ 
+      level: "error", 
+      message, 
+      meta, 
+      timestamp: new Date().toISOString() 
+    }));
+  },
+};
+```
+
+**Example Log Output:**
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "meta": {
+    "message": "Database connection failed!",
+    "stack": "REDACTED"
+  },
+  "timestamp": "2025-12-19T16:45:00.000Z"
+}
+```
+
+### Centralized Error Handler
+
+**File:** [app/lib/errorHandler.ts](app/lib/errorHandler.ts)
+
+The error handler classifies and formats errors based on type and environment:
+
+```typescript
+export function handleError(error: any, context: string) {
+  const isProd = process.env.NODE_ENV === "production";
+
+  // Handle Zod validation errors automatically
+  if (error instanceof ZodError) {
+    return NextResponse.json({
+      success: false,
+      message: "Validation Error",
+      errors: error.issues.map(e => ({
+        field: e.path.join("."),
+        message: e.message
+      }))
+    }, { status: 400 });
+  }
+
+  // Build error response based on environment
+  const errorResponse = {
+    success: false,
+    message: isProd 
+      ? "Something went wrong. Please try again later."
+      : error.message || "Unknown error",
+    ...(isProd ? {} : { stack: error.stack }),
+  };
+
+  // Log error with full details
+  logger.error(`Error in ${context}`, {
+    message: error.message,
+    stack: isProd ? "REDACTED" : error.stack,
+  });
+
+  return NextResponse.json(errorResponse, { status: 500 });
+}
+```
+
+**Key Features:**
+- **Automatic Zod validation error handling** with field-level details
+- **Environment-aware responses** (detailed in dev, safe in prod)
+- **Structured logging** for all errors
+- **Custom error classes** (ValidationError, AuthenticationError, etc.)
+
+### Using the Error Handler in Routes
+
+**Example:** [app/api/users/route.ts](app/api/users/route.ts)
+
+```typescript
+import { handleError } from "../../lib/errorHandler";
+
+export async function GET(req: Request) {
+  try {
+    const users = await prisma.user.findMany();
+    return sendSuccess(users);
+  } catch (error) {
+    return handleError(error, "GET /api/users");
+  }
+}
+```
+
+All API routes in this project use the centralized error handler:
+- ✅ `/api/users` and `/api/users/[id]`
+- ✅ `/api/complaints` and `/api/complaints/[id]`
+- ✅ `/api/departments` and `/api/departments/[id]`
+- ✅ `/api/auth/*` (signup, login, me)
+
+### Development vs Production Comparison
+
+#### Development Mode (`NODE_ENV=development`)
+
+**Request:**
+```bash
+curl -X GET http://localhost:3000/api/users
+```
+
+**Response (with error):**
+```json
+{
+  "success": false,
+  "message": "Database connection failed!",
+  "stack": "Error: Database connection failed!\n    at GET (/app/api/users/route.ts:25:11)\n    ..."
+}
+```
+
+**Console Log:**
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "meta": {
+    "message": "Database connection failed!",
+    "stack": "Error: Database connection failed!\n    at GET..."
+  },
+  "timestamp": "2025-12-19T16:45:00.000Z"
+}
+```
+
+#### Production Mode (`NODE_ENV=production`)
+
+**Request:**
+```bash
+curl -X GET https://api.ttaurban.com/api/users
+```
+
+**Response (same error):**
+```json
+{
+  "success": false,
+  "message": "Something went wrong. Please try again later."
+}
+```
+
+**Console Log (CloudWatch/Log Service):**
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "meta": {
+    "message": "Database connection failed!",
+    "stack": "REDACTED"
+  },
+  "timestamp": "2025-12-19T16:45:00.000Z"
+}
+```
+
+### Custom Error Classes
+
+The error handler provides custom error classes for specific scenarios:
+
+```typescript
+import { 
+  ValidationError, 
+  AuthenticationError, 
+  AuthorizationError,
+  NotFoundError,
+  ConflictError,
+  DatabaseError 
+} from "@/lib/errorHandler";
+
+// Usage in routes
+if (!user) {
+  throw new NotFoundError("User not found");
+}
+
+if (existingUser) {
+  throw new ConflictError("Email already exists");
+}
+
+if (!isPasswordValid) {
+  throw new AuthenticationError("Invalid credentials");
+}
+```
+
+**Error Class Status Codes:**
+| Error Class | Status Code | Use Case |
+|-------------|-------------|----------|
+| ValidationError | 400 | Invalid request data |
+| AuthenticationError | 401 | Missing or invalid credentials |
+| AuthorizationError | 403 | Insufficient permissions |
+| NotFoundError | 404 | Resource doesn't exist |
+| ConflictError | 409 | Duplicate resource (e.g., email) |
+| DatabaseError | 500 | Database operation failed |
+
+### Validation Error Handling
+
+Zod validation errors are automatically formatted with field-level details:
+
+**Request:**
+```bash
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"name": "", "email": "invalid"}'
+```
+
+**Response:**
+```json
+{
+  "success": false,
+  "message": "Validation Error",
+  "errors": [
+    {
+      "field": "name",
+      "message": "String must contain at least 1 character(s)"
+    },
+    {
+      "field": "email",
+      "message": "Invalid email format"
+    },
+    {
+      "field": "password",
+      "message": "Required"
+    }
+  ]
+}
+```
+
+### Benefits of Centralized Error Handling
+
+#### 1. **Consistent API Responses**
+All errors follow the same JSON structure, making client-side error handling predictable and easier to implement.
+
+#### 2. **Security Best Practices**
+- Stack traces are never exposed in production
+- Sensitive error details are logged internally only
+- User-facing messages are safe and generic
+
+#### 3. **Improved Debugging**
+- Structured logs are easy to parse and search
+- Context strings identify exactly where errors occur
+- Timestamps enable correlation with other events
+
+#### 4. **Reduced Code Duplication**
+- No need to repeat error handling logic in every route
+- Single source of truth for error formatting
+- Easy to add new error types or modify behavior globally
+
+#### 5. **Future-Proof Architecture**
+- Easy to integrate with external logging services (DataDog, Sentry, CloudWatch)
+- Can extend with error tracking, alerting, and metrics
+- Supports adding custom error types without modifying routes
+
+### Extending the Error Handler
+
+#### Adding External Logging (e.g., Sentry)
+
+```typescript
+import * as Sentry from "@sentry/nextjs";
+
+export function handleError(error: any, context: string) {
+  // ... existing code ...
+  
+  // Send to Sentry in production
+  if (isProd) {
+    Sentry.captureException(error, {
+      tags: { context },
+      extra: { message: error.message }
+    });
+  }
+  
+  // ... rest of code ...
+}
+```
+
+#### Adding Error Metrics
+
+```typescript
+export function handleError(error: any, context: string) {
+  // Track error counts
+  metrics.increment('api.errors', {
+    endpoint: context,
+    errorType: error.name
+  });
+  
+  // ... existing error handling ...
+}
+```
+
+### Testing Error Handling
+
+**Test 1: Simulate Database Error**
+```bash
+# Temporarily stop database, then:
+curl -X GET http://localhost:3000/api/users
+
+# Development: Shows full stack trace
+# Production: Shows "Something went wrong"
+```
+
+**Test 2: Validation Error**
+```bash
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{}'
+
+# Both envs: Shows field-level validation errors
+```
+
+**Test 3: Check Logs**
+```bash
+# View structured logs in console
+npm run dev
+
+# Logs appear as JSON, easy to parse:
+# {"level":"error","message":"Error in POST /api/users",...}
+```

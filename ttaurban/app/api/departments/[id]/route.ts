@@ -5,7 +5,7 @@ import {
   updateDepartmentSchema,
   patchDepartmentSchema,
 } from "../../../lib/schemas/departmentSchema";
-import { ZodError } from "zod";
+import { handleError } from "../../../lib/errorHandler";
 
 interface RouteParams {
   params: Promise<{
@@ -51,8 +51,7 @@ export async function GET(req: Request, { params }: RouteParams) {
 
     return ApiResponse.success(department);
   } catch (error) {
-    console.error("Error fetching department:", error);
-    return ApiResponse.serverError("Failed to fetch department");
+    return handleError(error, "GET /api/departments/[id]");
   }
 }
 
@@ -91,23 +90,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
     return ApiResponse.success(updatedDept);
   } catch (error) {
-    // Handle Zod validation errors
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Validation Error",
-          errors: error.issues.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error("Error updating department:", error);
-    return ApiResponse.serverError("Failed to update department");
+    return handleError(error, "PUT /api/departments/[id]");
   }
 }
 
@@ -143,23 +126,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     return ApiResponse.success(patchedDept);
   } catch (error) {
-    // Handle Zod validation errors
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Validation Error",
-          errors: error.issues.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error("Error patching department:", error);
-    return ApiResponse.serverError("Failed to update department");
+    return handleError(error, "PATCH /api/departments/[id]");
   }
 }
 
@@ -200,7 +167,6 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       message: "Department deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting department:", error);
-    return ApiResponse.serverError("Failed to delete department");
+    return handleError(error, "DELETE /api/departments/[id]");
   }
 }

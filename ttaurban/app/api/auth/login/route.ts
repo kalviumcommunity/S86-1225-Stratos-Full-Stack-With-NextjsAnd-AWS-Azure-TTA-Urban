@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../../lib/prisma";
 import { loginSchema } from "../../../lib/schemas/authSchema";
-import { ZodError } from "zod";
+import { handleError } from "../../../lib/errorHandler";
 
 // Get JWT secret from environment variable or use fallback (not recommended for production)
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
@@ -87,29 +87,6 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    // Handle Zod validation errors
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Validation Error",
-          errors: error.issues.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error("Login error:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Login failed",
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    return handleError(error, "POST /api/auth/login");
   }
 }

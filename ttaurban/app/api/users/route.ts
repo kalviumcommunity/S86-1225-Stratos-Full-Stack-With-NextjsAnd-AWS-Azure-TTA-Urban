@@ -9,7 +9,7 @@ import { ERROR_CODES } from "../../lib/errorCodes";
 import { getPaginationParams } from "../utils/pagination";
 import { prisma } from "../../lib/prisma";
 import { createUserSchema } from "../../lib/schemas/userSchema";
-import { ZodError } from "zod";
+import { handleError } from "../../lib/errorHandler";
 
 /**
  * GET /api/users
@@ -49,13 +49,7 @@ export async function GET(req: Request) {
       "Users fetched successfully"
     );
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return sendError(
-      "Failed to fetch users",
-      ERROR_CODES.USER_FETCH_ERROR,
-      500,
-      error
-    );
+    return handleError(error, "GET /api/users");
   }
 }
 
@@ -115,27 +109,6 @@ export async function POST(req: Request) {
 
     return sendSuccess(user, "User created successfully", 201);
   } catch (error) {
-    // Handle Zod validation errors
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Validation Error",
-          errors: error.issues.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error("Error creating user:", error);
-    return sendError(
-      "Failed to create user",
-      ERROR_CODES.USER_CREATION_FAILED,
-      500,
-      error
-    );
+    return handleError(error, "POST /api/users");
   }
 }
