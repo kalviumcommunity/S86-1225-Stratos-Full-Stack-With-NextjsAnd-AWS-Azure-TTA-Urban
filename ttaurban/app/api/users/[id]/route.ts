@@ -6,6 +6,8 @@ import {
   patchUserSchema,
 } from "../../../lib/schemas/userSchema";
 import { handleError } from "../../../lib/errorHandler";
+import { cacheHelpers } from "../../../lib/redis";
+import { logger } from "../../../lib/logger";
 
 interface RouteParams {
   params: Promise<{
@@ -95,6 +97,13 @@ export async function PUT(req: Request, { params }: RouteParams) {
       },
     });
 
+    // Invalidate users list cache after update
+    await cacheHelpers.delPattern("users:list:*");
+    logger.info("Cache invalidated after update", {
+      userId,
+      pattern: "users:list:*",
+    });
+
     return ApiResponse.success(updatedUser);
   } catch (error) {
     return handleError(error, "PUT /api/users/[id]");
@@ -141,6 +150,13 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       },
     });
 
+    // Invalidate users list cache after partial update
+    await cacheHelpers.delPattern("users:list:*");
+    logger.info("Cache invalidated after patch", {
+      userId,
+      pattern: "users:list:*",
+    });
+
     return ApiResponse.success(updatedUser);
   } catch (error) {
     return handleError(error, "PATCH /api/users/[id]");
@@ -168,6 +184,13 @@ export async function DELETE(req: Request, { params }: RouteParams) {
         name: true,
         email: true,
       },
+    });
+
+    // Invalidate users list cache after deletion
+    await cacheHelpers.delPattern("users:list:*");
+    logger.info("Cache invalidated after delete", {
+      userId,
+      pattern: "users:list:*",
     });
 
     return ApiResponse.success({
