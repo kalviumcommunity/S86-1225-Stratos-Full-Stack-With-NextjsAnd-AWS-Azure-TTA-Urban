@@ -25,6 +25,7 @@ model User {
   assignedComplaints Complaint[] @relation("AssignedOfficer")
   feedback          Feedback[]
   notifications     Notification[]
+  files             File[]
   
   @@index([email])
   @@index([role])
@@ -152,6 +153,25 @@ model Notification {
   @@index([isRead])
   @@index([createdAt])
   @@map("notifications")
+}
+
+// File model - For uploaded files
+model File {
+  id          Int      @id @default(autoincrement())
+  name        String
+  url         String
+  fileType    String
+  fileSize    Int?
+  uploadedBy  Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  uploader    User?    @relation(fields: [uploadedBy], references: [id])
+  
+  @@index([uploadedBy])
+  @@index([createdAt])
+  @@map("files")
 }
 
 // Enums
