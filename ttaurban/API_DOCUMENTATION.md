@@ -750,16 +750,207 @@ curl -X PATCH http://localhost:3000/api/complaints/1 \
 
 ---
 
-## Next Steps
+## File Upload API
 
-1. **Connect to Database**: Replace mock data with actual Prisma queries
-2. **Add Authentication**: Implement JWT or session-based auth middleware
-3. **Add Authorization**: Verify user roles for sensitive operations
-4. **Add Logging**: Log all API requests for debugging and monitoring
-5. **Add Rate Limiting**: Prevent abuse with request throttling
-6. **Add Caching**: Cache frequently accessed resources
-7. **Add Input Sanitization**: Protect against SQL injection and XSS attacks
+### POST /api/upload
+Generates a pre-signed URL for uploading files to AWS S3.
+
+**Request Body:**
+```json
+{
+  "filename": "document.pdf",
+  "fileType": "application/pdf",
+  "fileSize": 1024000
+}
+```
+
+**Response (Success - 200):**
+```json
+{
+  "success": true,
+  "uploadURL": "https://your-bucket.s3.amazonaws.com/...",
+  "filename": "1640000000000-document.pdf",
+  "message": "Pre-signed URL generated. Upload within 60 seconds."
+}
+```
+
+**Validation Rules:**
+- `filename`: Required, non-empty string
+- `fileType`: Must be one of: `image/jpeg`, `image/png`, `image/jpg`, `image/gif`, `application/pdf`
+- `fileSize`: Optional, max 10MB (10485760 bytes)
+
+**Security Features:**
+- URL expires in 60 seconds
+- File type validation (images and PDFs only)
+- File size validation (max 10MB)
+- Unique filename generation to prevent collisions
+
+**Usage Flow:**
+1. Request pre-signed URL from `/api/upload`
+2. Use the returned URL to upload file directly to S3 via PUT request
+3. Store file metadata in database via `/api/files`
 
 ---
 
-**Last Updated**: December 16, 2025
+### GET /api/files
+Returns a paginated list of uploaded files with metadata.
+
+**Query Parameters:**
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 10)
+
+**Response (Success - 200):**
+```json
+{
+  "success": true,
+  "files": [
+    {
+      "id": 1,
+      "name": "1640000000000-document.pdf",
+      "url": "https://your-bucket.s3.amazonaws.com/...",
+      "fileType": "application/pdf",
+      "fileSize": 1024000,
+      "uploadedBy": 1,
+      "createdAt": "2025-12-22T05:00:00.000Z",
+      "updatedAt": "2025-12-22T05:00:00.000Z",
+      "uploader": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com"
+      }
+    }
+  ],
+  "total": 50,
+  "page": 1,
+  "limit": 10,
+  "totalPages": 5,
+  "source": "cache"
+}
+```
+
+**Features:**
+- Redis caching with 60-second TTL
+- Includes uploader information
+- Sorted by creation date (newest first)
+
+---
+
+### POST /api/files
+Stores file metadata after successful upload to S3.
+
+**Request Body:**
+```json
+{
+  "fileName": "1640000000000-document.pdf",
+  "fileURL": "https://your-bucket.s3.amazonaws.com/...",
+  "fileType": "application/pdf",
+  "fileSize": 1024000,
+  "uploadedBy": 1
+}
+```
+
+**Response (Success - 201):**
+```json
+{
+  "success": true,
+  "file": {
+    "id": 1,
+    "name": "1640000000000-document.pdf",
+    "url": "https://your-bucket.s3.amazonaws.com/...",
+    "fileType": "application/pdf",
+    "fileSize": 1024000,
+    "uploadedBy": 1,
+    "createdAt": "2025-12-22T05:00:00.000Z",
+    "updatedAt": "2025-12-22T05:00:00.000Z",
+    "uploader": {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com"
+    }
+  },
+  "message": "File metadata stored successfully"
+}
+```
+
+**Validation Rules:**
+- `fileName`: Required, non-empty string
+- `fileURL`: Required, valid URL format
+- `fileType`: Required, non-empty string
+- `fileSize`: Optional, number
+- `uploadedBy`: Optional, user ID number
+
+---
+
+### GET /api/files/:id
+Retrieves metadata for a specific file.
+
+**Response (Success - 200):**
+```json
+{
+  "success": true,
+  "file": {
+    "id": 1,
+    "name": "1640000000000-document.pdf",
+    "url": "https://your-bucket.s3.amazonaws.com/...",
+    "fileType": "application/pdf",
+    "fileSize": 1024000,
+    "uploadedBy": 1,
+    "createdAt": "2025-12-22T05:00:00.000Z",
+    "updatedAt": "2025-12-22T05:00:00.000Z",
+    "uploader": {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com"
+    }
+  }
+}
+```
+
+**Response (Not Found - 404):**
+```json
+{
+  "success": false,
+  "message": "File not found"
+}
+```
+
+---
+
+### DELETE /api/files/:id
+Deletes file metadata from database (does not delete from S3).
+
+**Response (Success - 200):**
+```json
+{
+  "success": true,
+  "message": "File deleted successfully"
+}
+```
+
+**Response (Not Found - 404):**
+```json
+{
+  "success": false,
+  "message": "File not found"
+}
+```
+
+**Note:** This only deletes the metadata. Implement S3 deletion separately if needed.
+
+---
+
+## Next Steps
+
+1. **Connect to Database**: Replace mock data with actual Prisma queries ✅
+2. **Add Authentication**: Implement JWT or session-based auth middleware ✅
+3. **Add Authorization**: Verify user roles for sensitive operations ✅
+4. **Add Logging**: Log all API requests for debugging and monitoring ✅
+5. **Add Rate Limiting**: Prevent abuse with request throttling
+6. **Add Caching**: Cache frequently accessed resources ✅
+7. **Add Input Sanitization**: Protect against SQL injection and XSS attacks ✅
+8. **Add File Upload**: Implement AWS S3 pre-signed URL uploads ✅
+
+---
+
+**Last Updated**: December 22, 2025
+
