@@ -3485,3 +3485,401 @@ const { UploadId } = await s3.send(command);
 - [S3 Pre-Signed URLs](https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html)
 - [API Documentation](./API_DOCUMENTATION.md#file-upload-api)
 - [Prisma File Model](./prisma/schema.prisma#L157-L169)
+
+---
+
+## 📧 Transactional Emails with SendGrid
+
+### Overview
+
+Transactional emails are automated, event-triggered emails sent to users for important notifications like account creation, password resets, and complaint status updates. Unlike marketing emails, these are critical for user engagement and trust.
+
+### Why Transactional Emails Matter
+
+| Event | Email Type | Purpose |
+|-------|-----------|---------|
+| User signs up | Welcome email | Onboarding & engagement |
+| Password reset request | Reset link | Account recovery |
+| Complaint submitted | Confirmation | Acknowledgment & tracking |
+| Complaint status change | Status update | Real-time transparency |
+| Complaint resolved | Resolution notice | Closure & feedback request |
+| Account activity | Security alert | Fraud prevention |
+
+### SendGrid Setup
+
+**1. Create SendGrid Account**
+- Visit [sendgrid.com](https://sendgrid.com)
+- Sign up for free tier (100 emails/day)
+- Verify your email address
+
+**2. Sender Authentication**
+- Navigate to **Settings → Sender Authentication**
+- Verify a single sender email address (for testing)
+- For production, authenticate your domain (SPF/DKIM)
+
+**3. Generate API Key**
+- Go to **Settings → API Keys**
+- Create new API key with "Full Access"
+- Copy the key (shown only once!)
+
+**4. Environment Configuration**
+
+Add to `.env.local`:
+```env
+SENDGRID_API_KEY=SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+SENDGRID_SENDER=no-reply@yourdomain.com
+```
+
+**Security:** Never commit API keys to version control!
+
+### Email Templates
+
+Five reusable HTML email templates are available in [`app/lib/emailTemplates.ts`](./ttaurban/app/lib/emailTemplates.ts):
+
+#### 1. Welcome Email
+```typescript
+import { welcomeTemplate } from "@/app/lib/emailTemplates";
+
+const html = welcomeTemplate("John Doe");
+// Sends styled welcome email with dashboard link
+```
+
+#### 2. Password Reset
+```typescript
+import { passwordResetTemplate } from "@/app/lib/emailTemplates";
+
+const html = passwordResetTemplate("John Doe", "https://app.com/reset?token=abc123");
+// Includes security warnings and expiry notice
+```
+
+#### 3. Complaint Status Update
+```typescript
+import { complaintStatusTemplate } from "@/app/lib/emailTemplates";
+
+const html = complaintStatusTemplate("John Doe", 123, "IN_PROGRESS", "Street Light Repair");
+// Notifies user of status changes with complaint link
+```
+
+#### 4. Complaint Resolved
+```typescript
+import { complaintResolvedTemplate } from "@/app/lib/emailTemplates";
+
+const html = complaintResolvedTemplate("John Doe", 123, "Street Light Repair");
+// Celebrates resolution and requests feedback
+```
+
+#### 5. Account Alert
+```typescript
+import { accountAlertTemplate } from "@/app/lib/emailTemplates";
+
+const html = accountAlertTemplate("John Doe", "Login from New Device", "We detected a login from a new device...");
+// Security notifications for suspicious activity
+```
+
+**Template Features:**
+- 📱 Responsive design (mobile-friendly)
+- 🎨 Consistent branding with TTA-Urban colors
+- 🔒 Security best practices (no-reply sender)
+- ♿ Accessible HTML structure
+
+### Email API Endpoint
+
+**Endpoint:** `POST /api/email`
+
+**Request Body:**
+```json
+{
+  "to": "user@example.com",
+  "subject": "Welcome to TTA-Urban",
+  "message": "<h1>Welcome!</h1><p>Thank you for joining us.</p>",
+  "from": "no-reply@yourdomain.com"
+}
+```
+
+**Response (Success - 200):**
+```json
+{
+  "success": true,
+  "message": "Email sent successfully",
+  "messageId": "abc123xyz",
+  "statusCode": 202
+}
+```
+
+**Response (Error - 400/500):**
+```json
+{
+  "success": false,
+  "message": "Failed to send email",
+  "error": [
+    {
+      "message": "The from email does not contain a valid address.",
+      "field": "from",
+      "help": "http://sendgrid.com/docs/API_Reference/Web_API_v3/Mail/errors.html#message.from"
+    }
+  ]
+}
+```
+
+**Validation Rules:**
+- `to`: Valid email address (required)
+- `subject`: Non-empty string (required)
+- `message`: HTML content (required)
+- `from`: Valid email (optional, defaults to `SENDGRID_SENDER`)
+
+### Testing Email Flow
+
+**Step 1: Basic Email Test**
+```bash
+POST http://localhost:3000/api/email
+Content-Type: application/json
+
+{
+  "to": "your-verified-email@example.com",
+  "subject": "Test Email from TTA-Urban",
+  "message": "<h1>Hello! 🚀</h1><p>This is a test email.</p>"
+}
+```
+
+**Step 2: Welcome Email Test**
+```typescript
+// In your signup route or test script
+import { welcomeTemplate } from "@/app/lib/emailTemplates";
+
+await fetch("http://localhost:3000/api/email", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    to: "newuser@example.com",
+    subject: "Welcome to TTA-Urban!",
+    message: welcomeTemplate("John Doe"),
+  }),
+});
+```
+
+**Step 3: Verify Email Delivery**
+- Check inbox (may take 1-2 minutes)
+- Check spam folder if not received
+- View SendGrid Activity dashboard for logs
+
+**Step 4: Monitor SendGrid Dashboard**
+- Login to SendGrid console
+- Navigate to **Activity → Email Activity**
+- View delivery status, opens, clicks, bounces
+
+### Integration with User Signup
+
+Example integration in [`app/api/auth/signup/route.ts`](./ttaurban/app/api/auth/signup/route.ts):
+
+```typescript
+import { welcomeTemplate } from "@/app/lib/emailTemplates";
+
+export async function POST(req: Request) {
+  // ... user creation logic ...
+  
+  const newUser = await prisma.user.create({ data: validatedData });
+  
+  // Send welcome email asynchronously (don't block signup)
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      to: newUser.email,
+      subject: "Welcome to TTA-Urban!",
+      message: welcomeTemplate(newUser.name),
+    }),
+  }).catch((err) => logger.error("Failed to send welcome email", err));
+  
+  return NextResponse.json({ success: true, user: newUser });
+}
+```
+
+### Email Sending Best Practices
+
+**1. Asynchronous Sending**
+```typescript
+// ❌ Don't block the main request
+await sendEmail(to, subject, message);
+return response;
+
+// ✅ Fire and forget (or use queue)
+sendEmail(to, subject, message).catch(console.error);
+return response;
+```
+
+**2. Rate Limiting (Free Tier: 100/day)**
+```typescript
+// Implement daily counter in Redis
+const emailCount = await redis.incr("emails:sent:today");
+if (emailCount > 100) {
+  throw new Error("Daily email limit exceeded");
+}
+await redis.expire("emails:sent:today", 86400); // 24 hours
+```
+
+**3. Bounce Handling**
+- Monitor SendGrid webhook for bounces
+- Mark emails as invalid in database
+- Remove from future sends
+
+**4. Personalization**
+```typescript
+// Use dynamic templates for better engagement
+const message = welcomeTemplate(user.name)
+  .replace("{{dashboard_url}}", `https://app.com/dashboard/${user.id}`)
+  .replace("{{verification_code}}", user.verificationCode);
+```
+
+### Common Issues & Solutions
+
+| Issue | Solution |
+|-------|----------|
+| **Emails not delivered** | Check SendGrid sandbox mode; verify sender email |
+| **"From email not verified"** | Verify sender in SendGrid settings |
+| **401 Unauthorized** | Check `SENDGRID_API_KEY` is correct |
+| **Rate limit exceeded** | Upgrade SendGrid plan or implement queuing |
+| **Emails in spam** | Set up domain authentication (SPF/DKIM) |
+| **Slow API response** | Send emails asynchronously, don't await |
+
+### Production Considerations
+
+**1. Domain Authentication (SPF/DKIM)**
+- Authenticate your domain in SendGrid
+- Add DNS records (TXT, CNAME)
+- Improves deliverability, reduces spam classification
+
+**2. Email Queue (High Volume)**
+```typescript
+// Use Bull or BullMQ for background jobs
+import Queue from 'bull';
+
+const emailQueue = new Queue('email', process.env.REDIS_URL);
+
+emailQueue.process(async (job) => {
+  await sendgrid.send(job.data);
+});
+
+// Add to queue instead of direct send
+emailQueue.add({ to, subject, message });
+```
+
+**3. Webhook Events**
+```typescript
+// app/api/webhooks/sendgrid/route.ts
+export async function POST(req: Request) {
+  const events = await req.json();
+  
+  for (const event of events) {
+    if (event.event === 'bounce') {
+      await prisma.user.update({
+        where: { email: event.email },
+        data: { emailInvalid: true },
+      });
+    }
+  }
+  
+  return NextResponse.json({ success: true });
+}
+```
+
+**4. Monitoring & Analytics**
+- Track open rates via SendGrid dashboard
+- Monitor bounce/spam rates
+- Set up alerts for delivery failures
+
+### Cost Optimization
+
+**SendGrid Pricing:**
+- **Free:** 100 emails/day forever
+- **Essentials:** $19.95/month - 50,000 emails/month
+- **Pro:** Custom pricing for higher volumes
+
+**Tips:**
+- Use free tier for development/testing
+- Batch similar emails to reduce API calls
+- Implement email preferences (opt-out)
+- Clean bounce list regularly
+
+### Security Considerations
+
+| Concern | Mitigation |
+|---------|------------|
+| **API Key Exposure** | Store in `.env.local`, never commit |
+| **Email Injection** | Validate & sanitize all inputs with Zod |
+| **Spam Complaints** | Include unsubscribe links, honor opt-outs |
+| **Rate Limiting** | Implement per-user email limits |
+| **Content Security** | Sanitize HTML to prevent XSS |
+
+### Extending Email Functionality
+
+**Add Email Logging:**
+```typescript
+// Create EmailLog model in Prisma
+model EmailLog {
+  id        Int      @id @default(autoincrement())
+  to        String
+  subject   String
+  status    String   // sent, failed, bounced
+  messageId String?
+  sentAt    DateTime @default(now())
+}
+
+// Log all sends
+await prisma.emailLog.create({
+  data: { to, subject, status: "sent", messageId },
+});
+```
+
+**Add Email Templates with Variables:**
+```typescript
+// Dynamic template rendering
+function renderTemplate(template: string, variables: Record<string, string>) {
+  return Object.entries(variables).reduce(
+    (html, [key, value]) => html.replace(new RegExp(`{{${key}}}`, 'g'), value),
+    template
+  );
+}
+
+const html = renderTemplate(welcomeTemplate("{{name}}"), {
+  name: user.name,
+  dashboardUrl: "https://app.com/dashboard",
+});
+```
+
+### Reflection: Design Decisions
+
+**Why SendGrid over AWS SES?**
+- ✅ **Easier Setup:** No domain verification for testing
+- ✅ **Free Tier:** 100 emails/day (AWS SES charges from email #1)
+- ✅ **Dashboard:** Better analytics and monitoring UI
+- ✅ **Webhooks:** Built-in event notifications
+- ❌ **Cost at Scale:** More expensive for high volumes (1M+ emails)
+
+**Asynchronous vs Synchronous Sending:**
+- **Current:** Fire-and-forget approach
+- **Trade-off:** Faster API response, but no guarantee of delivery
+- **Alternative:** Use job queue (Bull/BullMQ) for guaranteed delivery with retries
+
+**Template Strategy:**
+- **Current:** Server-side HTML templates
+- **Alternative:** SendGrid dynamic templates (stored in SendGrid)
+- **Rationale:** More control, versioning, easier testing locally
+
+### Documentation & Evidence
+
+**Email Templates:**
+- [View all templates](./ttaurban/app/lib/emailTemplates.ts)
+- Welcome, Password Reset, Complaint Updates, Alerts
+
+**API Implementation:**
+- [Email API route](./ttaurban/app/api/email/route.ts)
+- Validation, error handling, logging
+
+**Configuration:**
+- [Environment variables](./.env.local) - `SENDGRID_API_KEY`, `SENDGRID_SENDER`
+
+**Testing Results:**
+- ✅ Email delivery confirmed (check SendGrid Activity)
+- ✅ Template rendering validated
+- ✅ Error handling tested (invalid emails, rate limits)
+
