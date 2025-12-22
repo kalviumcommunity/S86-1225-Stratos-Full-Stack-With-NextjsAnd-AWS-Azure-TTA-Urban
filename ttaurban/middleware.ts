@@ -7,8 +7,16 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Only protect specific routes
-  if (pathname.startsWith("/api/admin") || pathname.startsWith("/api/users")) {
+  // Public routes - allow access without authentication
+  const publicRoutes = ["/", "/login", "/contact"];
+  const isPublicRoute = publicRoutes.some((route) => pathname === route);
+
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+
+  // API routes - check Bearer token in Authorization header
+  if (pathname.startsWith("/api/")) {
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.split(" ")[1];
 
@@ -22,7 +30,7 @@ export function middleware(req: NextRequest) {
     try {
       const decoded: any = jwt.verify(token, JWT_SECRET);
 
-      // Role-based access control
+      // Role-based access control for admin routes
       if (pathname.startsWith("/api/admin") && decoded.role !== "ADMIN") {
         return NextResponse.json(
           { success: false, message: "Access denied" },
@@ -45,9 +53,38 @@ export function middleware(req: NextRequest) {
     }
   }
 
+  // Protected page routes - check JWT in cookies
+  if (
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/users") ||
+    pathname.startsWith("/complaints")
+  ) {
+    const token = req.cookies.get("token")?.value;
+
+    if (!token) {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    try {
+      jwt.verify(token, JWT_SECRET);
+      return NextResponse.next();
+    } catch {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/api/admin/:path*", "/api/users/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/users/:path*",
+    "/complaints/:path*",
+    "/api/:path*",
+  ],
 };

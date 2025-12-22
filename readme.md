@@ -3883,3 +3883,327 @@ const html = renderTemplate(welcomeTemplate("{{name}}"), {
 - ✅ Template rendering validated
 - ✅ Error handling tested (invalid emails, rate limits)
 
+---
+
+## 🛣️ Next.js App Router - Public & Protected Routes
+
+### Overview
+
+The application implements a file-based routing system using Next.js App Router with clear separation between public and protected routes, secured by JWT-based authentication.
+
+### Routing Architecture
+
+```
+app/
+├── page.js                    → Home (/) - Public
+├── login/
+│   └── page.tsx               → Login (/login) - Public
+├── contact/
+│   └── page.js                → Contact (/contact) - Public  
+├── dashboard/
+│   └── page.tsx               → Dashboard (/dashboard) - Protected
+├── users/
+│   └── [id]/
+│       └── page.tsx           → User Profile (/users/:id) - Protected, Dynamic
+├── layout.js                  → Global navigation wrapper
+├── not-found.tsx              → Custom 404 page
+└── middleware.ts              → Authentication & authorization
+```
+
+### Route Types
+
+#### Public Routes
+**Accessible without authentication:**
+- `/` - Home page
+- `/login` - User authentication
+- `/contact` - Contact page
+
+#### Protected Routes
+**Require valid JWT token in cookies:**
+- `/dashboard` - Main dashboard (shows user stats)
+- `/users/:id` - Dynamic user profile pages
+
+#### API Routes
+**Require Bearer token in Authorization header:**
+- `/api/users/*` - User management
+- `/api/admin/*` - Admin-only operations (ADMIN role required)
+
+### Middleware Implementation
+
+The middleware ([middleware.ts](./ttaurban/middleware.ts)) handles three types of authentication:
+
+**1. Public Routes**
+```typescript
+const publicRoutes = ["/", "/login", "/contact"];
+// Allow immediate access
+```
+
+**2. Page Routes (Cookie-based)**
+```typescript
+// Check for JWT in cookies
+const token = req.cookies.get("token")?.value;
+if (!token) {
+  // Redirect to /login with return URL
+  redirect("/login?redirect=/dashboard");
+}
+```
+
+**3. API Routes (Bearer Token)**
+```typescript
+// Check Authorization header
+const authHeader = req.headers.get("authorization");
+const token = authHeader?.split(" ")[1];
+// Verify JWT and check role
+```
+
+### Dynamic Routes
+
+**User Profile Example:** `/users/[id]`
+
+- **Pattern:** `/users/1`, `/users/2`, `/users/123`
+- **Implementation:** [app/users/[id]/page.tsx](./ttaurban/app/users/[id]/page.tsx)
+- **Features:**
+  - Fetches user data from API
+  - Breadcrumb navigation
+  - "Next User" button for easy navigation
+  - Handles loading and error states
+  - Role-based badge colors
+
+**Accessing Dynamic Parameters:**
+```typescript
+interface Props {
+  params: { id: string };
+}
+
+export default function UserProfile({ params }: Props) {
+  const { id } = params; // "1", "2", "123", etc.
+  // Fetch user with this ID
+}
+```
+
+### Navigation & Breadcrumbs
+
+**Global Navigation** ([layout.js](./ttaurban/app/layout.js)):
+```
+🏙️ TTA-Urban | Home | Dashboard | Users | Contact | Sign In
+```
+
+**Breadcrumbs Example** (in `/users/1`):
+```
+Home / Dashboard / Users / User #1
+```
+
+Benefits:
+- ✅ Improved UX - users know their location
+- ✅ Better SEO - search engines understand site structure
+- ✅ Accessibility - screen readers can navigate hierarchy
+
+### Authentication Flow
+
+#### Login Process:
+```
+1. User visits /dashboard (protected)
+   ↓
+2. Middleware checks cookie
+   ↓
+3. No token found → Redirect to /login?redirect=/dashboard
+   ↓
+4. User enters credentials
+   ↓
+5. POST /api/auth/login
+   ↓
+6. Server returns JWT token
+   ↓
+7. Client stores token in cookie
+   ↓
+8. Redirect to original destination (/dashboard)
+```
+
+#### Logout Process:
+```javascript
+// Remove cookie and redirect
+Cookies.remove("token");
+router.push("/login");
+```
+
+### Custom 404 Page
+
+**File:** [app/not-found.tsx](./ttaurban/app/not-found.tsx)
+
+Features:
+- 🔍 Visual error indicator
+- Clear error message
+- Navigation back to Home or Dashboard
+- Branded design consistent with app
+
+**Triggered when:**
+- Invalid route accessed (e.g., `/nonexistent-page`)
+- Manual `notFound()` call in route handlers
+- Dynamic route returns null (e.g., `/users/999999`)
+
+### Route Protection Matrix
+
+| Route | Authentication | Authorization | Redirect |
+|-------|---------------|---------------|----------|
+| `/` | ❌ Not required | N/A | N/A |
+| `/login` | ❌ Not required | N/A | N/A |
+| `/contact` | ❌ Not required | N/A | N/A |
+| `/dashboard` | ✅ JWT required | Any role | → `/login` |
+| `/users/:id` | ✅ JWT required | Any role | → `/login` |
+| `/api/users/*` | ✅ Bearer token | Any role | 401 JSON |
+| `/api/admin/*` | ✅ Bearer token | ADMIN only | 403 JSON |
+
+### Testing Routes
+
+**1. Test Public Access:**
+```bash
+# Should work without login
+curl http://localhost:3000/
+curl http://localhost:3000/login
+curl http://localhost:3000/contact
+```
+
+**2. Test Protected Routes (Unauthorized):**
+```bash
+# Should redirect to /login
+Visit: http://localhost:3000/dashboard (in browser)
+Visit: http://localhost:3000/users/1 (in browser)
+```
+
+**3. Test Protected Routes (Authorized):**
+```bash
+# 1. Login via UI
+POST /api/auth/login
+Body: { "email": "admin@tta.com", "password": "password123" }
+
+# 2. Cookie set automatically by browser
+# 3. Now access protected routes
+Visit: http://localhost:3000/dashboard ✅
+Visit: http://localhost:3000/users/1 ✅
+```
+
+**4. Test Dynamic Routes:**
+```bash
+Visit: http://localhost:3000/users/1  (User #1)
+Visit: http://localhost:3000/users/2  (User #2)
+Visit: http://localhost:3000/users/99 (Not found → error state)
+```
+
+**5. Test 404 Page:**
+```bash
+Visit: http://localhost:3000/does-not-exist
+```
+
+### SEO & Performance Optimizations
+
+**Server-Side Rendering (SSR):**
+- All pages use Next.js App Router (RSC by default)
+- Dynamic routes fetch data on the server when possible
+- Better initial page load and SEO
+
+**Meta Tags:**
+```javascript
+export const metadata = {
+  title: "TTA Urban - Urban Complaint Management System",
+  description: "A comprehensive complaint management system",
+};
+```
+
+**Link Prefetching:**
+```jsx
+<Link href="/dashboard"> // Automatically prefetches on hover
+```
+
+### Scalability Considerations
+
+**Why Dynamic Routes?**
+- ✅ Single component handles infinite users (`/users/1` through `/users/9999999`)
+- ✅ No need to create separate page files for each user
+- ✅ Easy to add new dynamic segments (`/users/[id]/complaints`)
+
+**Performance at Scale:**
+- Use pagination for `/users` list page
+- Implement caching for user profiles (Redis)
+- Consider ISR (Incremental Static Regeneration) for static content
+
+### Error Handling
+
+**Loading States:**
+```typescript
+if (loading) {
+  return <LoadingSpinner />
+}
+```
+
+**Error States:**
+```typescript
+if (error) {
+  return <ErrorMessage error={error} />
+}
+```
+
+**Not Found States:**
+```typescript
+if (!user) {
+  return <UserNotFound userId={id} />
+}
+```
+
+### Reflection: Design Decisions
+
+**Cookie vs LocalStorage for JWT:**
+- **Chosen:** Cookies
+- **Why:** Can be httpOnly (XSS protection), auto-sent with requests
+- **Trade-off:** More setup, but more secure
+
+**Client-Side vs Server-Side Protection:**
+- **Pages:** Cookie-based (middleware redirects)
+- **APIs:** Bearer token (JSON responses)
+- **Rationale:** Different UX for web vs API clients
+
+**Dynamic Route Structure:**
+- **Current:** `/users/[id]`
+- **Alternative:** `/users?id=123` (query params)
+- **Rationale:** Better SEO, cleaner URLs, standard REST pattern
+
+**Breadcrumb Implementation:**
+- **Current:** Client-side manual routing
+- **Alternative:** Automatic from Next.js pathname
+- **Rationale:** More control over display, easier to customize
+
+### Evidence & Screenshots
+
+**Route Map:**
+```
+Public Routes:
+✅ / (Home)
+✅ /login
+✅ /contact
+
+Protected Routes:
+🔒 /dashboard
+🔒 /users/1, /users/2, /users/N...
+
+Error Routes:
+❌ /not-found (404)
+```
+
+**Files Created:**
+- [Login Page](./ttaurban/app/login/page.tsx)
+- [Home Page](./ttaurban/app/page.js)
+- [Dashboard](./ttaurban/app/dashboard/page.tsx)
+- [User Profile](./ttaurban/app/users/[id]/page.tsx)
+- [404 Page](./ttaurban/app/not-found.tsx)
+- [Layout with Nav](./ttaurban/app/layout.js)
+- [Middleware](./ttaurban/middleware.ts)
+
+**Navigation Flow:**
+1. User lands on Home (/)
+2. Clicks "View Dashboard"
+3. Middleware checks authentication
+4. Redirects to /login?redirect=/dashboard
+5. User logs in successfully
+6. Redirected back to /dashboard
+7. Can navigate to /users/1, /users/2, etc.
+8. Breadcrumbs show: Home / Dashboard / Users / User #N
+
