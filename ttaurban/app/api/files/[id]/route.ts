@@ -7,10 +7,11 @@ import { cacheHelpers } from "@/app/lib/redis";
 // GET /api/files/:id - Get file by ID
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const fileId = parseInt(params.id);
+    const { id } = await params;
+    const fileId = parseInt(id);
 
     if (isNaN(fileId)) {
       return NextResponse.json(
@@ -46,17 +47,19 @@ export async function GET(
       file,
     });
   } catch (error) {
-    return handleError(error, `GET /api/files/${params.id}`);
+    const { id } = await params;
+    return handleError(error, `GET /api/files/${id}`);
   }
 }
 
 // DELETE /api/files/:id - Delete file metadata
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const fileId = parseInt(params.id);
+    const { id } = await params;
+    const fileId = parseInt(id);
 
     if (isNaN(fileId)) {
       return NextResponse.json(
@@ -90,6 +93,7 @@ export async function DELETE(
       message: "File deleted successfully",
     });
   } catch (error) {
-    return handleError(error, `DELETE /api/files/${params.id}`);
+    const { id } = await params;
+    return handleError(error, `DELETE /api/files/${id}`);
   }
 }

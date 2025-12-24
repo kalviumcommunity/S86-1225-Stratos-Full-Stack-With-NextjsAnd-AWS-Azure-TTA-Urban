@@ -30,7 +30,9 @@ export async function GET(req: Request) {
       logger.info("Cache Hit - Files list", { page, limit });
       return NextResponse.json({
         success: true,
-        ...cachedData,
+        ...(typeof cachedData === "object" && cachedData !== null
+          ? cachedData
+          : {}),
         source: "cache",
       });
     }
