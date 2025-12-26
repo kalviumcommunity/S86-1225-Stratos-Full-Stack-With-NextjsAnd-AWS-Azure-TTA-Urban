@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { verifyToken, unauthorizedResponse } from "../../../lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { withAuth } from "../../../lib/authMiddleware";
 import { handleError } from "../../../lib/errorHandler";
 
 /**
@@ -7,17 +7,10 @@ import { handleError } from "../../../lib/errorHandler";
  * Protected route - Returns current user info from JWT token
  *
  * Headers:
- * Authorization: Bearer <token>
+ * Authorization: Bearer <access_token>
  */
-export async function GET(req: Request) {
+export const GET = withAuth(async (req: NextRequest, user) => {
   try {
-    // Verify JWT token
-    const user = verifyToken(req);
-
-    if (!user) {
-      return unauthorizedResponse("Token missing or invalid");
-    }
-
     return NextResponse.json({
       success: true,
       message: "User authenticated",
@@ -31,4 +24,4 @@ export async function GET(req: Request) {
   } catch (error) {
     return handleError(error, "GET /api/auth/me");
   }
-}
+});
