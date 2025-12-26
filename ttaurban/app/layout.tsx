@@ -1,6 +1,7 @@
 import { AuthProvider } from "@/context/AuthContext";
 import { UIProvider } from "@/context/UIContext";
 import SWRProvider from "@/components/SWRProvider";
+import ToastProvider from "@/components/ui/Toast";
 import "./globals.css";
 import Link from "next/link";
 import LayoutController from "@/components/layout/LayoutController";
@@ -21,6 +22,7 @@ export default function RootLayout({
         <AuthProvider>
           <UIProvider>
             <SWRProvider>
+              <ToastProvider />
               <LayoutController>
                 <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import FormInput from "@/components/FormInput";
 
 // Define contact form schema
@@ -25,10 +26,6 @@ const contactSchema = z.object({
 type ContactFormData = z.infer<typeof contactSchema>;
 
 export default function ContactPage() {
-  const [submitStatus, setSubmitStatus] = useState<
-    "idle" | "success" | "error"
-  >("idle");
-
   const {
     register,
     handleSubmit,
@@ -39,7 +36,7 @@ export default function ContactPage() {
   });
 
   const onSubmit = async (data: ContactFormData) => {
-    setSubmitStatus("idle");
+    const toastId = toast.loading("Sending your message...");
 
     try {
       // Simulate API call
@@ -55,13 +52,15 @@ export default function ContactPage() {
       // eslint-disable-next-line no-console
       console.log("Contact Form Submitted:", data);
 
-      setSubmitStatus("success");
+      toast.success("Message sent successfully! We'll get back to you soon.", {
+        id: toastId,
+        duration: 5000,
+      });
       reset();
-
-      // Clear success message after 5 seconds
-      setTimeout(() => setSubmitStatus("idle"), 5000);
     } catch (error) {
-      setSubmitStatus("error");
+      toast.error("Failed to send message. Please try again.", {
+        id: toastId,
+      });
       // eslint-disable-next-line no-console
       console.error("Contact form error:", error);
     }
@@ -118,33 +117,6 @@ export default function ContactPage() {
             <p className="text-gray-600">+1 (555) 123-4567</p>
           </div>
         </div>
-
-        {submitStatus === "success" && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg animate-fadeIn">
-            <p className="text-green-700 font-medium flex items-center">
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Message sent successfully! We&apos;ll get back to you soon.
-            </p>
-          </div>
-        )}
-
-        {submitStatus === "error" && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 font-medium">
-              Failed to send message. Please try again.
-            </p>
-          </div>
-        )}
 
         <form
           onSubmit={handleSubmit(onSubmit)}
