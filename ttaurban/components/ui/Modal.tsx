@@ -102,26 +102,32 @@ export default function Modal({
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
       aria-modal="true"
-      className="backdrop:bg-black backdrop:bg-opacity-50 rounded-lg shadow-2xl p-0 max-w-md w-full"
+      className="backdrop:bg-black backdrop:bg-opacity-50 rounded-lg shadow-2xl dark:shadow-gray-900/50 p-0 max-w-xs sm:max-w-md md:max-w-lg w-full"
     >
-      <div className="bg-white rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden transition-colors">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 id="modal-title" className="text-xl font-semibold text-gray-900">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700">
+          <h2
+            id="modal-title"
+            className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100"
+          >
             {title}
           </h2>
         </div>
 
         {/* Content */}
-        <div id="modal-description" className="px-6 py-4">
+        <div
+          id="modal-description"
+          className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700 dark:text-gray-300"
+        >
           {children}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 transition-colors"
           >
             {cancelText}
           </button>
@@ -131,10 +137,10 @@ export default function Modal({
                 onConfirm();
                 onClose();
               }}
-              className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
+              className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors ${
                 variant === "danger"
-                  ? "bg-red-600 hover:bg-red-700 focus:ring-red-500"
-                  : "bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500"
+                  ? "bg-red-600 hover:bg-red-700 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-800"
+                  : "bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-600"
               }`}
             >
               {confirmText}
