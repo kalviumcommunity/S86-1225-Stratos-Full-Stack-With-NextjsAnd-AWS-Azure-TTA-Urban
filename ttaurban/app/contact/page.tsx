@@ -67,20 +67,22 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="min-h-screen p-6 bg-gray-50">
+    <main className="min-h-screen p-4 sm:p-6 bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Contact Us</h1>
-          <p className="text-gray-600">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            Contact Us
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Have questions? We&apos;d love to hear from you. Send us a message!
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
+          <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md dark:shadow-gray-900/50 transition-colors">
+            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-center text-gray-900 dark:text-gray-100">
               <svg
-                className="w-6 h-6 mr-2 text-indigo-600"
+                className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-indigo-600 dark:text-indigo-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -94,13 +96,15 @@ export default function ContactPage() {
               </svg>
               Email
             </h2>
-            <p className="text-gray-600">support@ttaurban.com</p>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              support@ttaurban.com
+            </p>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
+          <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md dark:shadow-gray-900/50 transition-colors">
+            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-center text-gray-900 dark:text-gray-100">
               <svg
-                className="w-6 h-6 mr-2 text-indigo-600"
+                className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-indigo-600 dark:text-indigo-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -114,13 +118,15 @@ export default function ContactPage() {
               </svg>
               Phone
             </h2>
-            <p className="text-gray-600">+1 (555) 123-4567</p>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              +1 (555) 123-4567
+            </p>
           </div>
         </div>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="bg-white p-8 border border-gray-200 rounded-lg shadow-lg"
+          className="bg-white dark:bg-gray-800 p-4 sm:p-8 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg dark:shadow-gray-900/50 transition-colors"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
@@ -152,13 +158,13 @@ export default function ContactPage() {
             required
           />
 
-          <div className="mb-4">
+          <div className="mb-3 sm:mb-4">
             <label
               htmlFor="message"
-              className="block mb-2 font-medium text-gray-700"
+              className="block mb-2 text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300"
             >
               Message
-              <span className="text-red-500 ml-1">*</span>
+              <span className="text-red-500 dark:text-red-400 ml-1">*</span>
             </label>
             <textarea
               id="message"
@@ -167,20 +173,20 @@ export default function ContactPage() {
               placeholder="Tell us more about your inquiry..."
               aria-invalid={errors.message ? "true" : "false"}
               aria-describedby={errors.message ? "message-error" : undefined}
-              className={`w-full border p-3 rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+              className={`w-full text-sm sm:text-base border p-2 sm:p-3 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-colors ${
                 errors.message
-                  ? "border-red-500 focus:ring-red-500"
-                  : "border-gray-300 focus:ring-indigo-500"
+                  ? "border-red-500 dark:border-red-400 focus:ring-red-500 dark:focus:ring-red-400"
+                  : "border-gray-300 dark:border-gray-600 focus:ring-indigo-500 dark:focus:ring-indigo-400"
               }`}
             />
             {errors.message && (
               <p
                 id="message-error"
                 role="alert"
-                className="text-red-500 text-sm mt-1 flex items-center"
+                className="text-red-500 dark:text-red-400 text-xs sm:text-sm mt-1 flex items-center"
               >
                 <svg
-                  className="w-4 h-4 mr-1"
+                  className="w-4 h-4 mr-1 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -198,7 +204,7 @@ export default function ContactPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            className="w-full bg-indigo-600 dark:bg-indigo-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center">
@@ -230,17 +236,17 @@ export default function ContactPage() {
           </button>
         </form>
 
-        <div className="mt-8 p-6 bg-indigo-50 border border-indigo-200 rounded-lg">
-          <h3 className="text-lg font-semibold text-indigo-900 mb-3">
+        <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 rounded-lg transition-colors">
+          <h3 className="text-base sm:text-lg font-semibold text-indigo-900 dark:text-indigo-200 mb-3">
             🎯 Form Validation Features
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-indigo-800">
-            <ul className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm text-indigo-800 dark:text-indigo-300">
+            <ul className="space-y-1 sm:space-y-2">
               <li>✅ React Hook Form for state management</li>
               <li>✅ Zod schema validation</li>
               <li>✅ Real-time error feedback</li>
             </ul>
-            <ul className="space-y-2">
+            <ul className="space-y-1 sm:space-y-2">
               <li>✅ Accessible form controls</li>
               <li>✅ TypeScript type safety</li>
               <li>✅ Reusable components</li>
