@@ -4,7 +4,9 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import FormInput from "@/components/FormInput";
+import Modal from "@/components/ui/Modal";
 
 // 1. Define validation schema
 const signupSchema = z
@@ -33,8 +35,8 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
-  const [serverError, setServerError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [userName, setUserName] = useState("");
 
   const {
     register,
@@ -46,8 +48,7 @@ export default function SignupPage() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    setServerError("");
-    setSuccessMessage("");
+    const toastId = toast.loading("Creating your account...");
 
     try {
       // Simulate API call
@@ -63,20 +64,22 @@ export default function SignupPage() {
       // eslint-disable-next-line no-console
       console.log("Form Submitted:", data);
 
-      setSuccessMessage(
-        `Welcome, ${data.name}! Your account has been created.`
-      );
-      reset();
+      toast.success("Account created successfully!", { id: toastId });
 
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
+      setUserName(data.name);
+      setShowWelcomeModal(true);
+      reset();
     } catch (error) {
-      setServerError("Something went wrong. Please try again.");
+      toast.error("Failed to create account. Please try again.", {
+        id: toastId,
+      });
       // eslint-disable-next-line no-console
       console.error("Signup error:", error);
     }
+  };
+
+  const handleModalConfirm = () => {
+    router.push("/login");
   };
 
   return (
@@ -88,18 +91,6 @@ export default function SignupPage() {
         <p className="text-gray-600 text-center mb-6">
           Join us today and get started
         </p>
-
-        {serverError && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm">{serverError}</p>
-          </div>
-        )}
-
-        {successMessage && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-700 text-sm">{successMessage}</p>
-          </div>
-        )}
 
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -189,6 +180,23 @@ export default function SignupPage() {
           </p>
         </form>
 
+        <Modal
+          isOpen={showWelcomeModal}
+          onClose={() => setShowWelcomeModal(false)}
+          title="Welcome to TTA-Urban! 🎉"
+          onConfirm={handleModalConfirm}
+          confirmText="Go to Login"
+          cancelText="Stay Here"
+        >
+          <p className="text-gray-700">
+            Hi <span className="font-semibold">{userName}</span>! Your account
+            has been created successfully.
+          </p>
+          <p className="text-gray-600 mt-2">
+            You can now log in and start managing urban complaints.
+          </p>
+        </Modal>
+
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-blue-900 font-semibold mb-2">
             📝 Form Features:
@@ -197,7 +205,8 @@ export default function SignupPage() {
             <li>✅ Real-time validation with Zod</li>
             <li>✅ Password strength requirements</li>
             <li>✅ Accessible form controls</li>
-            <li>✅ Loading states and error handling</li>
+            <li>✅ Toast notifications for feedback</li>
+            <li>✅ Modal confirmation dialog</li>
           </ul>
         </div>
       </div>
