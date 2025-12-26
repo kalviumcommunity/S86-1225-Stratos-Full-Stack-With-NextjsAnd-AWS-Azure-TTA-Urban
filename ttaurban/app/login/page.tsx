@@ -2,12 +2,13 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
-import Cookies from "js-cookie";
+import { useAuthContext } from "@/context/AuthContext";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect") || "/dashboard";
+  const { login } = useAuthContext();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,23 +21,12 @@ function LoginForm() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Store token in cookie (httpOnly is better, but for demo purposes)
-        Cookies.set("token", data.token, { expires: 1 }); // 1 day
-        router.push(redirectUrl);
-      } else {
-        setError(data.message || "Login failed");
-      }
+      await login(email, password);
+      router.push(redirectUrl);
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError(
+        err instanceof Error ? err.message : "Login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }

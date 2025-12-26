@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { prisma } from "../../../lib/prisma";
 import { signupSchema } from "../../../lib/schemas/authSchema";
 import { handleError } from "../../../lib/errorHandler";
+import { generateTokenPair } from "../../../lib/jwt";
 
 /**
  * POST /api/auth/signup
@@ -61,14 +62,35 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(
+    // Generate JWT token pair for automatic login
+    const { accessToken, refreshToken } = generateTokenPair({
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+      name: newUser.name,
+    });
+
+    // Create response with access token
+    const response = NextResponse.json(
       {
         success: true,
         message: "Signup successful",
+        accessToken,
         user: newUser,
       },
       { status: 201 }
     );
+
+    // Set refresh token as HTTP-only cookie
+    response.cookies.set("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: "/",
+    });
+
+    return response;
   } catch (error) {
     return handleError(error, "POST /api/auth/signup");
   }

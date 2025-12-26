@@ -1,19 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { prisma } from "../../../lib/prisma";
 import { loginSchema } from "../../../lib/schemas/authSchema";
 import { handleError } from "../../../lib/errorHandler";
-
-// Get JWT secret from environment variable or use fallback (not recommended for production)
-const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
-
-// Warning if using default secret
-if (!process.env.JWT_SECRET) {
-  console.warn(
-    "⚠️  WARNING: JWT_SECRET not set in environment variables. Using default secret (NOT SECURE FOR PRODUCTION)"
-  );
-}
+import { generateTokenPair } from "../../../lib/jwt";
 
 /**
  * POST /api/auth/login
@@ -63,22 +53,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate JWT token with user data (expires in 1 hour)
-    const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name,
-      },
-      JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    // Generate JWT token pair (access + refresh tokens)
+    const { accessToken, refreshToken } = generateTokenPair({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    });
 
-    return NextResponse.json({
+    // Create response with access token
+    const response = NextResponse.json({
       success: true,
       message: "Login successful",
-      token,
+      accessToken,
       user: {
         id: user.id,
         name: user.name,
@@ -86,6 +73,17 @@ export async function POST(req: Request) {
         role: user.role,
       },
     });
+
+    // Set refresh token as HTTP-only cookie for security
+    response.cookies.set("refreshToken", refreshToken, {
+      httpOnly: true, // Prevents JavaScript access (XSS protection)
+      secure: process.env.NODE_ENV === "production", // HTTPS only in production
+      sameSite: "strict", // CSRF protection
+      maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+      path: "/", // Available on all routes
+    });
+
+    return response;
   } catch (error) {
     return handleError(error, "POST /api/auth/login");
   }
