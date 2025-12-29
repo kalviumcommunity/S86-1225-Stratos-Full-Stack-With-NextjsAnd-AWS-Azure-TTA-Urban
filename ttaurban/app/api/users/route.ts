@@ -14,6 +14,7 @@ import { cacheHelpers } from "../../lib/redis";
 import { logger } from "../../lib/logger";
 import { withPermission } from "../../lib/authMiddleware";
 import { Permission } from "@/app/config/roles";
+import { sanitizeEmail, sanitizeInput, sanitizePhone, sanitizeObject, SanitizationLevel, logSecurityEvent } from "../../lib/sanitize";
 
 /**
  * GET /api/users
@@ -115,8 +116,23 @@ export const POST = withPermission(
     try {
       const body = await req.json();
 
+      // Sanitize input first
+      const sanitizedEmail = sanitizeEmail(body.email);
+      if (!sanitizedEmail) {
+        logSecurityEvent('invalid_email_user_creation', { email: body.email });
+        return sendError("Invalid email format", ERROR_CODES.VALIDATION_ERROR, 400);
+      }
+
+      const sanitizedBody = {
+        name: sanitizeInput(body.name, SanitizationLevel.STRICT),
+        email: sanitizedEmail,
+        password: body.password, // Don't sanitize password - let bcrypt handle it
+        phone: body.phone ? sanitizePhone(body.phone) : undefined,
+        role: body.role,
+      };
+
       // Zod Validation
-      const validatedData = createUserSchema.parse(body);
+      const validatedData = createUserSchema.parse(sanitizedBody);
 
       // Check if email already exists
       const existingUser = await prisma.user.findUnique({

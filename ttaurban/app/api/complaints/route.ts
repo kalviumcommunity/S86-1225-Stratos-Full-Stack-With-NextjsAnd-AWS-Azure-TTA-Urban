@@ -9,6 +9,7 @@ import { getPaginationParams } from "../utils/pagination";
 import { prisma } from "../../lib/prisma";
 import { createComplaintSchema } from "../../lib/schemas/complaintSchema";
 import { handleError } from "../../lib/errorHandler";
+import { sanitizeInput, sanitizeObject, SanitizationLevel } from "../../lib/sanitize";
 
 /**
  * GET /api/complaints
@@ -80,8 +81,11 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Zod Validation
-    const validatedData = createComplaintSchema.parse(body);
+    // OWASP Compliance: Sanitize all user inputs before validation
+    const sanitizedBody = sanitizeObject(body, SanitizationLevel.BASIC);
+
+    // Zod Validation (now on sanitized data)
+    const validatedData = createComplaintSchema.parse(sanitizedBody);
 
     // Note: In production, get userId from authenticated session
     const userId = validatedData.userId || 1; // Default to user ID 1 for testing
