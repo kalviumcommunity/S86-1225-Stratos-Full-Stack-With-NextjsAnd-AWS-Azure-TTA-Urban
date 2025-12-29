@@ -4,20 +4,63 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "https://ttaurban.vercel.app", // Add your production domain
+];
+
 // Log what the middleware sees on startup
 console.log(
-  "🔧 MIDDLEWARE LOADED [v2-FIXED] - JWT_SECRET:",
+  "🔧 MIDDLEWARE LOADED [v3-SECURE-HEADERS] - JWT_SECRET:",
   JWT_SECRET || "UNDEFINED"
 );
-console.log("🔧 MIDDLEWARE: Will verify with issuer/audience");
+console.log("🔧 MIDDLEWARE: Security headers + CORS enabled");
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const response = NextResponse.next();
 
   // ========================================
-  // SECURITY HEADERS (XSS, CSRF, Clickjacking Protection)
+  // CORS HEADERS
   // ========================================
+  const origin = req.headers.get("origin");
+
+  // In development, allow all localhost origins
+  if (process.env.NODE_ENV === "development" && origin?.includes("localhost")) {
+    response.headers.set("Access-Control-Allow-Origin", origin);
+  } else if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    response.headers.set("Access-Control-Allow-Origin", origin);
+  }
+
+  response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Requested-With"
+  );
+  response.headers.set("Access-Control-Max-Age", "86400"); // 24 hours
+  response.headers.set("Access-Control-Allow-Credentials", "true");
+
+  // Handle preflight OPTIONS requests
+  if (req.method === "OPTIONS") {
+    return new NextResponse(null, { status: 204, headers: response.headers });
+  }
+
+  // ========================================
+  // SECURITY HEADERS (Enhanced)
+  // ========================================
+
+  // HSTS - Force HTTPS for 2 years (production only)
+  if (process.env.NODE_ENV === "production") {
+    response.headers.set(
+      "Strict-Transport-Security",
+      "max-age=63072000; includeSubDomains; preload"
+    );
+  }
 
   // Prevent XSS attacks
   response.headers.set("X-XSS-Protection", "1; mode=block");
@@ -31,28 +74,28 @@ export function middleware(req: NextRequest) {
   // Referrer policy
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
-  // Content Security Policy (CSP)
+  // Permissions Policy - Control browser features
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()"
+  );
+
+  // Content Security Policy (CSP) - Enhanced
   const cspHeader = `
     default-src 'self';
     script-src 'self' 'unsafe-inline' 'unsafe-eval';
     style-src 'self' 'unsafe-inline';
-    img-src 'self' data: https:;
+    img-src 'self' data: blob: https:;
     font-src 'self' data:;
-    connect-src 'self';
+    connect-src 'self' http://localhost:* https://api.sendgrid.com;
     frame-ancestors 'none';
+    base-uri 'self';
+    form-action 'self';
   `
     .replace(/\s{2,}/g, " ")
     .trim();
 
   response.headers.set("Content-Security-Policy", cspHeader);
-
-  // Strict Transport Security (HTTPS only in production)
-  if (process.env.NODE_ENV === "production") {
-    response.headers.set(
-      "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains; preload"
-    );
-  }
 
   // ========================================
   // CSRF PROTECTION - Check Origin header
