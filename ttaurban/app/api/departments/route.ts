@@ -9,6 +9,7 @@ import { getPaginationParams } from "../utils/pagination";
 import { prisma } from "../../lib/prisma";
 import { createDepartmentSchema } from "../../lib/schemas/departmentSchema";
 import { handleError } from "../../lib/errorHandler";
+import { sanitizeObject, SanitizationLevel } from "../../lib/sanitize";
 
 /**
  * GET /api/departments
@@ -60,8 +61,11 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
+    // Sanitize input
+    const sanitizedBody = sanitizeObject(body, SanitizationLevel.BASIC);
+
     // Zod Validation
-    const validatedData = createDepartmentSchema.parse(body);
+    const validatedData = createDepartmentSchema.parse(sanitizedBody);
 
     // Check if department already exists
     const existingDept = await prisma.department.findUnique({

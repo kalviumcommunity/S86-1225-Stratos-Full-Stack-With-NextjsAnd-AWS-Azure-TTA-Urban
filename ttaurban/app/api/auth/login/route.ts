@@ -4,6 +4,7 @@ import { prisma } from "../../../lib/prisma";
 import { loginSchema } from "../../../lib/schemas/authSchema";
 import { handleError } from "../../../lib/errorHandler";
 import { generateTokenPair } from "../../../lib/jwt";
+import { sanitizeEmail, sanitizeInput, logSecurityEvent, SanitizationLevel } from "../../../lib/sanitize";
 
 /**
  * POST /api/auth/login
@@ -19,8 +20,23 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
+    // Sanitize input first
+    const sanitizedEmail = sanitizeEmail(body.email);
+    if (!sanitizedEmail) {
+      logSecurityEvent('invalid_email_login_attempt', { email: body.email });
+      return NextResponse.json(
+        { success: false, message: "Invalid email format" },
+        { status: 400 }
+      );
+    }
+
+    const sanitizedBody = {
+      email: sanitizedEmail,
+      password: sanitizeInput(body.password, SanitizationLevel.STRICT),
+    };
+
     // Zod Validation
-    const validatedData = loginSchema.parse(body);
+    const validatedData = loginSchema.parse(sanitizedBody);
 
     // Find user by email
     const user = await prisma.user.findUnique({

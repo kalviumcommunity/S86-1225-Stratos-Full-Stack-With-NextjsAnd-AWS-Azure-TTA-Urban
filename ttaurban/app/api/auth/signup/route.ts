@@ -4,6 +4,7 @@ import { prisma } from "../../../lib/prisma";
 import { signupSchema } from "../../../lib/schemas/authSchema";
 import { handleError } from "../../../lib/errorHandler";
 import { generateTokenPair } from "../../../lib/jwt";
+import { sanitizeEmail, sanitizeInput, sanitizePhone, SanitizationLevel, logSecurityEvent } from "../../../lib/sanitize";
 
 /**
  * POST /api/auth/signup
@@ -22,8 +23,27 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Zod Validation
-    const validatedData = signupSchema.parse(body);
+    // OWASP Compliance: Sanitize user inputs
+    const sanitizedEmail = sanitizeEmail(body.email);
+    if (!sanitizedEmail) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid email format",
+        },
+        { status: 400 }
+      );
+    }
+
+    const sanitizedBody = {
+      ...body,
+      name: sanitizeInput(body.name, SanitizationLevel.STRICT),
+      email: sanitizedEmail,
+      phone: body.phone ? sanitizePhone(body.phone) : undefined,
+    };
+
+    // Zod Validation (on sanitized data)
+    const validatedData = signupSchema.parse(sanitizedBody);
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
