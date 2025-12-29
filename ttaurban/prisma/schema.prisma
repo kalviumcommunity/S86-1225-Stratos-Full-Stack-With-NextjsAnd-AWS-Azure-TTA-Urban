@@ -16,7 +16,7 @@ model User {
   email             String      @unique
   password          String
   phone             String?
-  role              UserRole    @default(CITIZEN)
+  role              UserRole    @default(USER)
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
   
@@ -176,9 +176,12 @@ model File {
 
 // Enums
 enum UserRole {
-  CITIZEN
-  OFFICER
-  ADMIN
+  ADMIN    // Full access to all resources
+  EDITOR   // Can create and modify content
+  VIEWER   // Read-only access
+  USER     // Standard authenticated user (default, previously CITIZEN)
+  OFFICER  // Legacy role - maps to EDITOR
+  CITIZEN  // Legacy role - maps to USER
 }
 
 enum ComplaintCategory {
