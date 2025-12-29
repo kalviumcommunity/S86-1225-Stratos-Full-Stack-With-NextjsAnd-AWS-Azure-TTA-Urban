@@ -4,6 +4,13 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
+// Log what the middleware sees on startup
+console.log(
+  "🔧 MIDDLEWARE LOADED [v2-FIXED] - JWT_SECRET:",
+  JWT_SECRET || "UNDEFINED"
+);
+console.log("🔧 MIDDLEWARE: Will verify with issuer/audience");
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const response = NextResponse.next();
@@ -84,10 +91,23 @@ export function middleware(req: NextRequest) {
     "/api/auth/login",
     "/api/auth/signup",
     "/api/auth/refresh",
+    "/api/debug/env", // Debug endpoint
+    "/api/test-bypass", // Test endpoint that bypasses middleware completely
   ];
 
   const isPublicRoute = publicRoutes.some((route) => pathname === route);
   const isPublicApiRoute = publicApiRoutes.some((route) => pathname === route);
+
+  // Add middleware debug header to debug endpoint
+  if (pathname === "/api/debug/env") {
+    const debugResponse = NextResponse.next();
+    debugResponse.headers.set(
+      "X-Middleware-JWT-Secret-Length",
+      String(JWT_SECRET.length)
+    );
+    debugResponse.headers.set("X-Middleware-JWT-Secret-Value", JWT_SECRET);
+    return debugResponse;
+  }
 
   if (isPublicRoute || isPublicApiRoute) {
     return response;
@@ -106,7 +126,16 @@ export function middleware(req: NextRequest) {
     }
 
     try {
-      const decoded: any = jwt.verify(token, JWT_SECRET);
+      const decoded: any = jwt.verify(token, JWT_SECRET, {
+        issuer: "ttaurban-api",
+        audience: "ttaurban-client",
+      });
+      console.log(
+        "✅ Middleware: Token verified successfully for",
+        decoded.email,
+        "- Role:",
+        decoded.role
+      );
 
       // Role-based access control for admin routes
       if (pathname.startsWith("/api/admin") && decoded.role !== "ADMIN") {
@@ -132,7 +161,13 @@ export function middleware(req: NextRequest) {
       });
 
       return authenticatedResponse;
-    } catch {
+    } catch (error: any) {
+      console.error(
+        "❌ Middleware: Token verification failed -",
+        error.message
+      );
+      console.error("Token:", token?.substring(0, 30) + "...");
+      console.error("JWT_SECRET length:", JWT_SECRET.length);
       return NextResponse.json(
         {
           success: false,
@@ -159,7 +194,10 @@ export function middleware(req: NextRequest) {
     }
 
     try {
-      jwt.verify(token, JWT_SECRET);
+      jwt.verify(token, JWT_SECRET, {
+        issuer: "ttaurban-api",
+        audience: "ttaurban-client",
+      });
       return response;
     } catch {
       const loginUrl = new URL("/login", req.url);

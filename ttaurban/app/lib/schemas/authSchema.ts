@@ -19,7 +19,9 @@ export const signupSchema = z.object({
     .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format")
     .optional()
     .nullable(),
-  role: z.enum(["CITIZEN", "OFFICER", "ADMIN"]).default("CITIZEN"),
+  role: z
+    .enum(["ADMIN", "EDITOR", "VIEWER", "USER", "CITIZEN", "OFFICER"])
+    .default("USER"),
 });
 
 /**

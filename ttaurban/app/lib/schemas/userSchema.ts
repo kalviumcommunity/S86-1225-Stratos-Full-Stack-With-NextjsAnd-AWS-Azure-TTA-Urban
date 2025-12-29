@@ -19,7 +19,9 @@ export const createUserSchema = z.object({
     .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format")
     .optional()
     .nullable(),
-  role: z.enum(["CITIZEN", "OFFICER", "ADMIN"]).default("CITIZEN"),
+  role: z
+    .enum(["ADMIN", "EDITOR", "VIEWER", "USER", "CITIZEN", "OFFICER"])
+    .default("USER"),
 });
 
 /**
@@ -37,7 +39,9 @@ export const updateUserSchema = z.object({
     .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format")
     .optional()
     .nullable(),
-  role: z.enum(["CITIZEN", "OFFICER", "ADMIN"]).optional(),
+  role: z
+    .enum(["ADMIN", "EDITOR", "VIEWER", "USER", "CITIZEN", "OFFICER"])
+    .optional(),
 });
 
 /**
@@ -57,7 +61,9 @@ export const patchUserSchema = z
       .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format")
       .optional()
       .nullable(),
-    role: z.enum(["CITIZEN", "OFFICER", "ADMIN"]).optional(),
+    role: z
+      .enum(["ADMIN", "EDITOR", "VIEWER", "USER", "CITIZEN", "OFFICER"])
+      .optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field must be provided for update",
