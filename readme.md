@@ -3053,6 +3053,275 @@ All three containers are running successfully with proper port mappings and netw
 - Configure environment-specific Docker Compose overrides (e.g., `docker-compose.prod.yml`)
 - Add volume mounts for hot-reloading during development
 
+---
+
+## ☁️ Cloud Database Configuration
+
+This project supports production deployment with managed cloud databases using **AWS RDS PostgreSQL** or **Azure Database for PostgreSQL**.
+
+### Why Cloud Databases?
+
+Managed database services handle critical operational tasks:
+- ✅ **Automated backups** with point-in-time recovery
+- ✅ **Automatic patching** and security updates
+- ✅ **High availability** with multi-AZ deployment
+- ✅ **Monitoring & alerting** built-in
+- ✅ **Scalability** without downtime
+- ✅ **Security** with network isolation and encryption
+
+### Supported Providers
+
+| Provider | Service | Cost (Development) | Documentation |
+|----------|---------|-------------------|---------------|
+| **AWS** | Amazon RDS PostgreSQL | ~$16/month | [Setup Guide](ttaurban/docs/CLOUD_DATABASE_SETUP.md#aws-rds-setup) |
+| **Azure** | Azure Database for PostgreSQL | ~$22/month | [Setup Guide](ttaurban/docs/CLOUD_DATABASE_SETUP.md#azure-postgresql-setup) |
+
+### Quick Start
+
+#### 1. Choose Your Provider
+
+Follow the detailed provisioning guide:
+- 📘 **[Complete Setup Guide](ttaurban/docs/CLOUD_DATABASE_SETUP.md)** - Full documentation (6,000+ words)
+- 🚀 **[Quick Start Guide](ttaurban/docs/QUICK_START_CLOUD_DB.md)** - Step-by-step instructions
+
+#### 2. Configure Environment
+
+After provisioning your cloud database, update the appropriate environment file:
+
+**For AWS RDS:**
+```bash
+# Edit .env.aws-rds with your RDS endpoint and credentials
+DATABASE_URL="postgresql://admin:YOUR_PASSWORD@your-instance.region.rds.amazonaws.com:5432/ttaurban"
+```
+
+**For Azure PostgreSQL:**
+```bash
+# Edit .env.azure-postgres with your Azure server details
+DATABASE_URL="postgresql://adminuser:YOUR_PASSWORD@your-server.postgres.database.azure.com:5432/ttaurban?ssl=true"
+```
+
+#### 3. Test Connection
+
+```bash
+# Test AWS RDS connection
+npm run db:test:aws
+
+# Test Azure PostgreSQL connection
+npm run db:test:azure
+
+# Expected output:
+# ✅ Test 1: Basic Connection - Connected successfully
+# ✅ Test 2: Server Time Query - Working
+# ✅ Test 3: PostgreSQL Version - Verified
+# ... 7 comprehensive tests
+# 🎉 All tests passed successfully!
+```
+
+#### 4. Deploy Schema
+
+```bash
+# Deploy to AWS RDS with seed data
+npm run db:deploy:aws -- --seed
+
+# Deploy to Azure PostgreSQL with seed data
+npm run db:deploy:azure -- --seed
+```
+
+#### 5. Verify Backups
+
+```bash
+# Verify backup configuration
+npm run db:verify:backups -- --provider=aws
+npm run db:verify:backups -- --provider=azure
+```
+
+### Available Commands
+
+```bash
+# Connection Testing
+npm run db:test          # Test local PostgreSQL
+npm run db:test:aws      # Test AWS RDS
+npm run db:test:azure    # Test Azure PostgreSQL
+
+# Schema Deployment
+npm run db:deploy:aws    # Deploy to AWS RDS
+npm run db:deploy:azure  # Deploy to Azure PostgreSQL
+
+# Backup Verification
+npm run db:verify:backups -- --provider=aws
+npm run db:verify:backups -- --provider=azure
+```
+
+### Features Implemented
+
+**🔍 Connection Validation**
+- 7-point comprehensive test suite
+- Network connectivity verification
+- Authentication testing
+- Schema validation
+- Performance metrics
+- Health check API endpoint
+
+**🚀 Automated Deployment**
+- One-command schema deployment
+- Database migration support
+- Automatic data seeding
+- Rollback capabilities
+- Deployment verification
+
+**📦 Backup Management**
+- Configuration verification
+- Automated backup reports
+- Best practices checklist
+- CLI commands for both providers
+- Recovery procedure documentation
+
+**🔒 Security Features**
+- Network access control
+- SSL/TLS encryption
+- Credential management
+- Security group configuration
+- Audit logging support
+
+### Architecture
+
+```
+Application (Next.js)
+        ↓
+   DATABASE_URL
+        ↓
+    ┌─────────────────┐
+    │  Cloud Database │
+    │  (AWS/Azure)    │
+    ├─────────────────┤
+    │  PostgreSQL 15  │
+    │  Managed Service│
+    └─────────────────┘
+           ↓
+    Automated Backups
+    Point-in-time Recovery
+    Multi-AZ Availability
+```
+
+### Production Checklist
+
+Before deploying to production:
+
+- [ ] Database provisioned in cloud console
+- [ ] Network security configured (VPC/VNet)
+- [ ] SSL/TLS encryption enabled
+- [ ] Automated backups verified (7-30 day retention)
+- [ ] Connection tested successfully
+- [ ] Schema deployed and verified
+- [ ] Monitoring alerts configured
+- [ ] Backup restoration tested
+- [ ] Performance baselines established
+- [ ] Disaster recovery plan documented
+
+### Cost Optimization
+
+**Development Environment:**
+- Use smallest instance sizes (db.t3.micro / B1ms)
+- 7-day backup retention
+- Single availability zone
+- Stop instances when not in use (~50% savings)
+
+**Production Environment:**
+- Right-size based on actual load
+- Use Reserved Instances (save 60-65%)
+- Multi-AZ for high availability
+- 30-day backup retention
+- Enable autoscaling
+
+**Estimated Monthly Costs:**
+```
+AWS RDS (db.t3.micro, 20GB):     $16-21
+Azure PostgreSQL (B1ms, 32GB):   $21-25
+Production (with HA):            $50-100+
+```
+
+### Monitoring & Alerts
+
+**Built-in Health Check:**
+```bash
+# API endpoint for monitoring
+GET http://your-app.com/api/health/db
+
+# Response
+{
+  "status": "connected",
+  "serverTime": "2025-12-30T...",
+  "version": "PostgreSQL 15.5",
+  "responseTime": "45ms",
+  "connectionPool": {
+    "total": 1,
+    "idle": 1,
+    "waiting": 0
+  }
+}
+```
+
+**Cloud Monitoring:**
+- AWS: CloudWatch metrics (CPU, connections, IOPS)
+- Azure: Azure Monitor (CPU%, memory%, storage%)
+- Custom alerts for connection failures
+- Performance dashboards
+
+### Documentation
+
+- 📘 [Complete Setup Guide](ttaurban/docs/CLOUD_DATABASE_SETUP.md) - Comprehensive documentation
+- 🚀 [Quick Start Guide](ttaurban/docs/QUICK_START_CLOUD_DB.md) - Fast setup instructions
+- 📊 [Assignment Summary](ttaurban/docs/ASSIGNMENT_SUMMARY.md) - Implementation details
+- 🔧 [Troubleshooting](#troubleshooting-cloud-database) - Common issues and solutions
+
+### Troubleshooting Cloud Database
+
+**Error: `ENOTFOUND` - Cannot connect**
+```
+Cause: Database endpoint not configured or incorrect
+Solution:
+1. Verify you've provisioned the database in AWS/Azure console
+2. Update .env.aws-rds or .env.azure-postgres with actual endpoint
+3. Check security group/firewall allows your IP address
+```
+
+**Error: `28P01` - Authentication failed**
+```
+Cause: Wrong username or password
+Solution:
+1. Verify credentials in environment file
+2. For Azure: username is 'adminuser', not 'adminuser@server'
+3. Reset password in cloud console if needed
+```
+
+**Error: `ETIMEDOUT` - Connection timeout**
+```
+Cause: Firewall blocking connection
+Solution:
+1. Add your IP to security group (AWS) or firewall rules (Azure)
+2. Ensure 'Public access' is enabled for testing
+3. Check if VPN/network is blocking port 5432
+```
+
+**Script shows placeholder errors**
+```
+This is expected if you haven't provisioned a cloud database yet!
+The .env files contain template values. Follow the Quick Start Guide
+to provision your database and update the configuration.
+```
+
+### Next Steps
+
+1. **Review Documentation**: Read the [Complete Setup Guide](ttaurban/docs/CLOUD_DATABASE_SETUP.md)
+2. **Provision Database**: Follow provider-specific instructions
+3. **Configure Environment**: Update `.env.aws-rds` or `.env.azure-postgres`
+4. **Test Connection**: Run `npm run db:test:aws` or `npm run db:test:azure`
+5. **Deploy Schema**: Run deployment scripts with `--seed` flag
+6. **Verify Backups**: Use backup verification scripts
+7. **Monitor**: Set up health checks and alerts
+
+---
+
 ## 🗄️ Database Schema Design
 
 This project uses PostgreSQL with Prisma ORM to manage a normalized relational database that supports the TTA-Urban complaint management system.

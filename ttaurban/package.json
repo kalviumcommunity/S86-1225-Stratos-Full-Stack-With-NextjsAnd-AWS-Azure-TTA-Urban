@@ -9,7 +9,13 @@
     "lint": "eslint . --ext js,jsx,ts,tsx",
     "lint-staged": "lint-staged",
     "prepare": "cd .. && husky install .husky || echo 'Husky install skipped'",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "db:test": "node scripts/test-cloud-db.js",
+    "db:test:aws": "node scripts/test-cloud-db.js --provider=aws",
+    "db:test:azure": "node scripts/test-cloud-db.js --provider=azure",
+    "db:deploy:aws": "node scripts/deploy-to-cloud.js --provider=aws",
+    "db:deploy:azure": "node scripts/deploy-to-cloud.js --provider=azure",
+    "db:verify:backups": "node scripts/verify-backups.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.956.0",
