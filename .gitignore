@@ -1,1 +1,20 @@
 node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+
+
+# Test files
+*.test.js
+*.test.ts
+*.test.tsx
+*.spec.js
+*.spec.ts
+*.spec.tsx
+test-*.js
+test-*.ts
+
+

