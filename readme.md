@@ -3926,6 +3926,555 @@ npm run dev                 # Start dev server, visit /storage-demo
 
 ---
 
+## 🔐 Cloud Secrets Management (AWS Secrets Manager / Azure Key Vault)
+
+This project supports secure storage and runtime retrieval of sensitive environment variables using **AWS Secrets Manager** or **Azure Key Vault** instead of plain `.env` files.
+
+### Why Cloud Secret Management?
+
+Storing secrets in plain text (`.env` files) creates security risks:
+
+- ❌ Accidental Git commits expose credentials
+- ❌ No audit trail of who accessed secrets
+- ❌ Manual rotation is error-prone
+- ❌ Difficult to manage across environments
+
+Cloud secret managers solve these problems:
+
+- ✅ **Encrypted at rest and in transit**
+- ✅ **IAM/RBAC-based access control**
+- ✅ **Automatic key rotation**
+- ✅ **Audit logging** (CloudTrail / Azure Monitor)
+- ✅ **Runtime injection** without exposing secrets to code
+- ✅ **Version control** for secrets
+
+### Supported Providers
+
+| Provider  | Service         | Cost                                            | Key Benefit                                |
+| --------- | --------------- | ----------------------------------------------- | ------------------------------------------ |
+| **AWS**   | Secrets Manager | $0.40/secret/month + $0.05 per 10,000 API calls | IAM-based access, automatic rotation       |
+| **Azure** | Key Vault       | $0.03/10,000 operations                         | RBAC integration, Managed Identity support |
+
+### Quick Start
+
+#### 1. Create Secret in Cloud
+
+**Option A: AWS Secrets Manager**
+
+```bash
+# Via AWS Console
+1. Go to AWS Console → Secrets Manager → Store a new secret
+2. Choose "Other type of secret"
+3. Add key-value pairs in JSON format:
+{
+  "DATABASE_URL": "postgresql://admin:password@db.amazonaws.com:5432/ttaurban",
+  "JWT_SECRET": "your-super-secure-jwt-secret-key",
+  "SENDGRID_API_KEY": "SG.xxxxxxxxxxxxxxxxxxxx",
+  "REDIS_URL": "redis://default:password@redis.amazonaws.com:6379"
+}
+4. Name your secret: ttaurban/app-secrets
+5. Select "Default encryption key"
+6. Copy the ARN
+
+# Via AWS CLI
+aws secretsmanager create-secret \
+  --name ttaurban/app-secrets \
+  --secret-string '{
+    "DATABASE_URL": "postgresql://...",
+    "JWT_SECRET": "your-secret"
+  }'
+```
+
+**Option B: Azure Key Vault**
+
+```bash
+# Via Azure Portal
+1. Go to Azure Portal → Create a Resource → Key Vault
+2. Name your vault: kv-ttaurban-app
+3. After creation → Go to Secrets → + Generate/Import
+4. Add each secret individually:
+   - Name: DATABASE-URL (use hyphens in Azure)
+   - Value: postgresql://admin:password@db.azure.com:5432/ttaurban
+
+# Via Azure CLI
+# Create Key Vault
+az keyvault create \
+  --name kv-ttaurban-app \
+  --resource-group ttaurban-rg \
+  --location eastus
+
+# Add secrets
+az keyvault secret set \
+  --vault-name kv-ttaurban-app \
+  --name DATABASE-URL \
+  --value "postgresql://..."
+
+az keyvault secret set \
+  --vault-name kv-ttaurban-app \
+  --name JWT-SECRET \
+  --value "your-secret"
+```
+
+#### 2. Grant Least-Privilege Access
+
+**AWS IAM Policy (secretsmanager:GetSecretValue only)**
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "arn:aws:secretsmanager:us-east-1:123456789012:secret:ttaurban/app-secrets-*"
+    }
+  ]
+}
+```
+
+Attach this policy to:
+
+- EC2 instance role (for VMs)
+- ECS task role (for containers)
+- Lambda execution role
+
+**Azure Access Policy (Get permissions only)**
+
+```bash
+# Using Access Policies
+az keyvault set-policy \
+  --name kv-ttaurban-app \
+  --spn <app-client-id> \
+  --secret-permissions get list
+
+# Or enable Managed Identity (recommended for production)
+# Assign identity to App Service/VM, then grant access
+az webapp identity assign --name ttaurban-app --resource-group ttaurban-rg
+az keyvault set-policy \
+  --name kv-ttaurban-app \
+  --object-id <managed-identity-object-id> \
+  --secret-permissions get list
+```
+
+#### 3. Configure Environment
+
+**For AWS Secrets Manager:**
+
+```bash
+# Copy template
+cp .env.secrets-aws .env.local
+
+# Edit .env.local
+AWS_REGION=us-east-1
+SECRET_ARN=arn:aws:secretsmanager:us-east-1:123456789012:secret:ttaurban/app-secrets-AbCdEf
+SECRET_NAME=ttaurban/app-secrets
+
+# For local testing only (use IAM role in production)
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+```
+
+**For Azure Key Vault:**
+
+```bash
+# Copy template
+cp .env.secrets-azure .env.local
+
+# Edit .env.local
+KEYVAULT_NAME=kv-ttaurban-app
+KEYVAULT_URL=https://kv-ttaurban-app.vault.azure.net
+
+# For local testing only (use Managed Identity in production)
+AZURE_TENANT_ID=your-tenant-id
+AZURE_CLIENT_ID=your-client-id
+AZURE_CLIENT_SECRET=your-client-secret
+
+# In production
+USE_MANAGED_IDENTITY=true
+```
+
+#### 4. Test Configuration
+
+```bash
+# Test AWS Secrets Manager
+npm run secrets:test:aws
+
+# Test Azure Key Vault
+npm run secrets:test:azure
+
+# Expected output:
+# ✅ Configuration Check:
+#    ✓ AWS_REGION: Configured
+#    ✓ SECRET_ARN: Configured
+# 🎉 AWS Secrets Manager Configuration Valid!
+```
+
+#### 5. Retrieve Secrets at Runtime
+
+**AWS Example (in your Next.js API route):**
+
+```typescript
+import { getSecrets, getSecret } from "@/lib/awsSecrets";
+
+// Get all secrets
+const secrets = await getSecrets();
+console.log("Available secrets:", Object.keys(secrets));
+
+// Use specific secret
+const dbUrl = await getSecret("DATABASE_URL");
+const jwtSecret = await getSecret("JWT_SECRET");
+
+// Use in database connection
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient({
+  datasources: {
+    db: { url: dbUrl },
+  },
+});
+```
+
+**Azure Example:**
+
+```typescript
+import { getSecret, getSecrets } from "@/lib/azureSecrets";
+
+// Get specific secret (Azure uses hyphens)
+const dbUrl = await getSecret("DATABASE-URL"); // Returns value
+const jwtSecret = await getSecret("JWT-SECRET");
+
+// Get multiple secrets
+const secrets = await getSecrets([
+  "DATABASE-URL",
+  "JWT-SECRET",
+  "SENDGRID-API-KEY",
+]);
+// Returns: { DATABASE_URL: '...', JWT_SECRET: '...', SENDGRID_API_KEY: '...' }
+```
+
+**API Endpoint Example:**
+
+```typescript
+// app/api/secrets/validate/route.ts
+import { validateConfig } from "@/lib/awsSecrets";
+
+export async function GET() {
+  const result = await validateConfig();
+
+  return Response.json({
+    configured: result.configured,
+    errors: result.errors,
+  });
+}
+```
+
+### API Endpoints
+
+Test secret retrieval without exposing values:
+
+```bash
+# Validate AWS Secrets Manager configuration
+GET /api/secrets/validate?provider=aws
+
+# Validate Azure Key Vault configuration
+GET /api/secrets/validate?provider=azure
+
+# List available secrets (AWS)
+GET /api/secrets/aws
+
+# List available secrets (Azure)
+GET /api/secrets/azure
+```
+
+### Secret Rotation Strategy
+
+#### Automatic Rotation (AWS)
+
+```bash
+# Enable automatic rotation in AWS Secrets Manager
+1. Go to secret → Rotation configuration
+2. Enable automatic rotation
+3. Select rotation interval (30 days recommended)
+4. Choose or create Lambda rotation function
+5. Lambda updates secret and rotates database password
+```
+
+**Rotation Lambda Example (database credentials):**
+
+```typescript
+// AWS Lambda rotation function
+export const handler = async (event) => {
+  const secretId = event.SecretId;
+  const token = event.ClientRequestToken;
+  const step = event.Step;
+
+  if (step === "createSecret") {
+    // Generate new password
+    const newPassword = generateStrongPassword();
+    // Store as AWSPENDING version
+    await secretsManager.putSecretValue({
+      SecretId: secretId,
+      ClientRequestToken: token,
+      SecretString: JSON.stringify({ password: newPassword }),
+      VersionStages: ["AWSPENDING"],
+    });
+  }
+
+  if (step === "setSecret") {
+    // Update database with new password
+    await database.updatePassword(newPassword);
+  }
+
+  if (step === "testSecret") {
+    // Test connection with new password
+    await database.testConnection(newPassword);
+  }
+
+  if (step === "finishSecret") {
+    // Promote AWSPENDING to AWSCURRENT
+    await secretsManager.updateSecretVersionStage({
+      SecretId: secretId,
+      VersionStage: "AWSCURRENT",
+      MoveToVersionId: token,
+    });
+  }
+};
+```
+
+#### Manual Rotation Best Practices
+
+| Secret Type              | Rotation Frequency    | Strategy                                 |
+| ------------------------ | --------------------- | ---------------------------------------- |
+| **Database Credentials** | Every 30 days         | Dual-user approach (primary + secondary) |
+| **API Keys**             | Every 90 days         | Generate new before revoking old         |
+| **JWT Secrets**          | Every 90-180 days     | Support multiple keys with versioning    |
+| **Encryption Keys**      | Annually or on breach | Re-encrypt data with new key             |
+
+**Dual-User Rotation Example:**
+
+```bash
+# Step 1: Create secondary database user
+CREATE USER app_secondary WITH PASSWORD 'new_password';
+GRANT ALL PRIVILEGES ON DATABASE ttaurban TO app_secondary;
+
+# Step 2: Update secret with secondary credentials
+aws secretsmanager update-secret \
+  --secret-id ttaurban/app-secrets \
+  --secret-string '{"DATABASE_URL": "postgresql://app_secondary:new_password@..."}'
+
+# Step 3: Deploy app (uses secondary user)
+# Wait for deployment to complete
+
+# Step 4: Update primary user password
+ALTER USER app_primary WITH PASSWORD 'even_newer_password';
+
+# Step 5: Update secret back to primary user
+aws secretsmanager update-secret \
+  --secret-id ttaurban/app-secrets \
+  --secret-string '{"DATABASE_URL": "postgresql://app_primary:even_newer_password@..."}'
+
+# Step 6: Drop secondary user
+DROP USER app_secondary;
+```
+
+### Caching Strategy
+
+Secrets are cached for 5 minutes to reduce API calls:
+
+```typescript
+// Built into lib/awsSecrets.ts and lib/azureSecrets.ts
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Secrets are automatically refreshed after 5 minutes
+const secrets = await getSecrets(); // Fetches from cache if < 5 min old
+
+// Force refresh (useful after rotation)
+import { clearSecretsCache } from "@/lib/awsSecrets";
+clearSecretsCache();
+const freshSecrets = await getSecrets(); // Fetches from cloud
+```
+
+### Security Best Practices
+
+#### 1. Access Control
+
+- ✅ Use IAM roles/Managed Identity in production (never access keys)
+- ✅ Grant `GetSecretValue` / `Get` permission only (no List, Update, Delete)
+- ✅ Scope permissions to specific secret ARNs/names
+- ✅ Separate secrets for dev/staging/production environments
+- ❌ Never commit `.env.secrets-*` files to Git
+
+#### 2. Secret Storage
+
+- ✅ Store all sensitive credentials in cloud vaults
+- ✅ Use JSON format for multiple secrets in AWS
+- ✅ Use hyphens in Azure secret names (DATABASE-URL → DATABASE_URL)
+- ✅ Enable encryption at rest (default in both services)
+- ❌ Never hardcode secrets in application code
+
+#### 3. Monitoring & Auditing
+
+- ✅ Enable CloudTrail (AWS) / Azure Monitor logging
+- ✅ Set up alerts for unauthorized access attempts
+- ✅ Review access logs monthly
+- ✅ Monitor API call costs (cache secrets to reduce calls)
+
+#### 4. Rotation
+
+- ✅ Enable automatic rotation where possible
+- ✅ Test rotation in non-production first
+- ✅ Use dual-credential strategy for databases
+- ✅ Document rotation procedures in runbooks
+
+### Cost Optimization
+
+**AWS Secrets Manager:**
+
+- $0.40 per secret per month
+- $0.05 per 10,000 API calls
+- **Optimization**: Cache secrets (5-min TTL reduces calls by ~99%)
+
+**Example costs:**
+
+```
+5 secrets × $0.40 = $2.00/month
+100,000 API calls × $0.05/10k = $0.50/month
+Total: $2.50/month (with caching)
+
+Without caching (1 call per request):
+1M requests × $0.05/10k = $5.00/month
+Total: $7.00/month
+```
+
+**Azure Key Vault:**
+
+- $0.03 per 10,000 operations (first 10k free)
+- Secret versions: No additional cost
+- **Optimization**: Same caching strategy
+
+### Troubleshooting
+
+**Error: `AccessDeniedException` (AWS) or `Forbidden` (Azure)**
+
+```
+Cause: Insufficient IAM/RBAC permissions
+Solution:
+1. Verify IAM role/policy attached to EC2/ECS/Lambda
+2. Check policy allows secretsmanager:GetSecretValue
+3. Ensure Resource ARN matches your secret
+4. For Azure: Verify Access Policy grants 'Get' permission
+```
+
+**Error: `ResourceNotFoundException` (AWS) or `SecretNotFound` (Azure)**
+
+```
+Cause: Secret doesn't exist or wrong name/ARN
+Solution:
+1. Check SECRET_ARN/SECRET_NAME in environment
+2. Verify secret exists in Secrets Manager/Key Vault console
+3. Check region matches (AWS_REGION)
+```
+
+**Error: `The security token included in the request is invalid`**
+
+```
+Cause: Expired or invalid credentials
+Solution:
+1. In production: Use IAM role/Managed Identity (no keys needed)
+2. For local dev: Refresh AWS_ACCESS_KEY_ID/AZURE_CLIENT_SECRET
+3. Check credentials haven't been rotated
+```
+
+**Secrets not refreshing after rotation**
+
+```
+Cause: Cache TTL (5 minutes)
+Solution:
+1. Wait 5 minutes for automatic refresh
+2. Or call clearSecretsCache() to force immediate refresh
+3. Restart application to clear all caches
+```
+
+### Production Checklist
+
+- [ ] Secrets created in AWS Secrets Manager or Azure Key Vault
+- [ ] IAM role/Managed Identity configured (not access keys)
+- [ ] Least-privilege permissions granted (Get only)
+- [ ] Environment variables point to correct vault
+- [ ] Secret retrieval tested via API endpoints
+- [ ] Caching enabled (5-minute TTL configured)
+- [ ] Rotation strategy documented
+- [ ] Automatic rotation enabled (if supported)
+- [ ] CloudTrail/Azure Monitor logging enabled
+- [ ] Access alerts configured
+- [ ] Separate secrets for dev/staging/production
+- [ ] `.env.secrets-*` files excluded from Git
+
+### Available Commands
+
+```bash
+# Configuration Testing
+npm run secrets:test:aws     # Test AWS Secrets Manager setup
+npm run secrets:test:azure   # Test Azure Key Vault setup
+
+# API Testing
+GET /api/secrets/validate?provider=aws    # Validate AWS config
+GET /api/secrets/validate?provider=azure  # Validate Azure config
+GET /api/secrets/aws                      # List AWS secrets
+GET /api/secrets/azure                    # List Azure secrets
+```
+
+### Architecture
+
+**AWS Secrets Manager Flow:**
+
+```
+  Next.js App
+       ↓
+  getSecrets() (lib/awsSecrets.ts)
+       ↓
+  Check cache (5-min TTL)
+       ↓
+  AWS Secrets Manager API
+  (secretsmanager:GetSecretValue)
+       ↓
+  Return JSON secrets
+       ↓
+  Cache for 5 minutes
+       ↓
+  Use in app (DATABASE_URL, JWT_SECRET, etc.)
+```
+
+**Azure Key Vault Flow:**
+
+```
+  Next.js App
+       ↓
+  getSecret('DATABASE-URL') (lib/azureSecrets.ts)
+       ↓
+  Check cache (5-min TTL)
+       ↓
+  Azure Key Vault API
+  (via Managed Identity or Service Principal)
+       ↓
+  Return secret value
+       ↓
+  Cache for 5 minutes
+       ↓
+  Use in app as DATABASE_URL
+```
+
+### Next Steps
+
+1. **Create Secret**: Provision secret in AWS Secrets Manager or Azure Key Vault
+2. **Grant Access**: Configure IAM role or Managed Identity
+3. **Test Configuration**: Run `npm run secrets:test:aws` or `secrets:test:azure`
+4. **Integrate**: Replace hardcoded `process.env.DATABASE_URL` with `await getSecret('DATABASE_URL')`
+5. **Enable Rotation**: Configure automatic rotation (30-day interval)
+6. **Monitor**: Enable CloudTrail/Azure Monitor logging
+7. **Document**: Update team runbooks with rotation procedures
+
+---
+
 ---
 
 ## 🗄️ Database Schema Design
