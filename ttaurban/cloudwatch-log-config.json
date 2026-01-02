@@ -1,0 +1,73 @@
+{
+  "logGroupName": "/ecs/ttaurban",
+  "retentionInDays": 14,
+  "metricFilters": [
+    {
+      "filterName": "ErrorCount",
+      "filterPattern": "{ $.level = \"error\" }",
+      "metricTransformations": [
+        {
+          "metricName": "ApplicationErrors",
+          "metricNamespace": "TTAUrban/Application",
+          "metricValue": "1",
+          "defaultValue": 0
+        }
+      ]
+    },
+    {
+      "filterName": "WarningCount",
+      "filterPattern": "{ $.level = \"warn\" }",
+      "metricTransformations": [
+        {
+          "metricName": "ApplicationWarnings",
+          "metricNamespace": "TTAUrban/Application",
+          "metricValue": "1",
+          "defaultValue": 0
+        }
+      ]
+    },
+    {
+      "filterName": "APIResponseTime",
+      "filterPattern": "{ $.context.duration > 0 }",
+      "metricTransformations": [
+        {
+          "metricName": "APIResponseTime",
+          "metricNamespace": "TTAUrban/Performance",
+          "metricValue": "$.context.duration",
+          "defaultValue": 0,
+          "unit": "Milliseconds"
+        }
+      ]
+    },
+    {
+      "filterName": "HTTP5xxErrors",
+      "filterPattern": "{ $.context.statusCode >= 500 }",
+      "metricTransformations": [
+        {
+          "metricName": "HTTP5xxErrors",
+          "metricNamespace": "TTAUrban/Application",
+          "metricValue": "1",
+          "defaultValue": 0
+        }
+      ]
+    },
+    {
+      "filterName": "HTTP4xxErrors",
+      "filterPattern": "{ $.context.statusCode >= 400 && $.context.statusCode < 500 }",
+      "metricTransformations": [
+        {
+          "metricName": "HTTP4xxErrors",
+          "metricNamespace": "TTAUrban/Application",
+          "metricValue": "1",
+          "defaultValue": 0
+        }
+      ]
+    }
+  ],
+  "subscriptionFilters": [],
+  "tags": {
+    "Application": "TTAUrban",
+    "Environment": "Production",
+    "ManagedBy": "CloudWatch"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "name": "TTAUrban Production Monitoring",
+  "description": "Application performance and health monitoring dashboard",
+  "logAnalyticsWorkspaceName": "ttaurban-logs-workspace",
+  "appInsightsName": "ttaurban-app-insights",
+  "resourceGroup": "ttaurban-rg",
+  "location": "eastus",
+  "retentionInDays": 30,
+  "queryPackQueries": [
+    {
+      "name": "Application Errors",
+      "query": "traces\n| where severityLevel >= 3\n| where customDimensions.level == \"error\"\n| project timestamp, message, customDimensions.requestId, customDimensions.endpoint, customDimensions.error\n| order by timestamp desc\n| take 100",
+      "description": "All application errors in the last 24 hours"
+    },
+    {
+      "name": "API Response Times",
+      "query": "traces\n| where customDimensions.metricName == \"api_response_time\"\n| extend duration = todouble(customDimensions.value)\n| summarize \n    p50 = percentile(duration, 50),\n    p95 = percentile(duration, 95),\n    p99 = percentile(duration, 99),\n    avg = avg(duration)\n  by bin(timestamp, 5m)\n| order by timestamp desc",
+      "description": "API response time percentiles over time"
+    },
+    {
+      "name": "HTTP Status Codes",
+      "query": "traces\n| where isnotempty(customDimensions.statusCode)\n| extend statusCode = toint(customDimensions.statusCode)\n| summarize count() by statusCode, bin(timestamp, 5m)\n| order by timestamp desc",
+      "description": "Distribution of HTTP status codes"
+    },
+    {
+      "name": "Request Volume by Endpoint",
+      "query": "traces\n| where customDimensions.endpoint != \"\"\n| summarize RequestCount = count() by tostring(customDimensions.endpoint), bin(timestamp, 5m)\n| order by timestamp desc, RequestCount desc",
+      "description": "Request volume grouped by endpoint"
+    },
+    {
+      "name": "Authentication Events",
+      "query": "traces\n| where message contains \"Authentication\"\n| project timestamp, message, customDimensions.requestId, customDimensions.userId, customDimensions.event\n| order by timestamp desc\n| take 100",
+      "description": "Recent authentication events (login, logout, failures)"
+    },
+    {
+      "name": "Slow Queries (>500ms)",
+      "query": "traces\n| where customDimensions.query != \"\"\n| extend duration = todouble(customDimensions.duration)\n| where duration > 500\n| project timestamp, customDimensions.requestId, customDimensions.query, duration\n| order by duration desc\n| take 50",
+      "description": "Database queries taking longer than 500ms"
+    }
+  ],
+  "alertRules": [
+    {
+      "name": "High Error Rate",
+      "description": "Alert when error count exceeds threshold",
+      "query": "traces\n| where severityLevel >= 3\n| where customDimensions.level == \"error\"\n| summarize ErrorCount = count() by bin(timestamp, 5m)\n| where ErrorCount > 10",
+      "threshold": 10,
+      "evaluationFrequency": "PT5M",
+      "windowSize": "PT5M",
+      "severity": 2
+    },
+    {
+      "name": "Slow API Response Time",
+      "description": "Alert when p95 response time exceeds 2 seconds",
+      "query": "traces\n| where customDimensions.metricName == \"api_response_time\"\n| extend duration = todouble(customDimensions.value)\n| summarize p95 = percentile(duration, 95) by bin(timestamp, 5m)\n| where p95 > 2000",
+      "threshold": 2000,
+      "evaluationFrequency": "PT5M",
+      "windowSize": "PT5M",
+      "severity": 3
+    },
+    {
+      "name": "High 5xx Error Rate",
+      "description": "Alert when 5xx errors exceed threshold",
+      "query": "traces\n| extend statusCode = toint(customDimensions.statusCode)\n| where statusCode >= 500 and statusCode < 600\n| summarize ErrorCount = count() by bin(timestamp, 5m)\n| where ErrorCount > 5",
+      "threshold": 5,
+      "evaluationFrequency": "PT5M",
+      "windowSize": "PT5M",
+      "severity": 1
+    }
+  ],
+  "actionGroups": [
+    {
+      "name": "ttaurban-devops-team",
+      "shortName": "DevOps",
+      "emailReceivers": [
+        {
+          "name": "DevOps Team",
+          "emailAddress": "devops@ttaurban.com"
+        }
+      ],
+      "smsReceivers": [
+        {
+          "name": "On-Call",
+          "countryCode": "1",
+          "phoneNumber": "1234567890"
+        }
+      ]
+    }
+  ]
+}

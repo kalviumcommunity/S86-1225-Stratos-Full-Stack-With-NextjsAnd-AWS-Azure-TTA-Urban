@@ -1,0 +1,118 @@
+{
+  "alarms": [
+    {
+      "AlarmName": "TTAUrban-High-Error-Rate",
+      "AlarmDescription": "Alert when application error count exceeds threshold",
+      "MetricName": "ApplicationErrors",
+      "Namespace": "TTAUrban/Application",
+      "Statistic": "Sum",
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 10,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "notBreaching",
+      "ActionsEnabled": true,
+      "AlarmActions": [
+        "arn:aws:sns:ap-south-1:<account-id>:ttaurban-alerts"
+      ]
+    },
+    {
+      "AlarmName": "TTAUrban-High-CPU-Utilization",
+      "AlarmDescription": "Alert when ECS task CPU exceeds 80%",
+      "MetricName": "CPUUtilization",
+      "Namespace": "AWS/ECS",
+      "Statistic": "Average",
+      "Dimensions": [
+        {
+          "Name": "ServiceName",
+          "Value": "ttaurban-service"
+        },
+        {
+          "Name": "ClusterName",
+          "Value": "ttaurban-cluster"
+        }
+      ],
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 80,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "notBreaching",
+      "ActionsEnabled": true,
+      "AlarmActions": [
+        "arn:aws:sns:ap-south-1:<account-id>:ttaurban-alerts"
+      ]
+    },
+    {
+      "AlarmName": "TTAUrban-High-Memory-Utilization",
+      "AlarmDescription": "Alert when ECS task memory exceeds 80%",
+      "MetricName": "MemoryUtilization",
+      "Namespace": "AWS/ECS",
+      "Statistic": "Average",
+      "Dimensions": [
+        {
+          "Name": "ServiceName",
+          "Value": "ttaurban-service"
+        },
+        {
+          "Name": "ClusterName",
+          "Value": "ttaurban-cluster"
+        }
+      ],
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 80,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "notBreaching",
+      "ActionsEnabled": true,
+      "AlarmActions": [
+        "arn:aws:sns:ap-south-1:<account-id>:ttaurban-alerts"
+      ]
+    },
+    {
+      "AlarmName": "TTAUrban-Slow-API-Response",
+      "AlarmDescription": "Alert when API response time p95 exceeds 2 seconds",
+      "MetricName": "APIResponseTime",
+      "Namespace": "TTAUrban/Performance",
+      "ExtendedStatistic": "p95",
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 2000,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "notBreaching",
+      "ActionsEnabled": true,
+      "AlarmActions": [
+        "arn:aws:sns:ap-south-1:<account-id>:ttaurban-alerts"
+      ]
+    },
+    {
+      "AlarmName": "TTAUrban-High-5xx-Errors",
+      "AlarmDescription": "Alert when 5xx errors exceed threshold",
+      "MetricName": "HTTP5xxErrors",
+      "Namespace": "TTAUrban/Application",
+      "Statistic": "Sum",
+      "Period": 300,
+      "EvaluationPeriods": 1,
+      "Threshold": 5,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "notBreaching",
+      "ActionsEnabled": true,
+      "AlarmActions": [
+        "arn:aws:sns:ap-south-1:<account-id>:ttaurban-alerts"
+      ]
+    }
+  ],
+  "snsTopicConfiguration": {
+    "TopicName": "ttaurban-alerts",
+    "DisplayName": "TTA Urban Alerts",
+    "Subscriptions": [
+      {
+        "Protocol": "email",
+        "Endpoint": "devops@ttaurban.com"
+      },
+      {
+        "Protocol": "sms",
+        "Endpoint": "+1234567890"
+      }
+    ]
+  }
+}

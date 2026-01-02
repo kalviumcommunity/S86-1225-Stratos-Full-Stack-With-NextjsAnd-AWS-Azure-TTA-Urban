@@ -1,0 +1,107 @@
+{
+  "DashboardName": "TTAUrban-Production-Dashboard",
+  "DashboardBody": {
+    "widgets": [
+      {
+        "type": "metric",
+        "properties": {
+          "title": "Application Errors (Last Hour)",
+          "region": "ap-south-1",
+          "metrics": [
+            ["TTAUrban/Application", "ApplicationErrors", { "stat": "Sum", "label": "Total Errors" }]
+          ],
+          "period": 300,
+          "stat": "Sum",
+          "yAxis": {
+            "left": {
+              "min": 0
+            }
+          }
+        }
+      },
+      {
+        "type": "metric",
+        "properties": {
+          "title": "API Response Time (p50, p95, p99)",
+          "region": "ap-south-1",
+          "metrics": [
+            ["TTAUrban/Performance", "APIResponseTime", { "stat": "p50", "label": "p50" }],
+            ["...", { "stat": "p95", "label": "p95" }],
+            ["...", { "stat": "p99", "label": "p99" }]
+          ],
+          "period": 300,
+          "yAxis": {
+            "left": {
+              "label": "Milliseconds",
+              "min": 0
+            }
+          }
+        }
+      },
+      {
+        "type": "metric",
+        "properties": {
+          "title": "HTTP Status Codes",
+          "region": "ap-south-1",
+          "metrics": [
+            ["TTAUrban/Application", "HTTP5xxErrors", { "stat": "Sum", "label": "5xx Errors", "color": "#d62728" }],
+            [".", "HTTP4xxErrors", { "stat": "Sum", "label": "4xx Errors", "color": "#ff7f0e" }]
+          ],
+          "period": 300,
+          "stat": "Sum",
+          "yAxis": {
+            "left": {
+              "min": 0
+            }
+          }
+        }
+      },
+      {
+        "type": "metric",
+        "properties": {
+          "title": "ECS Task CPU Utilization",
+          "region": "ap-south-1",
+          "metrics": [
+            ["AWS/ECS", "CPUUtilization", { "stat": "Average", "serviceName": "ttaurban-service", "clusterName": "ttaurban-cluster" }]
+          ],
+          "period": 300,
+          "stat": "Average",
+          "yAxis": {
+            "left": {
+              "label": "Percent",
+              "min": 0,
+              "max": 100
+            }
+          }
+        }
+      },
+      {
+        "type": "metric",
+        "properties": {
+          "title": "ECS Task Memory Utilization",
+          "region": "ap-south-1",
+          "metrics": [
+            ["AWS/ECS", "MemoryUtilization", { "stat": "Average", "serviceName": "ttaurban-service", "clusterName": "ttaurban-cluster" }]
+          ],
+          "period": 300,
+          "stat": "Average",
+          "yAxis": {
+            "left": {
+              "label": "Percent",
+              "min": 0,
+              "max": 100
+            }
+          }
+        }
+      },
+      {
+        "type": "log",
+        "properties": {
+          "title": "Recent Error Logs",
+          "region": "ap-south-1",
+          "query": "SOURCE '/ecs/ttaurban'\n| fields @timestamp, message, context.requestId, context.endpoint, error.message\n| filter level = \"error\"\n| sort @timestamp desc\n| limit 20"
+        }
+      }
+    ]
+  }
+}
