@@ -3490,6 +3490,293 @@ to provision your database and update the configuration.
 
 ---
 
+## 🌐 Domain & SSL Setup
+
+This project includes automated scripts for configuring custom domains and SSL/TLS certificates for both **AWS** (using Route 53 + ACM) and **Azure** (using Azure DNS + Managed Certificates), ensuring secure HTTPS connections for production deployments.
+
+### Why Custom Domain & SSL?
+
+Production applications require professional branding and security:
+
+- ✅ **Professional Branding**: Use custom domain (e.g., `ttaurban.com`) instead of cloud provider URLs
+- ✅ **SSL/TLS Certificates**: Enable HTTPS for encrypted communication
+- ✅ **SEO Benefits**: Search engines prefer HTTPS sites
+- ✅ **User Trust**: Browser security indicators build confidence
+- ✅ **Compliance**: Meet security requirements (PCI DSS, GDPR, etc.)
+- ✅ **Auto-renewal**: Certificates renew automatically—no manual intervention
+
+### Supported Providers
+
+| Provider  | DNS Service | Certificate Service      | Cost                  | Documentation                                       |
+| --------- | ----------- | ------------------------ | --------------------- | --------------------------------------------------- |
+| **AWS**   | Route 53    | AWS Certificate Manager  | $0.50/hosted zone/mo  | [Setup Guide](ttaurban/docs/DOMAIN_SSL_SETUP.md#aws-route-53--acm-setup)     |
+| **Azure** | Azure DNS   | Managed Certificates     | $0.50/zone/mo         | [Setup Guide](ttaurban/docs/DOMAIN_SSL_SETUP.md#azure-dns--ssl-setup)        |
+
+> 💡 **SSL certificates are FREE** on both platforms with automatic renewal
+
+### Quick Start
+
+#### Prerequisites
+
+1. **Domain Name**: Purchase from any registrar (Namecheap, GoDaddy, Google Domains, etc.)
+2. **Cloud Account**: Active AWS or Azure subscription
+3. **Deployed Application**: App running on ECS (AWS) or App Service (Azure)
+
+#### AWS Route 53 + ACM Setup
+
+```bash
+# Run automated setup script
+cd ttaurban
+chmod +x setup-domain-aws.sh
+./setup-domain-aws.sh
+
+# Follow prompts:
+# 1. Enter your domain name (e.g., ttaurban.com)
+# 2. Enter AWS region (e.g., us-east-1)
+# 3. Enter your ECS Load Balancer ARN
+# 4. Script creates hosted zone, DNS records, SSL certificate, and attaches to ALB
+
+# Update nameservers at your domain registrar with the provided NS records
+```
+
+#### Azure DNS + Managed SSL Setup
+
+```bash
+# Run automated setup script
+cd ttaurban
+chmod +x setup-domain-azure.sh
+./setup-domain-azure.sh
+
+# Follow prompts:
+# 1. Enter your domain name (e.g., ttaurban.com)
+# 2. Enter Azure resource group name
+# 3. Enter App Service name
+# 4. Script creates DNS zone, adds records, and provisions SSL certificate
+
+# Update nameservers at your domain registrar with Azure NS servers
+```
+
+### Verify Configuration
+
+Use the PowerShell verification tool to test your domain and SSL setup:
+
+```powershell
+# Run domain verification script
+cd ttaurban
+.\verify-domain.ps1
+
+# Select platform:
+# [1] AWS (Route 53 + ACM)
+# [2] Azure (DNS + Managed Certificate)
+
+# Enter your domain when prompted
+
+# The script checks:
+# ✅ DNS resolution (A record, CNAME records)
+# ✅ SSL certificate validity (issuer, expiration, domain match)
+# ✅ HTTPS redirect (HTTP → HTTPS)
+# ✅ Security headers (HSTS, X-Frame-Options, CSP)
+```
+
+### Features Implemented
+
+**🔒 HTTPS Enforcement**
+
+- Automatic HTTP to HTTPS redirects configured in Next.js
+- HSTS headers for strict transport security
+- Certificate auto-renewal (AWS ACM & Azure Managed Certs)
+
+**🌐 DNS Management**
+
+- Automated DNS zone creation
+- A records for apex domain (ttaurban.com)
+- CNAME records for subdomains (www.ttaurban.com)
+- DNS validation for SSL certificates
+
+**📜 SSL/TLS Certificates**
+
+- Free certificates from AWS ACM and Azure Managed Certificates
+- Wildcard support (*.ttaurban.com)
+- Automatic 90-day renewal
+- Domain validation (DNS-based)
+
+**🔧 Automation Scripts**
+
+| Script                  | Purpose                              | Platform |
+| ----------------------- | ------------------------------------ | -------- |
+| `setup-domain-aws.sh`   | Automate Route 53 + ACM setup        | AWS      |
+| `setup-domain-azure.sh` | Automate Azure DNS + SSL setup       | Azure    |
+| `verify-domain.ps1`     | Verify domain & SSL configuration    | Both     |
+
+### Configuration Files
+
+**AWS Route 53 Records** ([aws-route53-records.json](ttaurban/aws-route53-records.json)):
+
+```json
+{
+  "domain": "ttaurban.com",
+  "records": [
+    {
+      "type": "A",
+      "name": "ttaurban.com",
+      "value": "${ALB_DNS_NAME}",
+      "alias": true
+    },
+    {
+      "type": "CNAME",
+      "name": "www.ttaurban.com",
+      "value": "ttaurban.com"
+    }
+  ]
+}
+```
+
+**Next.js HTTPS Redirects** ([next.config.mjs](ttaurban/next.config.mjs)):
+
+```javascript
+async redirects() {
+  return [
+    {
+      source: '/:path*',
+      has: [
+        {
+          type: 'header',
+          key: 'x-forwarded-proto',
+          value: 'http'
+        }
+      ],
+      destination: 'https://ttaurban.com/:path*',
+      permanent: true
+    }
+  ]
+}
+```
+
+### Security Headers
+
+HTTPS deployment includes security headers:
+
+- **HSTS**: Force HTTPS for 1 year (`max-age=31536000`)
+- **X-Frame-Options**: Prevent clickjacking (`DENY`)
+- **X-Content-Type-Options**: Prevent MIME sniffing (`nosniff`)
+- **Content-Security-Policy**: Restrict resource loading
+- **Referrer-Policy**: Control referrer information
+
+### Troubleshooting
+
+**Issue: Domain not resolving**
+
+```
+Cause: Nameservers not updated at domain registrar
+Solution:
+1. Run setup script and note the NS records
+2. Log in to your domain registrar
+3. Update nameservers to match the output
+4. Wait 1-48 hours for DNS propagation
+5. Test with: nslookup ttaurban.com
+```
+
+**Issue: SSL certificate pending validation**
+
+```
+Cause: DNS validation records not propagated
+Solution:
+1. AWS: Wait 5-30 minutes for Route 53 validation
+2. Azure: Wait 15-60 minutes for DNS propagation
+3. Check validation status in AWS ACM or Azure Portal
+4. Verify CNAME validation records exist
+```
+
+**Issue: HTTPS not redirecting**
+
+```
+Cause: Load balancer not forwarding proto header
+Solution:
+1. Verify ALB/App Gateway is configured for HTTPS
+2. Check next.config.mjs has redirect rules
+3. Ensure x-forwarded-proto header is forwarded
+4. Test manually: curl -I http://ttaurban.com
+```
+
+**Issue: Certificate domain mismatch**
+
+```
+Cause: Certificate issued for different domain
+Solution:
+1. Verify domain name matches in setup script
+2. For www support, request wildcard cert (*.ttaurban.com)
+3. Re-run setup script with correct domain
+4. Delete old certificates from ACM/Azure
+```
+
+### DNS Propagation
+
+DNS changes can take time to propagate globally:
+
+- **Route 53 Internal**: 60 seconds (AWS services)
+- **Global Propagation**: 1-48 hours (depends on TTL and ISP)
+- **Azure DNS**: Similar timing to Route 53
+
+**Check Propagation:**
+
+```bash
+# Check DNS resolution
+nslookup ttaurban.com
+
+# Check globally (online tools)
+# - https://dnschecker.org
+# - https://www.whatsmydns.net
+
+# Check specific nameserver
+nslookup ttaurban.com ns1-01.azure-dns.com
+```
+
+### Cost Breakdown
+
+| Service                | AWS Cost           | Azure Cost         |
+| ---------------------- | ------------------ | ------------------ |
+| DNS Hosted Zone        | $0.50/zone/month   | $0.50/zone/month   |
+| DNS Queries (1M)       | $0.40              | $0.40              |
+| SSL Certificate        | FREE (ACM)         | FREE (Managed)     |
+| Certificate Renewal    | Automatic (FREE)   | Automatic (FREE)   |
+| **Monthly Total**      | **~$0.50-1.00**    | **~$0.50-1.00**    |
+
+### Documentation
+
+- 📘 [Complete Domain & SSL Setup Guide](ttaurban/docs/DOMAIN_SSL_SETUP.md) - Comprehensive 300+ line documentation
+- 🔧 [Troubleshooting Guide](ttaurban/docs/DOMAIN_SSL_SETUP.md#troubleshooting) - Common issues & solutions
+- 🛡️ [Security Best Practices](ttaurban/docs/DOMAIN_SSL_SETUP.md#security-best-practices) - HTTPS configuration
+- 📊 [DNS Configuration Reference](ttaurban/docs/DOMAIN_SSL_SETUP.md#dns-configuration) - Record types & setup
+
+### Production Checklist
+
+Before going live with custom domain:
+
+- [ ] Domain purchased from registrar
+- [ ] DNS setup script executed successfully
+- [ ] Nameservers updated at domain registrar
+- [ ] DNS propagation verified (nslookup)
+- [ ] SSL certificate issued and validated
+- [ ] Certificate attached to load balancer / app gateway
+- [ ] HTTPS redirect tested and working
+- [ ] Security headers verified
+- [ ] www subdomain redirects to apex (or vice versa)
+- [ ] Mixed content warnings resolved (all assets via HTTPS)
+- [ ] Browser shows padlock icon
+- [ ] Certificate expiration monitoring enabled
+
+### Next Steps
+
+1. **Purchase Domain**: Buy from any domain registrar
+2. **Run Setup Script**: Execute `setup-domain-aws.sh` or `setup-domain-azure.sh`
+3. **Update Nameservers**: Configure at your domain registrar
+4. **Wait for Propagation**: Allow 1-48 hours for DNS to propagate globally
+5. **Verify Configuration**: Run `verify-domain.ps1` to check DNS and SSL
+6. **Test Application**: Access via HTTPS and verify functionality
+7. **Monitor**: Set up alerts for certificate expiration (automatic renewal)
+
+---
+
 ## 📦 Object Storage Configuration (AWS S3 / Azure Blob)
 
 This project supports secure file uploads and storage using **AWS S3** or **Azure Blob Storage** with presigned URLs and SAS tokens for temporary access.

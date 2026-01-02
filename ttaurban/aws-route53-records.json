@@ -1,0 +1,42 @@
+{
+  "Comment": "DNS configuration for TTA Urban application",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "ttaurban.com",
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "<ALB-HOSTED-ZONE-ID>",
+          "DNSName": "<ALB-DNS-NAME>",
+          "EvaluateTargetHealth": true
+        }
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "www.ttaurban.com",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "ttaurban.com"
+          }
+        ]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "api.ttaurban.com",
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "<ALB-HOSTED-ZONE-ID>",
+          "DNSName": "<ALB-DNS-NAME>",
+          "EvaluateTargetHealth": true
+        }
+      }
+    }
+  ]
+}
