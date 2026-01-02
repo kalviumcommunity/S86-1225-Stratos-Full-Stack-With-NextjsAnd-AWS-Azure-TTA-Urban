@@ -1,0 +1,71 @@
+name: Docker Build and Test
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - develop
+
+jobs:
+  build-and-test:
+    name: Build and Test Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: ttaurban:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run container for testing
+        run: |
+          docker run -d --name test-container -p 3000:3000 \
+            -e NODE_ENV=production \
+            ttaurban:test
+          
+          # Wait for container to start
+          sleep 10
+
+      - name: Test health endpoint
+        run: |
+          # Wait for app to be ready
+          timeout 60 bash -c 'until curl -f http://localhost:3000/api/health; do sleep 2; done'
+          
+          # Test the health endpoint
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health)
+          if [ $response -eq 200 ]; then
+            echo "✅ Health check passed!"
+          else
+            echo "❌ Health check failed with status code: $response"
+            exit 1
+          fi
+
+      - name: Check container logs
+        if: always()
+        run: |
+          echo "Container logs:"
+          docker logs test-container
+
+      - name: Stop and remove container
+        if: always()
+        run: |
+          docker stop test-container
+          docker rm test-container
+
+      - name: Image size check
+        run: |
+          IMAGE_SIZE=$(docker images ttaurban:test --format "{{.Size}}")
+          echo "Docker image size: $IMAGE_SIZE"
