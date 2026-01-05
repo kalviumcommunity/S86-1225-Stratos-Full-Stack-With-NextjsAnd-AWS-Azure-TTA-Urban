@@ -1,6 +1,16 @@
 // jest.setup.js
 import "@testing-library/jest-dom";
 
+// Polyfill Web APIs for Next.js (Request, Response, Headers, etc.)
+// These are needed for Next.js API route testing
+import { ReadableStream } from "node:stream/web";
+import { TextEncoder, TextDecoder } from "node:util";
+
+// Make Web APIs available globally for tests
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+global.ReadableStream = ReadableStream;
+
 // Mock Next.js router
 jest.mock("next/navigation", () => ({
   useRouter() {

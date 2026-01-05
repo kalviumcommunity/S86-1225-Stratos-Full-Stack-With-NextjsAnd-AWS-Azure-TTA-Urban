@@ -1,0 +1,173 @@
+name: CI - Unit and Integration Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ttaurban/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./ttaurban
+        run: npm ci
+
+      - name: Run linter
+        working-directory: ./ttaurban
+        run: npm run lint
+
+      - name: Run unit tests
+        working-directory: ./ttaurban
+        run: npm test -- --coverage
+        env:
+          NODE_ENV: test
+
+      - name: Check coverage thresholds
+        working-directory: ./ttaurban
+        run: |
+          echo "Verifying coverage meets 80% threshold..."
+          npm test -- --coverage --coverageReporters=text-summary
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./ttaurban/coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+
+      - name: Generate coverage badge
+        if: github.ref == 'refs/heads/main'
+        working-directory: ./ttaurban
+        run: |
+          echo "Coverage report generated successfully"
+          cat coverage/coverage-summary.json || echo "Coverage summary not found"
+
+      - name: Comment PR with coverage
+        if: github.event_name == 'pull_request'
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          lcov-file: ./ttaurban/coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: test
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: ttaurban/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./ttaurban
+        run: npm ci
+
+      - name: Setup test database
+        working-directory: ./ttaurban
+        env:
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/testdb
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy || echo "No migrations to run"
+
+      - name: Run integration tests
+        working-directory: ./ttaurban
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/testdb
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret-key-for-ci
+          JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci
+        run: npm test -- --testPathPattern=integration
+
+      - name: Cleanup
+        if: always()
+        run: echo "Integration tests completed"
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [test, integration-test]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: ttaurban/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./ttaurban
+        run: npm ci
+
+      - name: Build application
+        working-directory: ./ttaurban
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Verify build output
+        working-directory: ./ttaurban
+        run: |
+          if [ -d ".next" ]; then
+            echo "Build successful - .next directory created"
+            ls -la .next
+          else
+            echo "Build failed - .next directory not found"
+            exit 1
+          fi
