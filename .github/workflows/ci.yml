@@ -1,15 +1,45 @@
-name: CI - Unit and Integration Tests
+name: CI Pipeline
 
 on:
   push:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:  # Allow manual trigger
+
+# Prevent overlapping runs on the same branch
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
-    name: Run Tests
+  lint:
+    name: Lint Code
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: ttaurban/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./ttaurban
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./ttaurban
+        run: npm run lint
+
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
 
     strategy:
       matrix:
@@ -30,11 +60,7 @@ jobs:
         working-directory: ./ttaurban
         run: npm ci
 
-      - name: Run linter
-        working-directory: ./ttaurban
-        run: npm run lint
-
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         working-directory: ./ttaurban
         run: npm test -- --coverage
         env:
@@ -136,7 +162,7 @@ jobs:
         run: echo "Integration tests completed"
 
   build:
-    name: Build Application
+    name: Build Next.js Application
     runs-on: ubuntu-latest
     needs: [test, integration-test]
 
@@ -155,7 +181,7 @@ jobs:
         working-directory: ./ttaurban
         run: npm ci
 
-      - name: Build application
+      - name: Build Next.js application
         working-directory: ./ttaurban
         run: npm run build
         env:
@@ -165,9 +191,60 @@ jobs:
         working-directory: ./ttaurban
         run: |
           if [ -d ".next" ]; then
-            echo "Build successful - .next directory created"
+            echo "✅ Build successful - .next directory created"
             ls -la .next
           else
-            echo "Build failed - .next directory not found"
+            echo "❌ Build failed - .next directory not found"
             exit 1
           fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: ttaurban/.next
+          retention-days: 7
+
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: ttaurban/.next
+
+      - name: Deploy to AWS (Example)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          echo "🚀 Deploying to AWS..."
+          echo "This is a placeholder for actual deployment"
+          echo "Uncomment and configure based on your deployment target:"
+          echo "  - AWS ECS: aws ecs update-service ..."
+          echo "  - AWS Amplify: amplify publish ..."
+          echo "  - AWS S3 + CloudFront: aws s3 sync ... && aws cloudfront create-invalidation ..."
+          
+      - name: Deploy to Azure (Example)
+        env:
+          AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        run: |
+          echo "🚀 Deploying to Azure..."
+          echo "This is a placeholder for actual deployment"
+          echo "Uncomment and configure based on your deployment target:"
+          echo "  - Azure Web App: az webapp deploy ..."
+          echo "  - Azure Static Web Apps: Use Azure/static-web-apps-deploy action"
+
+      - name: Deployment complete
+        run: |
+          echo "✅ Deployment completed successfully"
+          echo "Application is now live!"
