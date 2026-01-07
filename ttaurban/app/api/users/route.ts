@@ -14,22 +14,78 @@ import { cacheHelpers } from "../../lib/redis";
 import { logger } from "../../lib/logger";
 import { withPermission } from "../../lib/authMiddleware";
 import { Permission } from "@/app/config/roles";
-import { sanitizeEmail, sanitizeInput, sanitizePhone, sanitizeObject, SanitizationLevel, logSecurityEvent } from "../../lib/sanitize";
+import {
+  sanitizeEmail,
+  sanitizeInput,
+  sanitizePhone,
+  sanitizeObject,
+  SanitizationLevel,
+  logSecurityEvent,
+} from "../../lib/sanitize";
 
 /**
- * GET /api/users
- * Returns a paginated list of all users with Redis caching
- *
- * Query Parameters:
- * - page: number (default: 1)
- * - limit: number (default: 10, max: 100)
- *
- * Cache Strategy:
- * - Cache key: users:list:page:{page}:limit:{limit}
- * - TTL: 60 seconds
- * - Invalidated on: POST (create), PUT/PATCH (update), DELETE
- *
- * @requires Permission: READ_USER
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: List all users
+ *     description: Returns a paginated list of all users with Redis caching. Requires READ_USER permission.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: Users fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized - missing or invalid JWT token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 export const GET = withPermission(
   Permission.READ_USER,
@@ -95,20 +151,81 @@ export const GET = withPermission(
 );
 
 /**
- * POST /api/users
- * Creates a new user with Zod validation
- * Invalidates users list cache after creation
- *
- * Request Body:
- * {
- *   "name": "string",
- *   "email": "string",
- *   "password": "string",
- *   "phone": "string?",
- *   "role": "ADMIN" | "EDITOR" | "VIEWER" | "USER"
- * }
- *
- * @requires Permission: CREATE_USER
+ * @swagger
+ * /api/users:
+ *   post:
+ *     summary: Create new user
+ *     description: Creates a new user with validated input and hashed password. Requires CREATE_USER permission. Invalidates user cache.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *               - role
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john.doe@example.com
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *                 format: password
+ *                 example: SecurePassword123!
+ *               phone:
+ *                 type: string
+ *                 pattern: '^\+?[1-9]\d{1,14}$'
+ *                 example: "+911234567890"
+ *               role:
+ *                 type: string
+ *                 enum: [CITIZEN, OFFICER, ADMIN]
+ *                 example: CITIZEN
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *                 message:
+ *                   type: string
+ *                   example: User created successfully
+ *       400:
+ *         description: Invalid input or user already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 export const POST = withPermission(
   Permission.CREATE_USER,
@@ -119,8 +236,12 @@ export const POST = withPermission(
       // Sanitize input first
       const sanitizedEmail = sanitizeEmail(body.email);
       if (!sanitizedEmail) {
-        logSecurityEvent('invalid_email_user_creation', { email: body.email });
-        return sendError("Invalid email format", ERROR_CODES.VALIDATION_ERROR, 400);
+        logSecurityEvent("invalid_email_user_creation", { email: body.email });
+        return sendError(
+          "Invalid email format",
+          ERROR_CODES.VALIDATION_ERROR,
+          400
+        );
       }
 
       const sanitizedBody = {

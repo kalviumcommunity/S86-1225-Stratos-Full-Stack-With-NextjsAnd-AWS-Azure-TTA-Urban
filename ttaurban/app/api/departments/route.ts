@@ -12,12 +12,44 @@ import { handleError } from "../../lib/errorHandler";
 import { sanitizeObject, SanitizationLevel } from "../../lib/sanitize";
 
 /**
- * GET /api/departments
- * Returns a paginated list of all departments
- *
- * Query Parameters:
- * - page: number (default: 1)
- * - limit: number (default: 10, max: 100)
+ * @swagger
+ * /api/departments:
+ *   get:
+ *     summary: List all departments
+ *     description: Returns a paginated list of departments with complaint counts
+ *     tags: [Departments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Departments fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Department'
+ *                 pagination:
+ *                   type: object
  */
 export async function GET(req: Request) {
   try {
@@ -48,14 +80,48 @@ export async function GET(req: Request) {
 }
 
 /**
- * POST /api/departments
- * Creates a new department with Zod validation
- *
- * Request Body:
- * {
- *   "name": "string",
- *   "description": "string?"
- * }
+ * @swagger
+ * /api/departments:
+ *   post:
+ *     summary: Create new department
+ *     description: Creates a new department with unique name
+ *     tags: [Departments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *                 example: Public Works
+ *               description:
+ *                 type: string
+ *                 example: Handles infrastructure and maintenance issues
+ *     responses:
+ *       201:
+ *         description: Department created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Department'
+ *       409:
+ *         description: Department name already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 export async function POST(req: Request) {
   try {

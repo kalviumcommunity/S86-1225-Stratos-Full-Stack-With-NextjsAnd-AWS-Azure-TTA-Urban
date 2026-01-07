@@ -20,6 +20,77 @@ const uploadRequestSchema = z.object({
   fileSize: z.number().optional(),
 });
 
+/**
+ * @swagger
+ * /api/upload:
+ *   post:
+ *     summary: Generate pre-signed upload URL
+ *     description: Generates a pre-signed S3 URL for direct file upload. Supports images and PDFs up to 10MB.
+ *     tags: [Files]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - filename
+ *               - fileType
+ *             properties:
+ *               filename:
+ *                 type: string
+ *                 description: Original filename
+ *                 example: complaint-photo.jpg
+ *               fileType:
+ *                 type: string
+ *                 enum: [image/jpeg, image/png, image/jpg, image/gif, application/pdf]
+ *                 description: MIME type of the file
+ *                 example: image/jpeg
+ *               fileSize:
+ *                 type: number
+ *                 description: File size in bytes (max 10MB)
+ *                 example: 2048000
+ *     responses:
+ *       200:
+ *         description: Pre-signed URL generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 uploadURL:
+ *                   type: string
+ *                   format: uri
+ *                   description: Pre-signed S3 URL (valid for 60 seconds)
+ *                 fileKey:
+ *                   type: string
+ *                   description: Unique S3 object key
+ *                   example: 1704633600000-complaint-photo.jpg
+ *                 publicURL:
+ *                   type: string
+ *                   format: uri
+ *                   description: Public URL to access uploaded file
+ *       400:
+ *         description: Invalid file type or size exceeds limit
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             examples:
+ *               unsupportedType:
+ *                 value:
+ *                   success: false
+ *                   message: Unsupported file type. Only images (JPEG, PNG, GIF) and PDFs are allowed.
+ *               sizeExceeded:
+ *                 value:
+ *                   success: false
+ *                   message: File size exceeds 10MB limit.
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();

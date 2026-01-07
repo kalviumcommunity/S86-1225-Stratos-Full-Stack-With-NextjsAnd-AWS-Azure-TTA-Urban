@@ -14756,6 +14756,169 @@ All checks passed. Deployment is healthy.
 ```
 
 ---
+
+# 📚 Documentation
+
+Comprehensive documentation to help you understand, develop, and maintain the TTA-Urban system.
+
+## Quick Links
+
+| Documentation | Description | Link |
+|--------------|-------------|------|
+| **API Documentation** | Complete REST API reference with all endpoints, request/response examples, and authentication details | [📖 API_DOCUMENTATION.md](ttaurban/docs/API_DOCUMENTATION.md) |
+| **Interactive API Docs** | Swagger UI with interactive API testing capabilities | [🔗 http://localhost:3000/api/docs](http://localhost:3000/api/docs) |
+| **System Architecture** | High-level system design, technology stack, data flow, and deployment architecture | [🏗️ ARCHITECTURE.md](ttaurban/ARCHITECTURE.md) |
+| **API Changelog** | Version history, breaking changes, and migration guides | [📝 API_CHANGELOG.md](ttaurban/docs/API_CHANGELOG.md) |
+| **Deployment Guide** | Step-by-step deployment instructions for AWS and Azure | [🚀 DEPLOYMENT.md](ttaurban/docs/DEPLOYMENT.md) |
+| **Deployment Verification** | Health checks, smoke tests, and rollback procedures | [✅ DEPLOYMENT_VERIFICATION.md](ttaurban/docs/DEPLOYMENT_VERIFICATION.md) |
+| **Database Setup** | Cloud database configuration and connection guides | [💾 CLOUD_DATABASE_SETUP.md](ttaurban/docs/CLOUD_DATABASE_SETUP.md) |
+| **Domain & SSL Setup** | Custom domain and SSL certificate configuration | [🔒 DOMAIN_SSL_SETUP.md](ttaurban/docs/DOMAIN_SSL_SETUP.md) |
+| **Logging & Monitoring** | CloudWatch and Application Insights setup | [📊 LOGGING_MONITORING_SETUP.md](ttaurban/docs/LOGGING_MONITORING_SETUP.md) |
+
+## 🔌 API Documentation
+
+### Swagger/OpenAPI Documentation
+
+The TTA-Urban API is fully documented using **OpenAPI 3.0** specification with an interactive Swagger UI interface.
+
+**Access Swagger UI:**
+- **Local Development:** http://localhost:3000/api/docs
+- **Azure Production:** https://ttaurban.azurewebsites.net/api/docs
+- **AWS Production:** https://your-aws-domain.com/api/docs
+
+**Features:**
+- 📝 Complete endpoint documentation with request/response schemas
+- 🧪 Interactive "Try it out" functionality to test APIs directly
+- 🔐 JWT authentication support for protected endpoints
+- 📊 Response examples for all status codes
+- 🏷️ Organized by tags (Authentication, Users, Complaints, etc.)
+
+**API Specification:**
+- OpenAPI JSON: http://localhost:3000/api/docs/swagger
+- Version: 1.0.0
+- Base URL: Configurable for dev/staging/production
+
+### Key API Endpoints
+
+| Category | Endpoint | Method | Description |
+|----------|----------|--------|-------------|
+| **Health** | `/api/health` | GET | Basic health check |
+| **Auth** | `/api/auth/login` | POST | User authentication |
+| **Auth** | `/api/auth/signup` | POST | User registration |
+| **Users** | `/api/users` | GET | List all users |
+| **Users** | `/api/users/[id]` | GET/PATCH/DELETE | User operations |
+| **Complaints** | `/api/complaints` | GET/POST | Complaint management |
+| **Complaints** | `/api/complaints/[id]` | GET/PATCH/DELETE | Complaint operations |
+| **Departments** | `/api/departments` | GET/POST | Department management |
+| **Files** | `/api/files/upload` | POST | File upload to S3/Blob |
+
+**Authentication:**
+All protected endpoints require a JWT bearer token:
+```bash
+Authorization: Bearer <your-jwt-token>
+```
+
+## 🏗️ System Architecture
+
+The TTA-Urban system follows a **modern full-stack architecture** with:
+
+- **Frontend:** Next.js 16 with React 19, TypeScript, Tailwind CSS
+- **Backend:** Next.js API Routes (serverless)
+- **Database:** PostgreSQL with Prisma ORM
+- **Storage:** AWS S3 / Azure Blob Storage
+- **Deployment:** Docker containers on AWS ECS / Azure App Service
+- **CI/CD:** GitHub Actions with automated testing and deployment
+
+**Key Architectural Patterns:**
+- RESTful API design
+- JWT-based authentication
+- Role-based access control (RBAC)
+- Structured logging with request IDs
+- Health check endpoints for container orchestration
+- Automated deployment verification and rollback
+
+For detailed architecture diagrams and component interactions, see [ARCHITECTURE.md](ttaurban/ARCHITECTURE.md).
+
+## 📝 Changelog & Versioning
+
+The API follows **Semantic Versioning** (semver):
+- **Current Version:** 1.0.0
+- **Breaking Changes:** Will increment major version
+- **New Features:** Will increment minor version
+- **Bug Fixes:** Will increment patch version
+
+**Recent Changes:**
+- **v1.0.0 (2026-01-07):** Initial production release
+  - Complete authentication & authorization
+  - User, complaint, and department management
+  - File upload functionality
+  - Health monitoring endpoints
+  - Swagger/OpenAPI documentation
+  - Deployment verification & rollback
+
+See [API_CHANGELOG.md](ttaurban/docs/API_CHANGELOG.md) for complete version history and migration guides.
+
+## 🚀 Getting Started with Documentation
+
+### For Developers
+
+1. **Start Here:** Read [ARCHITECTURE.md](ttaurban/ARCHITECTURE.md) to understand the system
+2. **API Reference:** Browse [API_DOCUMENTATION.md](ttaurban/docs/API_DOCUMENTATION.md) for endpoint details
+3. **Interactive Testing:** Use Swagger UI at http://localhost:3000/api/docs
+4. **Local Setup:** Follow the installation guide in this README
+
+### For Operators/DevOps
+
+1. **Deployment:** Read [DEPLOYMENT.md](ttaurban/docs/DEPLOYMENT.md)
+2. **Verification:** Follow [DEPLOYMENT_VERIFICATION.md](ttaurban/docs/DEPLOYMENT_VERIFICATION.md)
+3. **Monitoring:** Set up using [LOGGING_MONITORING_SETUP.md](ttaurban/docs/LOGGING_MONITORING_SETUP.md)
+4. **Troubleshooting:** Check health endpoints and logs
+
+### For New Contributors
+
+1. **System Overview:** [ARCHITECTURE.md](ttaurban/ARCHITECTURE.md) explains all components
+2. **Development Workflow:** This README contains setup and contribution guidelines
+3. **API Design:** [API_DOCUMENTATION.md](ttaurban/docs/API_DOCUMENTATION.md) shows API patterns
+4. **Code Examples:** Browse `app/api/` directory for implementation examples
+
+## 📸 Swagger UI Preview
+
+The interactive API documentation provides:
+- Complete request/response schemas
+- Authentication flow demonstrations
+- Error response examples
+- Try-it-out functionality for all endpoints
+
+![Swagger UI Screenshot](docs/images/swagger-ui-preview.png)
+*Interactive API documentation with Swagger UI*
+
+## 🔄 Keeping Documentation Updated
+
+Documentation is treated as **living code** and updated with every feature:
+
+**When to Update Documentation:**
+- ✅ Adding new API endpoints → Update Swagger JSDoc comments
+- ✅ Changing request/response format → Update API_DOCUMENTATION.md
+- ✅ Modifying architecture → Update ARCHITECTURE.md
+- ✅ Breaking changes → Add to API_CHANGELOG.md with migration guide
+- ✅ New deployment procedure → Update DEPLOYMENT.md
+
+**Documentation Workflow:**
+1. Make code changes
+2. Add/update Swagger `@swagger` JSDoc comments
+3. Update relevant markdown documentation
+4. Test documentation in Swagger UI
+5. Include documentation updates in pull request
+
+## 📞 Documentation Support
+
+- **Questions:** Open an issue on GitHub
+- **Improvements:** Submit a pull request
+- **Email:** dev@ttaurban.com
+- **Slack:** #ttaurban-dev channel
+
+---
+
 # Smoke Tests
 
 Smoke tests are **quick, critical checks** that run immediately after deployment to ensure the application's core functionality is working.

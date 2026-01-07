@@ -4,20 +4,118 @@ import { prisma } from "../../../lib/prisma";
 import { signupSchema } from "../../../lib/schemas/authSchema";
 import { handleError } from "../../../lib/errorHandler";
 import { generateTokenPair } from "../../../lib/jwt";
-import { sanitizeEmail, sanitizeInput, sanitizePhone, SanitizationLevel, logSecurityEvent } from "../../../lib/sanitize";
+import {
+  sanitizeEmail,
+  sanitizeInput,
+  sanitizePhone,
+  SanitizationLevel,
+  logSecurityEvent,
+} from "../../../lib/sanitize";
 
 /**
- * POST /api/auth/signup
- * User registration endpoint with secure password hashing
- *
- * Request Body:
- * {
- *   "name": "string",
- *   "email": "string",
- *   "password": "string",
- *   "phone": "string?" (optional),
- *   "role": "CITIZEN" | "OFFICER" | "ADMIN" (default: CITIZEN)
- * }
+ * @swagger
+ * /api/auth/signup:
+ *   post:
+ *     summary: User registration
+ *     description: Register a new user with email, password, and profile information. Returns JWT tokens upon successful registration.
+ *     tags: [Authentication]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *                 description: User's full name
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Unique email address
+ *                 example: john.doe@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 8
+ *                 description: Password (min 8 characters)
+ *                 example: SecurePassword123!
+ *               phone:
+ *                 type: string
+ *                 pattern: '^\+?[1-9]\d{1,14}$'
+ *                 description: Optional phone number in E.164 format
+ *                 example: "+911234567890"
+ *               role:
+ *                 type: string
+ *                 enum: [CITIZEN, OFFICER, ADMIN]
+ *                 default: CITIZEN
+ *                 description: User role (defaults to CITIZEN)
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: User registered successfully
+ *                 accessToken:
+ *                   type: string
+ *                   description: JWT access token
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                       nullable: true
+ *                     role:
+ *                       type: string
+ *                       enum: [CITIZEN, OFFICER, ADMIN]
+ *         headers:
+ *           Set-Cookie:
+ *             description: HTTP-only refresh token cookie
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Invalid input or user already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             examples:
+ *               invalidEmail:
+ *                 value:
+ *                   success: false
+ *                   message: Invalid email format
+ *               userExists:
+ *                 value:
+ *                   success: false
+ *                   message: User already exists with this email
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 export async function POST(req: Request) {
   try {
