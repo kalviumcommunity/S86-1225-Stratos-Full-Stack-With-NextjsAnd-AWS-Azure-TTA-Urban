@@ -49,6 +49,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Web App
+        id: deploy-azure
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
@@ -80,19 +81,117 @@ jobs:
             --name ${{ env.AZURE_WEBAPP_NAME }} \
             --resource-group ${{ env.RESOURCE_GROUP }}
 
-      - name: Verify deployment
+      - name: Get deployment URL
+        id: get-url
         run: |
-          echo "Deployment completed successfully!"
-          echo "App Name: ${{ env.AZURE_WEBAPP_NAME }}"
-          echo "Image: ${{ env.ACR_NAME }}.azurecr.io/ttaurban:${{ github.sha }}"
-          
-          # Get the app URL
           APP_URL=$(az webapp show \
             --name ${{ env.AZURE_WEBAPP_NAME }} \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --query defaultHostName \
             --output tsv)
-          echo "App URL: https://$APP_URL"
+          echo "app_url=https://$APP_URL" >> $GITHUB_OUTPUT
+          echo "Deployed to: https://$APP_URL"
+
+      - name: Wait for deployment to stabilize
+        run: |
+          echo "Waiting 45 seconds for Azure App Service to fully restart..."
+          sleep 45
+
+      - name: Health Check Verification
+        id: health-check
+        run: |
+          echo "Running health check against deployed application..."
+          MAX_RETRIES=15
+          RETRY_COUNT=0
+          HEALTH_URL="${{ steps.get-url.outputs.app_url }}/api/health"
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            echo "Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES - Checking $HEALTH_URL"
+            
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+            
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Health check passed! (HTTP $HTTP_CODE)"
+              
+              # Verify health response contains expected fields
+              RESPONSE=$(curl -s "$HEALTH_URL")
+              echo "Health Response: $RESPONSE"
+              
+              if echo "$RESPONSE" | grep -q '"status":"healthy"'; then
+                echo "✅ Health status is healthy"
+                exit 0
+              else
+                echo "⚠️ Health endpoint responded but status is not healthy"
+              fi
+            else
+              echo "❌ Health check failed with HTTP $HTTP_CODE"
+            fi
+            
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "Retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+          
+          echo "❌ Health check failed after $MAX_RETRIES attempts"
+          exit 1
+
+      - name: Install Node.js for smoke tests
+        if: success()
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for smoke tests
+        if: success()
+        working-directory: ./ttaurban
+        run: npm ci --only=production
+
+      - name: Run Smoke Tests
+        if: success()
+        working-directory: ./ttaurban
+        env:
+          APP_URL: ${{ steps.get-url.outputs.app_url }}
+        run: |
+          echo "Running smoke tests against $APP_URL..."
+          npm run test:smoke
+        continue-on-error: false
+
+      - name: Deployment Success Notification
+        if: success()
+        run: |
+          echo "✅ DEPLOYMENT SUCCESSFUL!"
+          echo "================================"
+          echo "App Name: ${{ env.AZURE_WEBAPP_NAME }}"
+          echo "Image: ${{ env.ACR_NAME }}.azurecr.io/ttaurban:${{ github.sha }}"
+          echo "URL: ${{ steps.get-url.outputs.app_url }}"
+          echo "Health Check: PASSED"
+          echo "Smoke Tests: PASSED"
+          echo "================================"
+
+      - name: Rollback on Failure
+        if: failure() && steps.deploy-azure.outcome == 'success'
+        run: |
+          echo "❌ DEPLOYMENT VERIFICATION FAILED - INITIATING ROLLBACK"
+          echo "Rolling back to previous container image..."
+          
+          # Deploy the 'latest' tag which should be the previous stable version
+          # In production, you'd want to tag and track specific versions
+          az webapp config container set \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --docker-custom-image-name ${{ env.ACR_NAME }}.azurecr.io/ttaurban:latest \
+            2>&1 || echo "Rollback command executed"
+          
+          # Restart the app service
+          az webapp restart \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }}
+          
+          echo "⚠️ Rollback initiated. Please verify service stability."
+          echo "Check Azure Monitor and App Service logs for details."
+          exit 1
 
       - name: Azure logout
         if: always()
@@ -103,7 +202,7 @@ jobs:
         if: always()
         run: |
           if [ ${{ job.status }} == 'success' ]; then
-            echo "✅ Deployment successful!"
+            echo "✅ Deployment successful and verified!"
           else
-            echo "❌ Deployment failed!"
+            echo "❌ Deployment failed or verification failed - rollback initiated!"
           fi

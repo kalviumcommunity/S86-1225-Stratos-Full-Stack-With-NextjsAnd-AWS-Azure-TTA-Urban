@@ -13,6 +13,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "test:smoke": "jest --testPathPattern=__smoke_tests__ --runInBand --bail",
     "prisma:seed": "tsx prisma/seed.ts",
     "db:test": "node scripts/test-cloud-db.js",
     "db:test:aws": "node scripts/test-cloud-db.js --provider=aws",

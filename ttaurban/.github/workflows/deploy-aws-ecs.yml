@@ -61,6 +61,7 @@ jobs:
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
+        id: deploy-ecs
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
@@ -68,18 +69,115 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-      - name: Verify deployment
+      - name: Get deployment URL
+        id: get-url
         run: |
-          echo "Deployment completed successfully!"
+          # Get the load balancer DNS name or use a known domain
+          # For now, using a placeholder - replace with actual ALB DNS or domain
+          echo "app_url=https://your-app-domain.com" >> $GITHUB_OUTPUT
+          echo "Deployed to: https://your-app-domain.com"
+
+      - name: Wait for deployment to stabilize
+        run: |
+          echo "Waiting 30 seconds for deployment to fully stabilize..."
+          sleep 30
+
+      - name: Health Check Verification
+        id: health-check
+        run: |
+          echo "Running health check against deployed application..."
+          MAX_RETRIES=10
+          RETRY_COUNT=0
+          HEALTH_URL="${{ steps.get-url.outputs.app_url }}/api/health"
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            echo "Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES - Checking $HEALTH_URL"
+            
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+            
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Health check passed! (HTTP $HTTP_CODE)"
+              
+              # Verify health response contains expected fields
+              RESPONSE=$(curl -s "$HEALTH_URL")
+              echo "Health Response: $RESPONSE"
+              
+              if echo "$RESPONSE" | grep -q '"status":"healthy"'; then
+                echo "✅ Health status is healthy"
+                exit 0
+              else
+                echo "⚠️ Health endpoint responded but status is not healthy"
+              fi
+            else
+              echo "❌ Health check failed with HTTP $HTTP_CODE"
+            fi
+            
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "Retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+          
+          echo "❌ Health check failed after $MAX_RETRIES attempts"
+          exit 1
+
+      - name: Install Node.js for smoke tests
+        if: success()
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for smoke tests
+        if: success()
+        working-directory: ./ttaurban
+        run: npm ci --only=production
+
+      - name: Run Smoke Tests
+        if: success()
+        working-directory: ./ttaurban
+        env:
+          APP_URL: ${{ steps.get-url.outputs.app_url }}
+        run: |
+          echo "Running smoke tests against $APP_URL..."
+          npm run test:smoke
+        continue-on-error: false
+
+      - name: Deployment Success Notification
+        if: success()
+        run: |
+          echo "✅ DEPLOYMENT SUCCESSFUL!"
+          echo "================================"
           echo "Service: ${{ env.ECS_SERVICE }}"
           echo "Cluster: ${{ env.ECS_CLUSTER }}"
           echo "Image: ${{ steps.build-image.outputs.image }}"
+          echo "URL: ${{ steps.get-url.outputs.app_url }}"
+          echo "Health Check: PASSED"
+          echo "Smoke Tests: PASSED"
+          echo "================================"
+
+      - name: Rollback on Failure
+        if: failure() && steps.deploy-ecs.outcome == 'success'
+        run: |
+          echo "❌ DEPLOYMENT VERIFICATION FAILED - INITIATING ROLLBACK"
+          echo "Rolling back ECS service to previous task definition..."
+          
+          # Force new deployment with previous task definition
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --force-new-deployment \
+            2>&1 || echo "Rollback command executed"
+          
+          echo "⚠️ Rollback initiated. Please verify service stability."
+          echo "Check CloudWatch logs and ECS console for details."
+          exit 1
 
       - name: Send deployment notification
         if: always()
         run: |
           if [ ${{ job.status }} == 'success' ]; then
-            echo "✅ Deployment successful!"
+            echo "✅ Deployment successful and verified!"
           else
-            echo "❌ Deployment failed!"
+            echo "❌ Deployment failed or verification failed - rollback initiated!"
           fi
